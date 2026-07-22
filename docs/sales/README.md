@@ -1,4 +1,16 @@
-# SignKit Sales Workspace
+# SignKit Sales Workspace — Compatibility Pointer
+
+The canonical reusable sales/pipeline project is now
+[`/Users/pranay/Projects/commercial-pipeline`](</Users/pranay/Projects/commercial-pipeline>).
+SignKit is configured there as client ID `signkit`, alongside the generic schema and
+future client configurations.
+
+This directory is retained as a historical compatibility snapshot so existing links
+and prior research are not silently destroyed. New prospect rows, outreach activity,
+pipeline decisions, and cross-app operating rules must be maintained in the standalone
+commercial-pipeline project.
+
+## Historical SignKit snapshot
 
 This directory is the durable commercial workspace for SignKit. It keeps product
 positioning, prospect research, outreach, pipeline state, experiments, and sales
