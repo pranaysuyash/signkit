@@ -16,14 +16,16 @@ from PIL import Image as PILImage
 # Standalone utilities extracted to separate modules
 from desktop_app.views.main_window_parts.extraction_utils import (
     AsyncRunner,
+    dispatch,
     run_async,
+    run_signature_preview,
     _rgba,
     _create_button,
     _clear_layout,
 )
 from desktop_app.views.main_window_parts.extraction_widgets import ElidingButton
 
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtCore import QTimer, Qt, QPoint, QBuffer, QIODevice, QUrl, QEvent
 from PySide6.QtGui import QColor, QDesktopServices, QFont, QFontMetrics, QImage, QKeySequence, QPalette, QPixmap, QShortcut, QTransform
 from PySide6.QtWidgets import (
@@ -31,6 +33,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -734,12 +737,6 @@ class ExtractionTabMixin:
         self.batch_process_next_btn.setProperty("compact", True)
         self.batch_process_next_btn.clicked.connect(self.on_batch_process_next)
 
-        queue_btn_row = QHBoxLayout()
-        queue_btn_row.addWidget(self.batch_add_btn)
-        queue_btn_row.addWidget(self.batch_process_selected_btn)
-        queue_btn_row.addWidget(self.batch_process_next_btn)
-        controls.addLayout(queue_btn_row)
-
         self.batch_process_all_btn = _create_button("Process Queue", parent_widget, primary=True)
         self.batch_process_all_btn.setObjectName("batchProcessAllButton")
         self.batch_process_all_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -762,11 +759,18 @@ class ExtractionTabMixin:
         self.batch_clear_btn.setProperty("compact", True)
         self.batch_clear_btn.clicked.connect(self.on_batch_clear)
 
-        queue_action_row = QHBoxLayout()
-        queue_action_row.addWidget(self.batch_process_all_btn)
-        queue_action_row.addWidget(self.batch_remove_btn)
-        queue_action_row.addWidget(self.batch_clear_btn)
-        controls.addLayout(queue_action_row)
+        queue_actions = QGridLayout()
+        queue_actions.setHorizontalSpacing(8)
+        queue_actions.setVerticalSpacing(8)
+        queue_actions.addWidget(self.batch_add_btn, 0, 0)
+        queue_actions.addWidget(self.batch_process_selected_btn, 0, 1)
+        queue_actions.addWidget(self.batch_process_next_btn, 1, 0)
+        queue_actions.addWidget(self.batch_process_all_btn, 1, 1)
+        queue_actions.addWidget(self.batch_remove_btn, 2, 0)
+        queue_actions.addWidget(self.batch_clear_btn, 2, 1)
+        queue_actions.setColumnStretch(0, 1)
+        queue_actions.setColumnStretch(1, 1)
+        controls.addLayout(queue_actions)
 
         self.batch_status_label = QLabel("Queue: 0 / 0 done")
         self.batch_status_label.setObjectName("batchStatusLabel")
@@ -1351,6 +1355,10 @@ class ExtractionTabMixin:
         self._preview_timer = QTimer(cast(QWidget, self))
         self._preview_timer.setSingleShot(True)
         self._preview_timer.timeout.connect(self.on_preview)
+        # Monotonic id guarding against stale background preview results
+        # (e.g. two schedule_preview() calls firing before the first worker
+        # finishes). Only the result matching the latest id is applied.
+        self._preview_request_id = 0
 
         # Health check timer - check backend every 15 seconds
         self._health_timer = QTimer(cast(QWidget, self))
@@ -1790,7 +1798,7 @@ class ExtractionTabMixin:
             LOG.error(f"Failed to load sample image: {e}", exc_info=True)
             self.status_bar.showMessage(f"Failed to load sample: {str(e)[:50]}", 3000)
 
-    def _load_image_from_path(self, file_path: str) -> str | None:
+    def _load_image_from_path(self, file_path: str, *, auto_select: bool = True) -> str | None:
         if not os.path.exists(file_path):
             raise FileNotFoundError(file_path)
 
@@ -1844,7 +1852,7 @@ class ExtractionTabMixin:
             }
             
             # Call the existing upload finished handler
-            loaded_session_id = self._on_upload_finished(file_path, payload)
+            loaded_session_id = self._on_upload_finished(file_path, payload, auto_select=auto_select)
             self._sync_backend_session(file_path)
             return loaded_session_id
         except Exception as e:
@@ -1856,7 +1864,7 @@ class ExtractionTabMixin:
             self.status_bar.showMessage(f"Failed to load image: {str(e)[:50]}", 5000)
             raise
 
-    def _on_upload_finished(self, file_path: str, payload) -> str | None:
+    def _on_upload_finished(self, file_path: str, payload, *, auto_select: bool = True) -> str | None:
         """Handle completion of async upload."""
         self.open_btn.setEnabled(True)  # Re-enable
         if hasattr(self, "capture_btn"):
@@ -1894,8 +1902,9 @@ class ExtractionTabMixin:
             
             self.status_bar.showMessage("Image loaded successfully", 3000)
 
-            # Auto-detect signature region
-            QTimer.singleShot(100, lambda: self._auto_select_signature(session_id))
+            # Auto-detect signature region for direct loads; library items opt out.
+            if auto_select:
+                QTimer.singleShot(100, lambda: self._auto_select_signature(session_id))
 
             self._last_result_png = None
             self.preview_view.clear_image()
@@ -2210,7 +2219,15 @@ class ExtractionTabMixin:
         self.schedule_preview()
 
     def on_preview(self):
-        """Process the selected region and show the result."""
+        """Process the selected region and show the result.
+
+        Extraction, backend sync, and quality analysis run on a QThreadPool
+        worker (see run_signature_preview) so the UI thread never blocks on
+        cv2/K-Means work or a network call. Only UI reads/writes (selection
+        coords, threshold widget, cursor/status) happen here on the main
+        thread; everything CPU/IO-bound is dispatched to the worker and its
+        result is applied by _on_preview_worker_finished.
+        """
         self.status_bar.showMessage("Processing selection...", 0)
         if not self.session.session_id:
             QMessageBox.warning(cast(QWidget, self), "No image uploaded", "Please open & upload an image first")
@@ -2243,68 +2260,94 @@ class ExtractionTabMixin:
         import time
         start_time = time.time()
 
-        try:
-            # Check extraction mode
-            is_forensic = self.mode_combo.currentIndex() == 1
-            threshold_value = int(self.threshold.value())
+        # Check extraction mode
+        is_forensic = self.mode_combo.currentIndex() == 1
+        threshold_value = int(self.threshold.value())
 
-            if is_forensic:
-                # Use K-Means clustering
-                png_bytes = self.local_extractor.process_selection_kmeans(
-                    session_id=self.session.session_id,
-                    x1=x1, y1=y1, x2=x2, y2=y2,
-                    k=2  # Default to 2 clusters (Ink vs Background)
-                )
-            else:
-                auto_threshold_active = self.auto_threshold_cb.isChecked()
-                if auto_threshold_active:
-                    computed = self._compute_auto_threshold()
-                    if computed is not None:
-                        threshold_value = int(round(computed))
-                        self.threshold.blockSignals(True)
-                        self.threshold.setValue(threshold_value)
-                        self.threshold.blockSignals(False)
+        if not is_forensic and self.auto_threshold_cb.isChecked():
+            # Auto-threshold reads/writes the threshold widget, which must
+            # stay on the UI thread; resolve it before dispatching the worker.
+            computed = self._compute_auto_threshold()
+            if computed is not None:
+                threshold_value = int(round(computed))
+                self.threshold.blockSignals(True)
+                self.threshold.setValue(threshold_value)
+                self.threshold.blockSignals(False)
 
-                # Use standard thresholding
-                png_bytes = self.local_extractor.process_selection(
-                    session_id=self.session.session_id,
-                    x1=x1, y1=y1, x2=x2, y2=y2,
-                    color=self._color_hex,
-                    threshold=threshold_value,
-                    auto_clean=self.auto_clean_cb.isChecked()
-                )
+        self._preview_request_id += 1
+        request_id = self._preview_request_id
 
-            self._persist_selection_to_backend(
-                x1=x1,
-                y1=y1,
-                x2=x2,
-                y2=y2,
-                threshold=threshold_value,
-                color=self._color_hex,
+        persist_fn = partial(
+            self._persist_selection_to_backend,
+            x1=x1, y1=y1, x2=x2, y2=y2,
+            threshold=threshold_value,
+            color=self._color_hex,
+        )
+        worker_func = partial(
+            run_signature_preview,
+            extractor=self.local_extractor,
+            is_forensic=is_forensic,
+            session_id=self.session.session_id,
+            x1=x1, y1=y1, x2=x2, y2=y2,
+            threshold_value=threshold_value,
+            color_hex=self._color_hex,
+            auto_clean=self.auto_clean_cb.isChecked(),
+            persist_fn=persist_fn,
+            request_id=request_id,
+            start_time=start_time,
+        )
+
+        # IMPORTANT: Store runner as instance variable to prevent garbage collection
+        self._preview_runner = AsyncRunner(worker_func)
+        self._preview_runner.finished.connect(self._on_preview_worker_finished)
+        self._preview_runner.error.connect(self._on_preview_worker_error)
+        dispatch(self._preview_runner)
+
+    def _on_preview_worker_finished(self, result: dict) -> None:
+        """Apply a completed preview worker result on the UI thread."""
+        request_id = result.get("request_id")
+        if request_id != self._preview_request_id:
+            LOG.debug(
+                "Ignoring stale preview result (request %s, current %s)",
+                request_id, self._preview_request_id,
             )
+            return
 
-            # Call the existing process finished handler
-            self._on_process_finished(png_bytes, start_time)
-            cast(QWidget, self).unsetCursor()
-            
-            # Analyze Quality (Health Score)
-            try:
-                quality = self.local_extractor.analyze_quality(
-                    session_id=self.session.session_id,
-                    x1=x1, y1=y1, x2=x2, y2=y2
-                )
-                self._update_health_badge(quality)
-            except Exception as e:
-                LOG.error(f"Quality analysis failed: {e}")
-                self.health_badge.setVisible(False)
+        start_time = result.get("start_time", 0.0)
 
-        except Exception as e:
-            LOG.error(f"Local processing failed: {e}")
+        if not result.get("ok"):
+            exc = result.get("error")
+            LOG.error(f"Local processing failed: {exc}")
             self.export_btn.setEnabled(True)
             cast(QWidget, self).unsetCursor()
             self.status_bar.showMessage("Processing failed", 3000)
-            # Call the existing error handler
-            self._on_process_error(e, start_time)
+            self._on_process_error(exc, start_time)
+            return
+
+        png_bytes = result["png_bytes"]
+        self._on_process_finished(png_bytes, start_time)
+        cast(QWidget, self).unsetCursor()
+
+        quality = result.get("quality")
+        if quality is not None:
+            self._update_health_badge(quality)
+        else:
+            LOG.error(f"Quality analysis failed: {result.get('quality_error')}")
+            self.health_badge.setVisible(False)
+
+    def _on_preview_worker_error(self, exc: Exception) -> None:
+        """Handle a failure in the worker harness itself.
+
+        run_signature_preview captures all extraction/analysis failures into
+        its returned dict, so this only fires for a genuine bug in the
+        harness/closure (e.g. a TypeError building the call). There is no
+        request_id available here to check staleness, so this always resets
+        the UI defensively.
+        """
+        LOG.error(f"Unexpected preview worker failure: {exc}")
+        self.export_btn.setEnabled(True)
+        cast(QWidget, self).unsetCursor()
+        self.status_bar.showMessage("Processing failed", 3000)
 
     def _update_health_badge(self, quality: dict):
         """Update the health badge based on quality metrics."""
@@ -2433,12 +2476,7 @@ class ExtractionTabMixin:
             self._health_check_runner = AsyncRunner(_do_health_check)
             self._health_check_runner.finished.connect(self._on_health_check_finished)
             self._health_check_runner.error.connect(self._on_health_check_error)
-
-            # Run in thread pool
-            thread_pool = QThreadPool.globalInstance()
-            runnable = QRunnable.create(lambda: self._health_check_runner.run())
-            runnable.setAutoDelete(True)
-            thread_pool.start(runnable)
+            dispatch(self._health_check_runner)
     
     def _on_backend_online(self) -> None:
         """Handle backend online state."""
@@ -2631,8 +2669,12 @@ class ExtractionTabMixin:
             cropped = self.src_view.crop_selection()
             if cropped and not cropped.isNull():
                 LOG.debug("Crop preview size: %d×%d", cropped.width(), cropped.height())
+                # Convert once and reuse the QPixmap for both the cached
+                # overlay-compositing source and the visible preview, instead
+                # of converting the same QImage twice (this path runs on
+                # every selection-drag frame).
                 self._current_crop_preview_pixmap = QPixmap.fromImage(cropped)
-                self.preview_view.set_image(cropped)
+                self.preview_view.set_pixmap(self._current_crop_preview_pixmap)
                 self.preview_view.fit()
                 # Show preview view, hide empty overlay
                 self.preview_view.setVisible(True)
@@ -3029,52 +3071,8 @@ class ExtractionTabMixin:
         if not path:
             return
         try:
-            with open(path, "rb") as f:
-                data = f.read()
-            # Load into Source view and create a new local session so user can reprocess
-            # Store image data for rotate operations
-            self._current_image_data = data
-            self.src_view.load_image_bytes(data)
-            self.src_view.clear_selection()
-            # Auto-fit with margin for better initial view
-            QTimer.singleShot(50, lambda: self.src_view.fit(margin_percent=5.0))
-            self._on_pane_clicked("source")
-            self._set_backend_session_id(None)
-            # Upload to backend to establish a fresh session
-            from tempfile import NamedTemporaryFile
-            tmp = NamedTemporaryFile(suffix=".png", delete=False)
-            tmp.write(data)
-            tmp.flush()
-            tmp.close()
-            # Keep temp file path for rotate operations
-            self._last_local_path = tmp.name
-            self._track_temp_file(tmp.name)
-            if sys.platform == "darwin":
-                cast(QWidget, self).setWindowFilePath(path)
-
-            # Process library image locally (offline-first approach)
-            self.status_bar.showMessage("Processing image...", 0)
-            
-            try:
-                # Use local extractor for library images
-                session_id = self.local_extractor.create_session(tmp.name)
-                
-                # Simulate the library upload finished payload for compatibility
-                payload = {
-                    "id": session_id,
-                    "filename": os.path.basename(tmp.name),
-                    "file_path": tmp.name
-                }
-                
-                # Call the existing library upload finished handler
-                self._on_library_upload_finished(tmp.name, payload)
-                self._sync_backend_session(tmp.name)
-                
-            except Exception as e:
-                LOG.error(f"Failed to create local session for library image: {e}")
-                self.status_bar.showMessage("Failed to load library image", 3000)
-                # Call the existing error handler
-                self._on_library_upload_error(tmp.name, e)
+            self._load_image_from_path(path, auto_select=False)
+            self.status_bar.showMessage("Loaded into Source from library", 3000)
         except Exception as e:
             self._handle_backend_exception(e, context="Open failed")
 
@@ -3611,9 +3609,9 @@ class ExtractionTabMixin:
             self._update_action_states(preview_ready=bool(self._last_result_png))
 
     def on_buy_license(self):
-        # Open Gumroad product page (set GUMROAD_PRODUCT_URL in environment or .env)
-        url = os.getenv("GUMROAD_PRODUCT_URL", "https://pranaysuyash.gumroad.com/l/signkit-v1")
-        QDesktopServices.openUrl(url)
+        from desktop_app.config import get_purchase_url
+
+        QDesktopServices.openUrl(QUrl(get_purchase_url()))
 
     # No activation prompt; purchase is optional and handled via menu link.
 

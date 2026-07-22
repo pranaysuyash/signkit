@@ -1,5 +1,15 @@
 # Signature Extractor — Pricing Strategy (PDF Bundle Launch)
 
+## Addendum (2026-07-16)
+
+The $29 launch / $39 Personal one-time offer remains the active base-product direction.
+Competitor figures and Stripe/Paddle references below are historical snapshots; Dodo
+Payments is now the primary checkout and Gumroad is the alternate. Proposed Professional,
+Practice, and usage-based trust-service packaging is research—not a launched offer—and
+is documented with a validation protocol in
+`docs/research/2026-07-16_signkit_market_legal_vertical_research.md`. Do not publish the
+research prices until customer interviews and purchase-intent tests are complete.
+
 ## TL;DR
 
 **$39 lifetime (intro offer $29) with no trial.** Now includes the vertically integrated PDF viewer + signing workflow, lifetime updates, and 30-day refund.

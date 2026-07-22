@@ -27,7 +27,7 @@ Signature Extractor is designed to work **offline-first** and does **NOT** colle
 
 - Email address (when you activate a license)
 - License key for product activation
-- Purchase information from Gumroad (processed by Gumroad)
+- Purchase and fulfilment information from Dodo Payments or Gumroad (processed by the provider selected at checkout)
 
 **Optional Crash Reports** (if enabled):
 
@@ -59,10 +59,11 @@ Some features may require internet connectivity:
 
 ### 3.3 Third-Party Services
 
-**Gumroad** (Payment Processing):
+**Dodo Payments and Gumroad** (Payment Processing and Fulfilment):
 
-- Handles payment processing and license key delivery
-- Their privacy policy applies to purchase transactions
+- Dodo Payments is the primary checkout; Gumroad is an alternate checkout
+- The selected provider handles payment, receipts, downloads, and licence-key delivery
+- The selected provider's privacy policy applies to purchase transactions
 - We do not receive your payment information
 
 ## 4. Data Storage and Security
@@ -214,7 +215,7 @@ Retention: Immediate deletion after processing
 ### 13.2 License Activation
 
 ```
-Process: Online validation with Gumroad
+Process: Online validation by the applicable fulfilment or SignKit licence service
 Data Stored: License key and email (encrypted)
 Network Usage: One-time validation, optional updates
 Retention: While you use the application

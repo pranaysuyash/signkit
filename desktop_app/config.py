@@ -6,6 +6,31 @@ from urllib.parse import urlparse
 
 LOG = logging.getLogger(__name__)
 
+# Single source of truth for the app version, used in the Help dialog and in
+# forensic watermark metadata. Still a placeholder (no packaging/release
+# process sets this yet) -- but a single placeholder that can't silently
+# drift out of sync with itself, rather than the same literal duplicated
+# independently in two files.
+APP_VERSION = "1.0.0"
+
+# External product destinations are deliberately content-free URLs. SignKit
+# never appends document names, processing results, or local workflow metadata.
+WORKFLOW_REVIEW_URL = (
+    "https://pranaysuyash.com/contact"
+    "?source=signkit&entry=desktop-app&intent=document-workflow"
+)
+
+DODO_CHECKOUT_BASE_URL = "https://checkout.dodopayments.com/buy/"
+GUMROAD_FALLBACK_URL = "https://pranaysuyash.gumroad.com/l/signkit-v1"
+
+
+def get_purchase_url() -> str:
+    """Return Dodo checkout when configured, otherwise the explicit fallback."""
+    product_id = os.getenv("DODO_PRODUCT_ID", "").strip()
+    if product_id.startswith("pdt_") and product_id[4:].isalnum():
+        return f"{DODO_CHECKOUT_BASE_URL}{product_id}"
+    return os.getenv("GUMROAD_PRODUCT_URL", GUMROAD_FALLBACK_URL)
+
 
 @dataclass
 class AppConfig:

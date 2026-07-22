@@ -86,10 +86,13 @@ app.add_middleware(
 # Health check endpoint
 @app.get("/health")
 async def health_check():
+    # Report reachability, not the absolute filesystem path — the path adds
+    # no diagnostic value here (it's a fixed, config-derived location the
+    # operator already knows) and needlessly discloses server-side
+    # directory structure in an otherwise-public health check.
     return {
         "status": "healthy",
-        "uploads_dir": str(UPLOADS_DIR),
-        "uploads_dir_exists": os.path.exists(str(UPLOADS_DIR))
+        "uploads_dir_exists": os.path.exists(str(UPLOADS_DIR)),
     }
 
 # Include routers

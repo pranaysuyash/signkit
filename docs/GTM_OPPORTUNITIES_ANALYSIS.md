@@ -1,5 +1,15 @@
 # SignKit GTM Opportunities Analysis
 
+## Addendum (2026-07-16)
+
+This April document is a historical GTM hypothesis set. Its market-size, growth,
+persona-LTV, channel-outcome, conversion, and revenue claims were not supported by a
+primary interview or paid-report dataset found in the repository and must not be quoted
+as verified facts. “Only offline option” and generic “DocuSign alternative” claims are
+also withdrawn. The canonical current thesis, evidence boundaries, workflow-defined
+personas, vertical capability matrix, pricing research, and paid-pilot plan live in
+`docs/research/2026-07-16_signkit_market_legal_vertical_research.md`.
+
 **Date:** April 10, 2026  
 **Product:** SignKit - Privacy-first offline signature extraction tool  
 **Website:** https://signkit.work  

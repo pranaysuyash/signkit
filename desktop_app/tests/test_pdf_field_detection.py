@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QPixmap, QColor
+from PySide6.QtWidgets import QApplication
 
 from desktop_app.pdf.field_detection import SignatureFieldDetector
 from desktop_app.pdf.viewer import PDFViewer
@@ -149,6 +151,185 @@ def test_place_signature_on_detected_field(signature_field_pdf: str, monkeypatch
 
     viewer.close_pdf()
     Path(temp_sig.name).unlink(missing_ok=True)
+
+
+def test_place_signature_on_detected_field_without_cached_candidates_runs_async(
+    signature_field_pdf: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When no field candidates are cached yet, placement must detect first
+    asynchronously (not block the caller) and deliver the result via
+    on_complete once detection + placement finish."""
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.information", lambda *args, **kwargs: None)
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.warning", lambda *args, **kwargs: None)
+
+    temp_sig = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    temp_sig.close()
+    pixmap = QPixmap(220, 80)
+    pixmap.fill(Qt.GlobalColor.white)
+    pixmap.save(temp_sig.name)
+
+    viewer = PDFViewer()
+    assert viewer.open_pdf(signature_field_pdf)
+    viewer.set_signature_for_placement(pixmap, temp_sig.name)
+    assert viewer.page_view.field_candidates == []  # nothing cached yet
+
+    results = []
+    immediate_return = viewer.place_signature_on_detected_field(on_complete=results.append)
+
+    # Must not block: no result yet, nothing placed synchronously.
+    assert immediate_return is None
+    assert results == []
+    assert len(viewer.page_view.signatures) == 0
+
+    _wait_for(lambda: len(results) == 1)
+
+    assert results[0] is True
+    assert len(viewer.page_view.signatures) == 1
+    # Detection also populated the cache as a side effect, for next time.
+    assert viewer.page_view.field_candidates
+
+    viewer.close_pdf()
+    Path(temp_sig.name).unlink(missing_ok=True)
+
+
+def test_place_signature_on_detected_field_without_signature_returns_false_immediately(
+    signature_field_pdf: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The 'no pending signature' guard must stay fully synchronous — it
+    never needs detection, so it shouldn't touch the thread pool at all."""
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.information", lambda *args, **kwargs: None)
+
+    viewer = PDFViewer()
+    assert viewer.open_pdf(signature_field_pdf)
+
+    results = []
+    result = viewer.place_signature_on_detected_field(on_complete=results.append)
+
+    assert result is False
+    assert results == [False]
+
+    viewer.close_pdf()
+
+
+def _wait_for(predicate, timeout: float = 5.0) -> None:
+    """Pump the Qt event loop until predicate() is true or timeout elapses."""
+    deadline = time.time() + timeout
+    while not predicate() and time.time() < deadline:
+        QApplication.processEvents()
+        time.sleep(0.01)
+    assert predicate(), "condition did not become true within timeout"
+
+
+def test_find_signature_fields_restores_button_and_cursor(
+    signature_field_pdf: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """find_signature_fields() now runs detection on a QThreadPool worker
+    (see its docstring in desktop_app/pdf/viewer.py); it must disable the
+    button and show a busy cursor while in flight, and always restore both
+    once the worker completes, including on failure."""
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.information", lambda *args, **kwargs: None)
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.warning", lambda *args, **kwargs: None)
+
+    viewer = PDFViewer()
+    assert viewer.open_pdf(signature_field_pdf)
+
+    done = []
+    viewer.find_signature_fields(on_complete=lambda candidates: done.append(candidates))
+
+    # Busy feedback must be visible immediately, before the worker completes.
+    assert not viewer.find_fields_btn.isEnabled()
+    assert viewer.cursor().shape() == Qt.CursorShape.WaitCursor
+
+    _wait_for(lambda: bool(done))
+
+    assert viewer.find_fields_btn.isEnabled()
+    assert viewer.cursor().shape() != Qt.CursorShape.WaitCursor
+
+    viewer.close_pdf()
+
+
+def test_find_signature_fields_restores_state_on_detector_failure(
+    signature_field_pdf: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Even if detect_page() raises (inside the worker thread), the
+    button/cursor must not be left permanently disabled/busy."""
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.information", lambda *args, **kwargs: None)
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.warning", lambda *args, **kwargs: None)
+
+    viewer = PDFViewer()
+    assert viewer.open_pdf(signature_field_pdf)
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("detector exploded")
+
+    monkeypatch.setattr(viewer.detector, "detect_page", boom)
+
+    done = []
+    viewer.find_signature_fields(on_complete=lambda candidates: done.append(candidates))
+
+    assert not viewer.find_fields_btn.isEnabled()
+
+    _wait_for(lambda: len(done) == 1)
+
+    assert done == [[]]  # error path calls on_complete([])
+    assert viewer.find_fields_btn.isEnabled()
+    assert viewer.cursor().shape() != Qt.CursorShape.WaitCursor
+
+    viewer.close_pdf()
+
+
+def test_field_candidate_positions_survive_page_navigation(
+    signature_field_pdf: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression test for a coordinate-space corruption bug: navigating away
+    from a page and back must not change that page's detected field-overlay
+    positions.
+
+    Root cause (fixed): PDFViewer._save_page_field_candidates() copied
+    page_view.field_candidates (pixel/view-space, Y-flipped — the display
+    projection built by _load_page_field_candidates) directly back into
+    all_field_candidates[page] (which must stay in PDF-point-space) with no
+    inverse transform, on every goto_page()/previous_page()/next_page()
+    call. The next time that page loaded, the point->pixel transform ran a
+    second time on already-pixel-space data, silently corrupting overlay
+    positions. The method served no real purpose — field candidates are
+    never mutated in the view layer (only read for selection), so there was
+    never anything legitimate to save back — and was removed outright
+    rather than patched with an inverse transform.
+    """
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.information", lambda *a, **k: None)
+    monkeypatch.setattr("desktop_app.pdf.viewer.QMessageBox.warning", lambda *a, **k: None)
+
+    # Build a second page onto the existing single-page fixture PDF.
+    import pikepdf
+    two_page_path = tmp_path / "two_page.pdf"
+    with pikepdf.open(signature_field_pdf) as pdf:
+        pdf.pages.append(pdf.pages[0])
+        pdf.save(str(two_page_path))
+
+    viewer = PDFViewer()
+    assert viewer.open_pdf(str(two_page_path))
+
+    detected = []
+    viewer.find_signature_fields(on_complete=detected.append)
+    _wait_for(lambda: len(detected) == 1)
+    assert detected[0], "expected at least one field candidate on page 0"
+
+    positions_before = [
+        (c["x"], c["y"], c["width"], c["height"]) for c in viewer.page_view.field_candidates
+    ]
+
+    # Navigate away and back.
+    viewer.next_page()
+    viewer.previous_page()
+
+    positions_after = [
+        (c["x"], c["y"], c["width"], c["height"]) for c in viewer.page_view.field_candidates
+    ]
+
+    assert positions_after == positions_before
+
+    viewer.close_pdf()
 
 
 def test_detect_native_widgets_and_limit_heuristics(native_form_benchmark_pdf: str) -> None:

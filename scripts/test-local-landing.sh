@@ -49,5 +49,36 @@ check_200 "/gum.html"
 check_200 "/test-variants.html"
 check_200 "/robots.txt"
 check_200 "/sitemap.xml"
+check_200 "/web/live/js/checkout-config.js"
+check_200 "/web/live/js/checkout.js"
+
+INDEX_HTML="$(curl -sS "${BASE}/index.html")"
+if [[ "${INDEX_HTML}" != *"One file is a tool problem. Hundreds are a workflow problem."* ]]; then
+  echo "FAIL: canonical landing is missing the recurring-workflow decision point" >&2
+  exit 1
+fi
+if [[ "${INDEX_HTML}" != *"source=signkit&amp;entry=landing&amp;intent=document-workflow"* ]]; then
+  echo "FAIL: recurring-workflow CTA is missing source attribution" >&2
+  exit 1
+fi
+if [[ "${INDEX_HTML}" != *"SignKit does not send"* ]]; then
+  echo "FAIL: recurring-workflow CTA is missing its privacy boundary" >&2
+  exit 1
+fi
+echo "OK recurring-workflow CTA, attribution, and privacy boundary"
+
+if [[ "${INDEX_HTML}" != *'data-checkout-provider="dodo"'* ]]; then
+  echo "FAIL: canonical landing has no Dodo primary checkout actions" >&2
+  exit 1
+fi
+if [[ "${INDEX_HTML}" != *'data-checkout-provider="gumroad"'* ]]; then
+  echo "FAIL: canonical landing has no explicit Gumroad fallback" >&2
+  exit 1
+fi
+if [[ "${INDEX_HTML}" != *'Dodo Payments provides the receipt, download, and licence key'* ]]; then
+  echo "FAIL: checkout fulfilment responsibility is not explained" >&2
+  exit 1
+fi
+echo "OK Dodo primary, Gumroad fallback, and fulfilment copy"
 
 echo "Local landing smoke test passed (${BASE})"

@@ -10,6 +10,7 @@ from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QMessageBox, QWidget, QTabWidget
 
 from desktop_app.api.client import ApiClient
+from desktop_app.config import WORKFLOW_REVIEW_URL
 from desktop_app.processing import SignatureExtractor
 from desktop_app.resources.icons import get_icon
 from desktop_app.state.session import SessionState
@@ -448,6 +449,15 @@ class MainWindow(
 
         help_menu.addSeparator()
 
+        self.workflow_review_action = QAction("Recurring Document Workflows…", self)
+        self.workflow_review_action.setStatusTip(
+            "Discuss recurring batches or custom document workflows without sharing document data"
+        )
+        self.workflow_review_action.triggered.connect(self._open_workflow_review)
+        help_menu.addAction(self.workflow_review_action)
+
+        help_menu.addSeparator()
+
         self.check_updates_action = QAction("Check for Updates…", self)
         self.check_updates_action.triggered.connect(self.on_check_updates)
         help_menu.addAction(self.check_updates_action)
@@ -494,6 +504,10 @@ class MainWindow(
         self.verify_sig_action = QAction("Verify Signature...", self)
         self.verify_sig_action.triggered.connect(self.on_verify_signature)
         tools_menu.addAction(self.verify_sig_action)
+
+    def _open_workflow_review(self) -> None:
+        """Open the source-attributed workflow enquiry without document metadata."""
+        self._open_url(WORKFLOW_REVIEW_URL)
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
@@ -558,17 +572,16 @@ class MainWindow(
             )
             return
         
-        # Define the current app version (this should match the actual version)
-        # For now, using 1.0.0 as placeholder - this should be defined in a version file
-        current_version = "1.0.0"
-        
+        from desktop_app.config import APP_VERSION
+        current_version = APP_VERSION
+
         # Try to read version from a version file if it exists
         try:
             version_path = os.path.join(os.path.dirname(__file__), "..", "..", "VERSION")
             if os.path.exists(version_path):
                 with open(version_path, 'r') as f:
                     current_version = f.read().strip()
-        except:
+        except OSError:
             pass  # Use default version if file doesn't exist or can't be read
         
         # Define the updates URL - this should be configured via environment or config

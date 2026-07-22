@@ -70,6 +70,15 @@ class ImageView(QGraphicsView):
         pixmap = QPixmap.fromImage(image)
         self._set_pixmap(pixmap)
 
+    def set_pixmap(self, pixmap: QPixmap):
+        """Set the displayed image from an already-built QPixmap.
+
+        Prefer this over set_image() when the caller already converted the
+        source QImage to a QPixmap (e.g. to cache it elsewhere) — it avoids
+        a second, redundant QImage->QPixmap conversion of the same data.
+        """
+        self._set_pixmap(pixmap)
+
     def _set_pixmap(self, pixmap: QPixmap):
         self.scene.clear()
         self.pixmap_item = self.scene.addPixmap(pixmap)

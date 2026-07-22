@@ -1,1 +1,13 @@
-Generic single-database configuration.
+Canonical migration notes for this repo:
+
+- Run migrations using the project venv:
+  `./backend/migrate.sh upgrade head`
+- Optional DB override example:
+  `DATABASE_URL=postgresql://user:pass@localhost:5432/dbname ./backend/migrate.sh upgrade head`
+- If you are debugging schema state:
+  `./backend/migrate.sh current`
+- Revert to previous migration revision:
+  `./backend/migrate.sh downgrade -1`
+
+The migration wrapper ensures the project import path is set consistently and avoids picking
+up a globally installed Alembic/binary set that does not share the project environment.

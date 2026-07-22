@@ -1,7 +1,7 @@
 import os
 import json
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
 
 
@@ -161,20 +161,35 @@ class LibraryItem:
     
     @property
     def tooltip_text(self) -> str:
-        """Generate tooltip text with coordinate info and image dimensions."""
+        """Generate tooltip text with coordinate info and image dimensions.
+
+        Dimensions are read from the metadata sidecar when available (written
+        at save time by save_png_to_library/save_image_to_library) to avoid
+        opening the image file with PIL for every item on every list refresh.
+        Falls back to opening the file only for legacy items saved without
+        an "image_size" sidecar field.
+        """
         lines = [
             f"File: {self.display_name}",
             f"Modified: {self.pretty_time}"
         ]
-        
-        # Always try to load image dimensions
-        try:
-            from PIL import Image
-            with Image.open(self.path) as img:
-                lines.append(f"Image Size: {img.width} × {img.height} px")
-                lines.append(f"Mode: {img.mode}")
-        except Exception:
-            pass
+
+        dims = (self.metadata or {}).get("image_size") or {}
+        width, height = dims.get("width"), dims.get("height")
+        mode = (self.metadata or {}).get("image_mode")
+        if width and height:
+            lines.append(f"Image Size: {width} × {height} px")
+            if mode:
+                lines.append(f"Mode: {mode}")
+        else:
+            # Legacy fallback: no cached dimensions in metadata, read from disk.
+            try:
+                from PIL import Image
+                with Image.open(self.path) as img:
+                    lines.append(f"Image Size: {img.width} × {img.height} px")
+                    lines.append(f"Mode: {img.mode}")
+            except Exception:
+                pass
         
         # Add file size
         try:
@@ -230,31 +245,45 @@ class LibraryItem:
 
 
 def list_items(limit: int = 50) -> List[LibraryItem]:
-    """List library items with optional metadata from sidecar JSON files."""
+    """List the `limit` most recently modified library items.
+
+    Two passes, deliberately: the first only stats each file (cheap,
+    filesystem-metadata-only) to determine recency; the second opens and
+    JSON-parses a sidecar only for the items that will actually be
+    returned. The previous implementation parsed every sidecar for every
+    file in the directory before sorting and truncating to `limit` — O(n)
+    JSON-parse work to return O(limit) results, regardless of how large the
+    library grows. This keeps the cost bounded by `limit` instead of by
+    total library size, without introducing a separate manifest/index file
+    (which would be a second, driftable source of truth for data the
+    filesystem already owns correctly).
+    """
     ensure_library_dir()
-    items: List[LibraryItem] = []
+    stamped: List[Tuple[str, float]] = []
     for name in os.listdir(LIB_DIR):
         if not name.lower().endswith((".png", ".jpg", ".jpeg")):
             continue
         p = os.path.join(LIB_DIR, name)
         try:
-            mtime = os.path.getmtime(p)
-            
-            # Try to load metadata from sidecar JSON
-            metadata = None
-            json_path = p.rsplit(".", 1)[0] + ".json"
-            if os.path.exists(json_path):
-                try:
-                    with open(json_path, "r", encoding="utf-8") as f:
-                        metadata = json.load(f)
-                except Exception:
-                    pass  # Ignore metadata read errors
-            
-            items.append(LibraryItem(path=p, modified=mtime, metadata=metadata))
-        except Exception:
+            stamped.append((p, os.path.getmtime(p)))
+        except OSError:
             continue
-    items.sort(key=lambda x: x.modified, reverse=True)
-    return items[:limit]
+
+    stamped.sort(key=lambda entry: entry[1], reverse=True)
+
+    items: List[LibraryItem] = []
+    for p, mtime in stamped[:limit]:
+        metadata = None
+        json_path = p.rsplit(".", 1)[0] + ".json"
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    metadata = json.load(f)
+            except Exception:
+                pass  # Ignore metadata read errors
+        items.append(LibraryItem(path=p, modified=mtime, metadata=metadata))
+
+    return items
 
 
 def delete_item(path: str) -> bool:

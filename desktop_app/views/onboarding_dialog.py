@@ -345,9 +345,10 @@ class OnboardingDialog(QDialog):
                 self.health_status_label.setStyleSheet("font-size: 13px; color: #2e7d32;")
 
     def _open_purchase_page(self) -> None:
-        """Open the Gumroad purchase page in browser."""
-        purchase_url = "https://pranaysuyash.gumroad.com/l/signkit-v1"
-        QDesktopServices.openUrl(QUrl(purchase_url))
+        """Open the configured primary purchase page in the browser."""
+        from desktop_app.config import get_purchase_url
+
+        QDesktopServices.openUrl(QUrl(get_purchase_url()))
 
     def _open_document(self, doc_path: str) -> None:
         """Open documentation file (delegates to parent window if available)."""

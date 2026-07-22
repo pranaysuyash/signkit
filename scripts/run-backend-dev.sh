@@ -5,9 +5,9 @@ PYTHON_BIN="${PYTHON_BIN:-}"
 if [ -z "$PYTHON_BIN" ]; then
   if [ -x ".venv/bin/python" ]; then
     PYTHON_BIN=".venv/bin/python"
-  elif [ -x "venv/bin/python" ]; then
-    PYTHON_BIN="venv/bin/python"
   else
+    echo "Expected root .venv virtualenv, but .venv/bin/python was not found."
+    echo "Create one with: uv venv .venv && uv pip install -r requirements.txt"
     PYTHON_BIN="python3"
   fi
 fi

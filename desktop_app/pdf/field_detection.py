@@ -145,6 +145,15 @@ class SignatureFieldDetector:
         return candidates
 
     def _infer_form_field_type(self, annot: Any) -> tuple[str, float, str]:
+        # Confidence values below are a hand-ranked ordering, not a
+        # calibrated probability: real /Sig widgets are most trustworthy
+        # (0.99), progressively less-specific text/label matches score
+        # lower, and "present but unrecognized" widgets get a middling 0.5
+        # rather than 0. They haven't been validated against a labeled set
+        # of real-world PDFs -- if auto-placement (which filters on
+        # `field_auto_place_confidence`) is too eager or too conservative in
+        # practice, these are the values to revisit, ideally with labeled
+        # examples of correct vs. incorrect auto-placements.
         field_type = self._pdf_text(annot.get("/FT"))
         field_name = self._extract_field_label(annot).lower()
         tooltip = self._pdf_text(annot.get("/TU")).lower()
@@ -249,6 +258,15 @@ class SignatureFieldDetector:
                     continue
 
                 conf = self._parse_tesseract_confidence(confidences, idx)
+                # 0.35 is an unvalidated cutoff on Tesseract's raw
+                # word-confidence score, chosen to filter obvious OCR noise
+                # while still keeping hints from lower-quality scans (where
+                # even correct reads often score lower). Not configurable
+                # and not exposed to the user, so a document with generally
+                # poor OCR quality silently loses all keyword hints below
+                # this line rather than surfacing why. Revisit with labeled
+                # low-quality-scan examples if OCR hints are found to be
+                # too sparse or too noisy in practice.
                 if conf < 0.35:
                     continue
 
@@ -268,6 +286,14 @@ class SignatureFieldDetector:
                         y=page_height_pt - ((y + height) * page_height_pt / image.shape[0]),
                         width=page_width_pt * (width / image.shape[1]),
                         height=page_height_pt * (height / image.shape[0]),
+                        # Maps Tesseract's 0-1 confidence into a 0.6-0.94
+                        # band: OCR hints are deliberately capped below the
+                        # 0.99/0.93 AcroForm-widget scores in
+                        # _infer_form_field_type above (OCR text matches are
+                        # inherently less reliable evidence of an actual
+                        # signature field than a real form widget), while a
+                        # floor of 0.6 keeps them above the "unknown widget"
+                        # 0.5 score. Not empirically calibrated.
                         confidence=round(0.6 + min(0.34, conf * 0.35), 3),
                         source="ocr",
                         reason=f"OCR keyword hint: {text}",

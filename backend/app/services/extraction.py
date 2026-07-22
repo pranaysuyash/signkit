@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+from collections import OrderedDict
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
@@ -11,6 +13,45 @@ import numpy as np
 from PIL import Image
 
 from backend.app.security import UploadSecurity
+
+# Bounded, mtime-keyed cache of decoded source images. Interactive threshold
+# tuning re-invokes render_signature_png repeatedly for the same uploaded
+# file; without this, every request re-reads and re-decodes the image from
+# disk. Keying on (path, mtime) means a re-upload that reuses the same path
+# (e.g. a session id) naturally invalidates the stale entry instead of
+# silently serving old image data.
+_IMAGE_CACHE_LOCK = threading.Lock()
+_IMAGE_CACHE: "OrderedDict[Tuple[str, float], np.ndarray]" = OrderedDict()
+_IMAGE_CACHE_MAX = 32
+
+
+def _read_image_cached(file_path: Path) -> np.ndarray:
+    """Read an image via cv2.imread, cached by (resolved path, mtime).
+
+    The returned array must be treated as read-only by callers: it may be
+    shared across concurrent requests for the same file.
+    """
+    resolved = str(file_path.resolve())
+    mtime = file_path.stat().st_mtime
+    key = (resolved, mtime)
+
+    with _IMAGE_CACHE_LOCK:
+        cached = _IMAGE_CACHE.get(key)
+        if cached is not None:
+            _IMAGE_CACHE.move_to_end(key)
+            return cached
+
+    image = cv2.imread(resolved)
+    if image is None:
+        raise ValueError("Failed to read image file")
+    image.setflags(write=False)  # Enforce the read-only sharing contract.
+
+    with _IMAGE_CACHE_LOCK:
+        _IMAGE_CACHE[key] = image
+        if len(_IMAGE_CACHE) > _IMAGE_CACHE_MAX:
+            _IMAGE_CACHE.popitem(last=False)
+
+    return image
 
 
 def resolve_upload_path(session_id: str, uploads_dir: Path) -> Path:
@@ -111,9 +152,7 @@ def render_signature_png(
     """Render a cropped, colorized signature region as PNG bytes."""
     threshold = UploadSecurity.validate_threshold(threshold)
     color = UploadSecurity.validate_hex_color(color)
-    image = cv2.imread(str(file_path))
-    if image is None:
-        raise ValueError("Failed to read image file")
+    image = _read_image_cached(file_path)
 
     height, width = image.shape[:2]
     start_x, start_y, end_x, end_y = normalize_crop_bounds(

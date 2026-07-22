@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from io import BytesIO
 from pathlib import Path
 
@@ -9,13 +10,23 @@ import numpy as np
 import pytest
 from PIL import Image
 
+from backend.app.services import extraction as extraction_service
 from backend.app.services.extraction import (
+    _read_image_cached,
     build_selection_metadata,
     normalize_crop_bounds,
     persist_selection_metadata,
     render_signature_png,
     resolve_upload_path,
 )
+
+
+@pytest.fixture(autouse=True)
+def _clear_image_cache():
+    """Each test starts with an empty module-level image cache."""
+    extraction_service._IMAGE_CACHE.clear()
+    yield
+    extraction_service._IMAGE_CACHE.clear()
 
 
 def _write_test_image(path: Path, *, width: int = 24, height: int = 18) -> None:
@@ -83,3 +94,80 @@ def test_render_signature_png_produces_png_bytes(tmp_path):
     rendered = Image.open(output)
     assert rendered.size == (12, 10)
     assert rendered.mode == "RGBA"
+
+
+def test_read_image_cached_avoids_second_disk_read(tmp_path, monkeypatch):
+    """Interactive threshold tuning re-invokes render_signature_png for the
+    same uploaded file repeatedly; the second+ read must hit the cache."""
+    image_path = tmp_path / "source.png"
+    _write_test_image(image_path)
+
+    calls = []
+    real_imread = extraction_service.cv2.imread
+    monkeypatch.setattr(
+        extraction_service.cv2, "imread",
+        lambda *a, **k: (calls.append(1) or real_imread(*a, **k)),
+    )
+
+    first = _read_image_cached(image_path)
+    second = _read_image_cached(image_path)
+
+    assert len(calls) == 1
+    assert first is second
+
+
+def test_read_image_cached_invalidates_on_mtime_change(tmp_path, monkeypatch):
+    """A re-uploaded file at the same path (new mtime) must not silently
+    serve stale cached image data — that would be a correctness bug, not
+    just a missed optimization."""
+    image_path = tmp_path / "source.png"
+    _write_test_image(image_path, width=24, height=18)
+
+    calls = []
+    real_imread = extraction_service.cv2.imread
+    monkeypatch.setattr(
+        extraction_service.cv2, "imread",
+        lambda *a, **k: (calls.append(1) or real_imread(*a, **k)),
+    )
+
+    first = _read_image_cached(image_path)
+
+    # Overwrite with visibly different content (not just a re-save of the
+    # same pixels) so a stale cache hit is distinguishable from a fresh read.
+    different_image = np.full((18, 24, 3), 200, dtype=np.uint8)
+    cv2.imwrite(str(image_path), different_image)
+    # Some filesystems have coarse mtime resolution; force a distinct mtime
+    # so this test is deterministic rather than occasionally flaky.
+    bumped = image_path.stat().st_mtime + 1.0
+    os.utime(image_path, (bumped, bumped))
+
+    second = _read_image_cached(image_path)
+
+    assert len(calls) == 2
+    assert not np.array_equal(first, second)
+
+
+def test_read_image_cached_array_is_read_only(tmp_path):
+    image_path = tmp_path / "source.png"
+    _write_test_image(image_path)
+    image = _read_image_cached(image_path)
+    assert image.flags.writeable is False
+
+
+def test_render_signature_png_reuses_cache_across_threshold_tweaks(tmp_path, monkeypatch):
+    image_path = tmp_path / "source.png"
+    _write_test_image(image_path)
+
+    calls = []
+    real_imread = extraction_service.cv2.imread
+    monkeypatch.setattr(
+        extraction_service.cv2, "imread",
+        lambda *a, **k: (calls.append(1) or real_imread(*a, **k)),
+    )
+
+    for threshold in (80, 120, 160, 200):
+        render_signature_png(
+            image_path, x1=4, y1=3, x2=16, y2=13, color="#112233", threshold=threshold
+        )
+
+    assert len(calls) == 1, "four threshold tweaks on the same file must only read from disk once"

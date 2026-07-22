@@ -269,6 +269,36 @@ def test_main_window_uses_single_canonical_pdf_tab(main_window):
     assert pdf_tabs == ["📄 PDF Signing"]
 
 
+def test_workflow_review_action_opens_attributed_content_free_url(monkeypatch, main_window):
+    opened_urls = []
+    monkeypatch.setattr(main_window, "_open_url", opened_urls.append)
+
+    main_window.workflow_review_action.trigger()
+
+    assert opened_urls == [
+        "https://pranaysuyash.com/contact"
+        "?source=signkit&entry=desktop-app&intent=document-workflow"
+    ]
+    assert all(term not in opened_urls[0] for term in ("file=", "document=", "path=", "result="))
+
+
+def test_batch_queue_actions_remain_readable_in_sidebar(main_window):
+    main_window.resize(1000, 700)
+    main_window.show()
+    QApplication.processEvents()
+
+    buttons = (
+        main_window.batch_add_btn,
+        main_window.batch_process_selected_btn,
+        main_window.batch_process_next_btn,
+        main_window.batch_process_all_btn,
+        main_window.batch_remove_btn,
+        main_window.batch_clear_btn,
+    )
+
+    assert all(button.width() >= 100 for button in buttons)
+
+
 def test_on_delete_selected_library(monkeypatch, main_window):
     items_deleted = []
 
@@ -289,6 +319,27 @@ def test_on_delete_selected_library(monkeypatch, main_window):
     assert "/tmp/sig.png" in items_deleted
     # List refreshed, so selection cleared and button disabled
     assert not main_window.delete_from_library_btn.isEnabled()
+
+
+def test_library_open_delegates_to_canonical_loader(monkeypatch, main_window, tmp_path):
+    image_path = tmp_path / "library.png"
+    Image.new("RGB", (16, 16), color="blue").save(image_path, format="PNG")
+
+    calls = []
+
+    def fake_load(path, *, auto_select=True):
+        calls.append((path, auto_select))
+        return "session-123"
+
+    monkeypatch.setattr(main_window, "_load_image_from_path", fake_load)
+
+    item = QListWidgetItem("sig")
+    item.setData(Qt.ItemDataRole.UserRole, str(image_path))
+
+    main_window.on_library_item_open(item)
+
+    assert calls == [(str(image_path), False)]
+    assert main_window.status_bar.currentMessage() == "Loaded into Source from library"
 
 
 @pytest.mark.skip(reason="Requires event loop for QTimer.singleShot callbacks in on_library_item_open")

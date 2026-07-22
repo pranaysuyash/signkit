@@ -1,19 +1,24 @@
 """PDF viewer widget with page navigation, zoom, and field detection."""
 
-from typing import Optional, List, Dict, Any, Tuple
+import logging
+from typing import Optional, List, Dict, Any, Tuple, Callable
+from collections import OrderedDict
 from pathlib import Path
 import sys
 
 from PySide6.QtCore import Qt, Signal, QRectF, QPointF, QPoint
 from PySide6.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QFont
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QScrollArea, QComboBox, QMessageBox, QMenu, QToolTip
 )
 
 from desktop_app.pdf.renderer import PDFRenderer
 from desktop_app.pdf.field_detection import SignatureFieldDetector
 from desktop_app.widgets.modern_mac_button import ModernMacButton
+from desktop_app.widgets.async_utils import AsyncRunner, dispatch
+
+LOG = logging.getLogger(__name__)
 
 
 def _create_button(
@@ -540,6 +545,20 @@ class PDFViewer(QWidget):
         self.detector = SignatureFieldDetector()
         self.selected_field_candidate_index: Optional[int] = None
         self.field_auto_place_confidence = self._DEFAULT_FIELD_CONFIDENCE_THRESHOLD
+        # Bounded LRU cache of rendered pages, keyed by (page_num, zoom, dpi).
+        # Re-rendering a pdfium bitmap at 150 DPI is real, measurable CPU/IO
+        # work; users routinely revisit the same page/zoom combination
+        # (paging back and forth, toggling between two zoom levels) which
+        # previously re-rendered from scratch every time. Cleared whenever a
+        # new PDF is opened since entries are page-content-specific.
+        self._page_render_cache: "OrderedDict[Tuple[int, float, int], QPixmap]" = OrderedDict()
+        self._PAGE_RENDER_CACHE_MAX = 12
+        # Holds the in-flight field-detection AsyncRunner; must be kept as an
+        # instance attribute so it isn't garbage-collected before it emits.
+        self._field_detect_runner: Optional[AsyncRunner] = None
+        # Holds the in-flight batch (multi-page) detection AsyncRunner, used
+        # by bulk/template signature placement; see detect_fields_for_pages().
+        self._batch_detect_runner: Optional[AsyncRunner] = None
         self._setup_ui()
         self.page_view._confidence_threshold = self.field_auto_place_confidence
     
@@ -626,6 +645,7 @@ class PDFViewer(QWidget):
             self.renderer = PDFRenderer(pdf_path)
             self.current_page = 0
             self.all_field_candidates.clear()
+            self._page_render_cache.clear()
             
             # Default to showing the whole page on open
             self.zoom_combo.setCurrentText("Whole Page")
@@ -650,14 +670,26 @@ class PDFViewer(QWidget):
         self.page_view.clear_field_candidates()
         self.all_signatures.clear()  # Clear all tracked signatures
         self.all_field_candidates.clear()
+        self._page_render_cache.clear()
         self._update_controls()
     
     def _render_current_page(self) -> None:
-        """Render the current page."""
+        """Render the current page, reusing a cached bitmap when available
+        for this exact (page, zoom, dpi) combination."""
         if not self.renderer:
             return
-        
-        pixmap = self.renderer.render_page(self.current_page, scale=self.zoom_level, dpi=self.base_dpi)
+
+        cache_key = (self.current_page, round(self.zoom_level, 4), self.base_dpi)
+        pixmap = self._page_render_cache.get(cache_key)
+        if pixmap is not None:
+            self._page_render_cache.move_to_end(cache_key)
+        else:
+            pixmap = self.renderer.render_page(self.current_page, scale=self.zoom_level, dpi=self.base_dpi)
+            if pixmap is not None:
+                self._page_render_cache[cache_key] = pixmap
+                if len(self._page_render_cache) > self._PAGE_RENDER_CACHE_MAX:
+                    self._page_render_cache.popitem(last=False)
+
         self.page_view.set_page(pixmap)
         
         # Restore signatures for this page
@@ -677,16 +709,6 @@ class PDFViewer(QWidget):
         for sig in self.page_view.signatures:
             self.all_signatures[self.current_page].append(sig.copy())
 
-    def _save_page_field_candidates(self) -> None:
-        """Save current page field candidates before switching pages."""
-        if self.current_page not in self.all_field_candidates:
-            self.all_field_candidates[self.current_page] = []
-        else:
-            self.all_field_candidates[self.current_page].clear()
-
-        for candidate in self.page_view.field_candidates:
-            self.all_field_candidates[self.current_page].append(candidate.copy())
-    
     def _load_page_signatures(self) -> None:
         """Load signatures for current page from storage."""
         self.page_view.clear_signatures()
@@ -738,31 +760,28 @@ class PDFViewer(QWidget):
             return
         
         if self.current_page > 0:
-            self._save_page_field_candidates()
             self._save_page_signatures()  # Save before switching
             self.current_page -= 1
             self._render_current_page()
             self._update_controls()
-    
+
     def next_page(self) -> None:
         """Go to next page."""
         if not self.renderer:
             return
-        
+
         if self.current_page < self.renderer.page_count() - 1:
-            self._save_page_field_candidates()
             self._save_page_signatures()  # Save before switching
             self.current_page += 1
             self._render_current_page()
             self._update_controls()
-    
+
     def goto_page(self, page_num: int) -> None:
         """Go to specific page."""
         if not self.renderer:
             return
-        
+
         if 0 <= page_num < self.renderer.page_count():
-            self._save_page_field_candidates()
             self._save_page_signatures()  # Save before switching
             self.current_page = page_num
             self._render_current_page()
@@ -845,56 +864,166 @@ class PDFViewer(QWidget):
                     break
         self.zoom_combo.blockSignals(False)
 
-    def find_signature_fields(self) -> None:
-        """Detect signature-like fields on the current page."""
+    def find_signature_fields(
+        self,
+        *,
+        silent: bool = False,
+        on_complete: Optional[Callable[[List[Dict[str, Any]]], None]] = None,
+    ) -> None:
+        """Detect signature-like fields on the current page, asynchronously.
+
+        detect_page() renders the page (pdfium, scale=2.0) and runs OpenCV
+        contour heuristics on it — real CPU/IO work. This method dispatches
+        it to the global QThreadPool (via the shared AsyncRunner/dispatch
+        helpers in desktop_app/widgets/async_utils.py) and returns
+        immediately; the button is disabled and shows a wait cursor for the
+        duration, restored when the worker completes.
+
+        Args:
+            silent: suppress the informational QMessageBox summaries
+                ("Fields Detected" / "No Fields Found"). Used by
+                place_signature_on_detected_field(), which needs the
+                candidates populated but shouldn't interrupt the placement
+                flow with a detection-summary dialog.
+            on_complete: invoked on the UI thread once detection finishes
+                (or fails), with the field-candidate dicts for the current
+                page (empty list on failure or "no fields found").
+        """
         if not self.renderer:
             QMessageBox.information(self, "No PDF", "Open a PDF first.")
+            if on_complete:
+                on_complete([])
             return
 
-        try:
-            candidates = self.detector.detect_page(self.renderer.pdf_path, self.current_page)
-        except Exception as exc:
-            QMessageBox.warning(self, "Field Detection Failed", f"Unable to detect fields:\n{exc}")
+        self.find_fields_btn.setEnabled(False)
+        self.setCursor(Qt.CursorShape.WaitCursor)
+
+        detector = self.detector
+        pdf_path = self.renderer.pdf_path
+        page_index = self.current_page
+
+        def _do_detect():
+            return detector.detect_page(pdf_path, page_index)
+
+        self._field_detect_runner = AsyncRunner(_do_detect)
+        self._field_detect_runner.finished.connect(
+            lambda candidates: self._on_field_detect_finished(candidates, page_index, silent, on_complete)
+        )
+        self._field_detect_runner.error.connect(
+            lambda exc: self._on_field_detect_error(exc, silent, on_complete)
+        )
+        dispatch(self._field_detect_runner)
+
+    def _on_field_detect_finished(
+        self,
+        candidates: List[Any],
+        detected_page_index: int,
+        silent: bool,
+        on_complete: Optional[Callable[[List[Dict[str, Any]]], None]],
+    ) -> None:
+        self.unsetCursor()
+        self.find_fields_btn.setEnabled(True)
+
+        if detected_page_index != self.current_page:
+            # The user navigated away from the page this detection was for
+            # while it was running; the result is stale for the page now
+            # showing. Store it under its own page (still useful once the
+            # user returns there) but don't touch the currently-visible
+            # page's candidates or fire on_complete for the wrong page.
+            self.all_field_candidates[detected_page_index] = [
+                c.as_dict() for c in candidates if c.page_index == detected_page_index
+            ]
+            if on_complete:
+                on_complete([])
             return
 
-        self.all_field_candidates[self.current_page] = [c.as_dict() for c in candidates if c.page_index == self.current_page]
+        candidate_dicts = [c.as_dict() for c in candidates if c.page_index == self.current_page]
+        self.all_field_candidates[self.current_page] = candidate_dicts
         self._load_page_field_candidates()
         self.set_selected_field_candidate_index(None)
 
-        if not candidates:
-            QMessageBox.information(self, "No Fields Found", "No likely signature fields were detected on this page.")
-            return
+        if not silent:
+            if not candidates:
+                QMessageBox.information(self, "No Fields Found", "No likely signature fields were detected on this page.")
+            else:
+                thresholded = [c for c in candidates if c.confidence >= self.field_auto_place_confidence]
+                shown_count = len(candidates)
+                shown_above = len(thresholded)
+                if shown_count and shown_above < shown_count:
+                    label = f"\n\n{shown_above}/{shown_count} candidate(s) above auto-placement threshold ({self.field_auto_place_confidence:.0%})."
+                else:
+                    label = ""
 
-        thresholded = [c for c in candidates if c.confidence >= self.field_auto_place_confidence]
-        shown_count = len(candidates)
-        shown_above = len(thresholded)
-        if shown_count and shown_above < shown_count:
-            label = f"\n\n{shown_above}/{shown_count} candidate(s) above auto-placement threshold ({self.field_auto_place_confidence:.0%})."
-        else:
-            label = ""
+                label_counts = {}
+                for candidate in candidates:
+                    label_counts[candidate.field_type] = label_counts.get(candidate.field_type, 0) + 1
 
-        label_counts = {}
-        for candidate in candidates:
-            label_counts[candidate.field_type] = label_counts.get(candidate.field_type, 0) + 1
+                summary = ", ".join(f"{name.replace('_', ' ')} x{count}" for name, count in sorted(label_counts.items()))
+                QMessageBox.information(
+                    self,
+                    "Fields Detected",
+                    f"Detected {len(candidates)} likely field(s) on page {self.current_page + 1}.\n\n{summary}{label}",
+                )
 
-        summary = ", ".join(f"{name.replace('_', ' ')} x{count}" for name, count in sorted(label_counts.items()))
-        QMessageBox.information(
-            self,
-            "Fields Detected",
-            f"Detected {len(candidates)} likely field(s) on page {self.current_page + 1}.\n\n{summary}{label}",
-        )
+        if on_complete:
+            on_complete(self.page_view.field_candidates)
 
-    def place_signature_on_detected_field(self) -> bool:
-        """Place the pending signature into the best detected field on the current page."""
+    def _on_field_detect_error(
+        self,
+        exc: Exception,
+        silent: bool,
+        on_complete: Optional[Callable[[List[Dict[str, Any]]], None]],
+    ) -> None:
+        self.unsetCursor()
+        self.find_fields_btn.setEnabled(True)
+        if not silent:
+            QMessageBox.warning(self, "Field Detection Failed", f"Unable to detect fields:\n{exc}")
+        if on_complete:
+            on_complete([])
+
+    def place_signature_on_detected_field(
+        self, on_complete: Optional[Callable[[bool], None]] = None
+    ) -> Optional[bool]:
+        """Place the pending signature into the best detected field on the current page.
+
+        Returns True/False synchronously when field candidates are already
+        available for the current page (the common case: the user already
+        ran "Find Fields", or a previous detection/navigation cached them).
+        If no candidates are cached yet, detection has to run first — this
+        dispatches it asynchronously (see find_signature_fields) and returns
+        None immediately; the actual placement result is delivered via
+        `on_complete` once detection finishes. `on_complete` is also called
+        in the synchronous-result case, so callers can use a single code
+        path regardless of which branch was taken.
+        """
         if not self.pending_signature_pixmap:
             QMessageBox.information(self, "No Signature Selected", "Select a signature first.")
+            if on_complete:
+                on_complete(False)
             return False
 
-        if not self.page_view.field_candidates:
-            self.find_signature_fields()
-            if not self.page_view.field_candidates:
-                return False
+        if self.page_view.field_candidates:
+            result = self._place_on_best_field_candidate()
+            if on_complete:
+                on_complete(result)
+            return result
 
+        def _after_detect(_candidates: List[Dict[str, Any]]) -> None:
+            result = self._place_on_best_field_candidate() if self.page_view.field_candidates else False
+            if on_complete:
+                on_complete(result)
+
+        self.find_signature_fields(silent=True, on_complete=_after_detect)
+        return None
+
+    def _place_on_best_field_candidate(self) -> bool:
+        """Place the pending signature into the best already-detected candidate.
+
+        Precondition: self.page_view.field_candidates is non-empty. Split
+        out of place_signature_on_detected_field so both the synchronous
+        (already-cached) and asynchronous (detect-then-place) paths share
+        one placement implementation.
+        """
         field = self._choose_field_candidate()
         if field is None:
             QMessageBox.warning(
@@ -991,11 +1120,75 @@ class PDFViewer(QWidget):
             self.page_view.clear_field_candidates()
             return []
 
-        self._save_page_field_candidates()
         self.all_field_candidates[self.current_page] = [c.as_dict() for c in candidates if c.page_index == self.current_page]
         self._load_page_field_candidates()
         self.set_selected_field_candidate_index(None)
         return self.page_view.field_candidates
+
+    def detect_fields_for_pages(
+        self,
+        page_indices: List[int],
+        on_complete: Callable[[Dict[int, List[Dict[str, Any]]]], None],
+    ) -> None:
+        """Detect signature fields for multiple pages in a single background pass.
+
+        Bulk/template signature placement in "adaptive" mode previously
+        called `_detect_signature_fields_silent()` once per target page
+        inside a synchronous UI-thread `for` loop (see
+        `desktop_app/views/main_window_parts/pdf.py`'s
+        `_on_pdf_template_apply_to_pages` and the bulk branch of
+        `_on_pdf_signature_placed`) — for N pages, that's N sequential
+        blocking pdfium-render + OpenCV calls, worse than the single-page
+        "Find Fields" button case. This dispatches all N detections on one
+        QThreadPool worker instead, so the UI thread is only blocked once
+        (not N times) for the whole batch.
+
+        Per-page failures are isolated (logged, empty result for that page)
+        and never abort the batch — one unreadable/corrupt page must not
+        prevent placement on the others.
+
+        `on_complete` is invoked on the UI thread with
+        `self.all_field_candidates` (already updated in place) once the
+        batch finishes, or with `{}` immediately if there's no open PDF.
+        """
+        if not self.renderer:
+            on_complete({})
+            return
+
+        detector = self.detector
+        pdf_path = self.renderer.pdf_path
+        # De-duplicate while preserving order: a caller may legitimately
+        # pass the same page twice (e.g. a page selected by both a
+        # user-defined range and a "current page" default).
+        unique_pages = list(dict.fromkeys(page_indices))
+
+        def _do_batch_detect() -> Dict[int, List[Any]]:
+            results: Dict[int, List[Any]] = {}
+            for page_index in unique_pages:
+                try:
+                    results[page_index] = detector.detect_page(pdf_path, page_index)
+                except Exception as exc:
+                    LOG.warning("Batch field detection failed for page %s: %s", page_index, exc)
+                    results[page_index] = []
+            return results
+
+        def _on_batch_finished(results: Dict[int, List[Any]]) -> None:
+            for page_index, candidates in results.items():
+                self.all_field_candidates[page_index] = [
+                    c.as_dict() for c in candidates if c.page_index == page_index
+                ]
+            if self.current_page in results:
+                self._load_page_field_candidates()
+            on_complete(dict(self.all_field_candidates))
+
+        def _on_batch_error(exc: Exception) -> None:
+            LOG.error("Batch field detection harness failed: %s", exc)
+            on_complete({})
+
+        self._batch_detect_runner = AsyncRunner(_do_batch_detect)
+        self._batch_detect_runner.finished.connect(_on_batch_finished)
+        self._batch_detect_runner.error.connect(_on_batch_error)
+        dispatch(self._batch_detect_runner)
 
     def build_scaled_signature_rect(
         self,

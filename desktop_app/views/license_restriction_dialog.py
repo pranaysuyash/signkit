@@ -12,12 +12,10 @@ from PySide6.QtWidgets import (
 )
 
 from desktop_app.license.storage import OperationType
+from desktop_app.config import get_purchase_url
 from desktop_app.views.license_dialog import LicenseDialog
 from desktop_app.widgets.modern_mac_button import ModernMacButton
 
-
-# Configuration
-PURCHASE_URL = "https://gumroad.com/l/signature-extractor"  # Example URL
 
 # Restriction messages
 RESTRICTION_MESSAGES = {
@@ -178,7 +176,7 @@ class LicenseRestrictionDialog(QDialog):
     def on_buy_license(self) -> None:
         """Open purchase URL in browser."""
         try:
-            webbrowser.open(PURCHASE_URL)
+            webbrowser.open(get_purchase_url())
         except Exception:
             # If browser opening fails, just continue
             pass

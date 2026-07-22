@@ -117,7 +117,8 @@
       })(window, document, 'clarity', 'script', 'u8zyh41jr0');
     </script>
 
-    <!-- Use central analytics helper -->
+    <!-- Canonical checkout/provider configuration, then analytics. -->
+    <script src="web/live/js/checkout-config.js"></script>
     <script src="web/live/js/analytics.js"></script>
 
     <!-- Fonts -->
@@ -280,6 +281,14 @@
           flex-direction: column;
           align-items: flex-start;
         }
+
+        .price-pill {
+          width: 100%;
+          justify-content: center;
+          flex-wrap: wrap;
+          white-space: normal;
+          text-align: center;
+        }
       }
 
       .hero-main h1 {
@@ -361,6 +370,100 @@
       .btn-primary:hover {
         transform: translate(-2px, -2px);
         box-shadow: 8px 8px 0 #111827;
+      }
+
+      .checkout-unavailable {
+        cursor: not-allowed;
+        filter: grayscale(0.65);
+        opacity: 0.65;
+      }
+
+      .checkout-provider-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        color: #4b5563;
+        font-size: 0.8rem;
+        line-height: 1.5;
+      }
+
+      .checkout-provider-note::before {
+        content: 'Secure checkout';
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #dcfce7;
+        border: 1px solid #86efac;
+        color: #166534;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .purchase-card {
+        margin-top: 54px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+        gap: 28px;
+        padding: 32px;
+        border: 3px solid #111827;
+        border-radius: 28px;
+        background: #111827;
+        color: #ffffff;
+        box-shadow: 14px 14px 0 #4f46e5;
+      }
+
+      .purchase-card h2 {
+        margin-bottom: 12px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(1.9rem, 3vw, 3rem);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+
+      .purchase-card p {
+        color: #d1d5db;
+        line-height: 1.65;
+      }
+
+      .purchase-card .workflow-capabilities li {
+        color: #f3f4f6;
+      }
+
+      .purchase-card .workflow-capabilities li::before {
+        color: #5eead4;
+      }
+
+      .purchase-summary {
+        display: grid;
+        gap: 12px;
+        padding: 22px;
+        border-radius: 22px;
+        background: #ffffff;
+        color: #111827;
+      }
+
+      .purchase-price {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      .purchase-price strong {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.4rem;
+      }
+
+      .purchase-summary .btn-primary,
+      .purchase-summary .btn-ghost {
+        justify-content: center;
+        min-height: 48px;
+        text-align: center;
+      }
+
+      .fallback-copy {
+        color: #6b7280 !important;
+        font-size: 0.78rem;
+        text-align: center;
       }
 
       .btn-ghost {
@@ -782,15 +885,77 @@
       }
 
       .screenshots-section,
-      .faq-section {
+      .faq-section,
+      .workflow-section {
         margin-top: 54px !important;
       }
 
       .screenshots-section h2,
-      .faq-section h2 {
+      .faq-section h2,
+      .workflow-section h2 {
         font-size: clamp(1.65rem, 2.4vw, 2.4rem) !important;
         letter-spacing: -0.04em;
         margin-bottom: 18px !important;
+      }
+
+      .workflow-section {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+        gap: 24px;
+        padding: 28px;
+        border: 3px solid #111827;
+        border-radius: 28px;
+        background: linear-gradient(135deg, #eef2ff 0%, #f0fdfa 100%);
+        box-shadow: 14px 14px 0 rgba(17, 24, 39, 0.9);
+      }
+
+      .workflow-section p {
+        color: #374151;
+        line-height: 1.65;
+      }
+
+      .workflow-capabilities {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px 18px;
+        margin-top: 18px;
+        list-style: none;
+      }
+
+      .workflow-capabilities li {
+        position: relative;
+        padding-left: 22px;
+        color: #1f2937;
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .workflow-capabilities li::before {
+        content: '\2713';
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-weight: 800;
+        color: #0f766e;
+      }
+
+      .workflow-action {
+        align-self: center;
+        padding: 22px;
+        border: 2px solid rgba(17, 24, 39, 0.2);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .workflow-action strong {
+        display: block;
+        margin-bottom: 8px;
+        font-family: 'Space Grotesk', sans-serif;
+      }
+
+      .workflow-action .btn-ghost {
+        margin-top: 16px;
+        background: #ffffff;
       }
 
       .screenshot-grid {
@@ -859,6 +1024,14 @@
 
         .preview-badges {
           max-width: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .workflow-section,
+        .workflow-capabilities,
+        .purchase-card {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -931,24 +1104,27 @@
 
             <div class="hero-actions">
               <a
-                href="https://pranaysuyash.gumroad.com/l/signkit-v1"
                 class="btn-primary"
+                data-checkout-provider="dodo"
+                data-checkout-placement="hero"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span>Get SignKit for $29 launch</span>
+                <span>Buy SignKit — $29 one time</span>
                 <span>↗</span>
               </a>
 
               <a
-                href="https://pranaysuyash.gumroad.com/l/signkit-v1"
                 class="btn-ghost"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#buy"
               >
-                <span>View product details</span>
+                <span>See what is included</span>
               </a>
             </div>
+
+            <p class="checkout-provider-note">
+              Dodo Payments delivers the download and licence key after payment.
+            </p>
 
             <!-- Platform badges -->
             <div
@@ -1053,8 +1229,8 @@
             </div>
 
             <div class="tiny-note" style="margin-top: 6px">
-              Purchase is handled securely via Gumroad. Downloads and updates
-              are managed through your Gumroad account.
+              One payment. Dodo Payments provides the receipt, download, and licence key.
+              Gumroad remains available as an alternate checkout.
             </div>
           </div>
         </div>
@@ -1141,6 +1317,82 @@
           </div>
         </div>
 
+        <section class="purchase-card" id="buy" aria-labelledby="buy-heading">
+          <div>
+            <div class="hero-highlight">SignKit Personal</div>
+            <h2 id="buy-heading">Finish sensitive document work without another subscription.</h2>
+            <p>
+              Extract and clean signatures, keep a reusable local Vault, place signatures
+              into PDFs, and export the finished document. Your working files remain on
+              your computer; checkout handles only purchase and delivery information.
+            </p>
+            <ul class="workflow-capabilities" aria-label="Included with SignKit Personal">
+              <li>macOS, Windows, and Linux downloads</li>
+              <li>Signature extraction and cleanup</li>
+              <li>Reusable local signature Vault</li>
+              <li>PDF placement and export</li>
+              <li>One-time Personal licence</li>
+              <li>Minor updates for the purchased major version</li>
+            </ul>
+          </div>
+          <div class="purchase-summary">
+            <div class="purchase-price"><strong>$29</strong><span>launch price · one time</span></div>
+            <p style="color: #374151;">
+              Secure payment, receipt, downloads, and licence-key delivery through Dodo Payments.
+            </p>
+            <a
+              class="btn-primary"
+              data-checkout-provider="dodo"
+              data-checkout-placement="pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Continue to secure checkout →</a>
+            <a
+              class="btn-ghost"
+              data-checkout-provider="gumroad"
+              data-checkout-placement="pricing-fallback"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Prefer Gumroad? Buy there</a>
+            <p class="fallback-copy" data-checkout-configuration-note tabindex="-1">
+              Gumroad is an alternate purchase route for customers who prefer it.
+            </p>
+          </div>
+        </section>
+
+        <section class="workflow-section" aria-labelledby="workflow-heading">
+          <div>
+            <div class="hero-highlight">For recurring document operations</div>
+            <h2 id="workflow-heading">One file is a tool problem. Hundreds are a workflow problem.</h2>
+            <p>
+              SignKit handles the individual, local workflow. If your team repeatedly
+              processes signed packets, scanned forms, or custom document types, map the
+              full path from incoming file to validated business output.
+            </p>
+            <ul class="workflow-capabilities" aria-label="Document workflow capabilities">
+              <li>OCR and scan cleanup</li>
+              <li>Signature and missing-field detection</li>
+              <li>Structured field extraction</li>
+              <li>Batch processing and review queues</li>
+              <li>CSV, spreadsheet, CRM, or API delivery</li>
+              <li>Local or controlled deployment design</li>
+            </ul>
+          </div>
+          <div class="workflow-action">
+            <strong>Keep the privacy boundary intact.</strong>
+            <p>
+              The enquiry shares only what you choose to type. SignKit does not send
+              filenames, document contents, or processing metadata.
+            </p>
+            <a
+              href="https://pranaysuyash.com/contact?source=signkit&amp;entry=landing&amp;intent=document-workflow"
+              class="btn-ghost workflow-review-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Map your document workflow →</a>
+          </div>
+        </section>
+
         <!-- FAQ section -->
         <div class="faq-section" id="faq" style="margin-top: 48px">
           <h2 style="text-align: center; font-size: 2rem; margin-bottom: 24px">
@@ -1164,7 +1416,7 @@
               <p style="color: #4b5563; font-size: 0.9rem">
                 SignKit is packaged as a desktop app for macOS, Windows, and
                 Linux. The exact binaries attached to a release are listed on
-                Gumroad, so check the current download bundle if you need a
+                the checkout provider, so check the current download bundle if you need a
                 specific platform before purchase.
               </p>
             </div>
@@ -1226,8 +1478,8 @@
                 What if I need a refund?
               </h3>
               <p style="color: #4b5563; font-size: 0.9rem">
-                All purchases are processed through Gumroad which offers buyer
-                protection. Contact
+                Purchases are processed through Dodo Payments or the alternate Gumroad
+                checkout. Contact
                 <a href="mailto:support@signkit.work" style="color: #4f46e5"
                   >support@signkit.work</a
                 >
@@ -1275,7 +1527,7 @@
               <div style="display: flex; flex-direction: column; gap: 8px;">
                 <a href="#screenshots" style="font-size: 0.85rem; color: #4b5563; text-decoration: none;">Screenshots</a>
                 <a href="#faq" style="font-size: 0.85rem; color: #4b5563; text-decoration: none;">FAQ</a>
-                <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" style="font-size: 0.85rem; color: #4f46e5; text-decoration: none; font-weight: 500;">Buy — $29 launch</a>
+                <a href="#buy" style="font-size: 0.85rem; color: #4f46e5; text-decoration: none; font-weight: 500;">Buy — $29 launch</a>
               </div>
             </div>
 
@@ -1308,6 +1560,8 @@
       </div>
     </div>
 
+    <script src="web/live/js/checkout.js"></script>
+
     <!-- Privacy-friendly analytics by Plausible (disabled; paid service)
     <script async src="https://plausible.io/js/pa-Z7IHNxIIEUXGeZe1RBq2s.js"></script>
     <script>
@@ -1317,6 +1571,17 @@
     -->
 
     <script>
+      document.querySelectorAll('.workflow-review-link').forEach((link) => {
+        link.addEventListener('click', () => {
+          if (typeof gtag === 'function') {
+            gtag('event', 'workflow_path_viewed', {
+              source: 'signkit',
+              entry: 'landing'
+            });
+          }
+        });
+      });
+
       // A/B Test Configuration
       // Set AUTO_SPLIT to true for automatic random traffic splitting from root
       // Direct paths (/root, /buy, /purchase, /gum) always work regardless of AUTO_SPLIT

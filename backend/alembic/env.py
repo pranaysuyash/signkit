@@ -123,12 +123,20 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
+import os
+from pathlib import Path
+import sys
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import Base and models
-from app.database import Base
-from app.models.user import User  # noqa
-from app.models.image import Image  # noqa
-from app.config import settings
+from backend.app.database import Base
+from backend.app.models.user import User  # noqa
+from backend.app.models.image import Image  # noqa
+from backend.app.config import settings
 
 # this is the Alembic Config object
 config = context.config
@@ -136,7 +144,7 @@ config = context.config
 # Override sqlalchemy.url
 config.set_main_option(
     "sqlalchemy.url",
-    settings.DATABASE_URL
+    os.getenv("DATABASE_URL", settings.DATABASE_URL)
 )
 
 # Interpret the config file for Python logging

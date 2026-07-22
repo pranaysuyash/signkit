@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import sys
 from pathlib import Path
-from typing import Optional, cast
+from typing import Callable, Dict, List, Optional, cast
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QColor, QIcon, QKeySequence, QPalette, QPixmap
@@ -863,30 +863,50 @@ class PdfTabMixin:
 
 
     def _on_pdf_find_fields(self):
-        """Detect likely signature fields in the current PDF page."""
+        """Detect likely signature fields in the current PDF page.
+
+        find_signature_fields() runs asynchronously (see desktop_app/pdf/viewer.py);
+        it returns immediately, so the field-count status message and sidebar
+        refresh happen in the on_complete callback rather than right after
+        the call.
+        """
         if not self.pdf_viewer or not self.pdf_viewer.renderer:
             QMessageBox.information(self, "No PDF Open", "Please open a PDF document first.")
             return
 
-        self.pdf_viewer.find_signature_fields()
-        self._refresh_detected_field_list()
-        if self.pdf_viewer.page_view.field_candidates:
-            self.statusBar().showMessage(
-                f"Detected {len(self.pdf_viewer.page_view.field_candidates)} field candidate(s) on page {self.pdf_viewer.current_page + 1}",
-                3000,
-            )
+        current_page = self.pdf_viewer.current_page
+
+        def _on_done(field_candidates):
+            self._refresh_detected_field_list()
+            if field_candidates:
+                self.statusBar().showMessage(
+                    f"Detected {len(field_candidates)} field candidate(s) on page {current_page + 1}",
+                    3000,
+                )
+
+        self.pdf_viewer.find_signature_fields(on_complete=_on_done)
 
     def _on_pdf_place_on_field(self):
-        """Snap the selected signature into the best detected field on the current page."""
+        """Snap the selected signature into the best detected field on the current page.
+
+        place_signature_on_detected_field() may complete synchronously
+        (field candidates already cached) or asynchronously (detection has
+        to run first); on_complete covers both cases with one code path.
+        """
         if not self.pdf_viewer or not self.pdf_viewer.renderer:
             QMessageBox.information(self, "No PDF Open", "Please open a PDF document first.")
             return
 
-        if self.pdf_viewer.place_signature_on_detected_field():
-            self.statusBar().showMessage(
-                f"Placed signature on detected field on page {self.pdf_viewer.current_page + 1}",
-                3000,
-            )
+        current_page = self.pdf_viewer.current_page
+
+        def _on_done(placed: bool) -> None:
+            if placed:
+                self.statusBar().showMessage(
+                    f"Placed signature on detected field on page {current_page + 1}",
+                    3000,
+                )
+
+        self.pdf_viewer.place_signature_on_detected_field(on_complete=_on_done)
 
     def _refresh_detected_field_list(self):
         """Populate the sidebar with detected signature fields."""
@@ -1164,8 +1184,20 @@ class PdfTabMixin:
         self,
         template: SignaturePlacementTemplate,
         sig_pixmap: QPixmap,
+        *,
+        skip_detection: bool = False,
     ) -> Optional[tuple]:
-        """Resolve template placement rectangle for the active page."""
+        """Resolve template placement rectangle for the active page.
+
+        `skip_detection` is set by the multi-page bulk-apply loop
+        (`_on_pdf_template_apply_to_pages`), which batch-detects fields for
+        every target page up front (see `_run_field_detection_batch`) instead
+        of detecting once per page inside this per-page call. When set,
+        this trusts whatever `pdf_viewer.page_view.field_candidates` already
+        holds for the current page (populated by `goto_page()` ->
+        `_load_page_field_candidates()` reading the pre-computed batch
+        result) rather than re-running detection.
+        """
         if not self.pdf_viewer:
             return None
 
@@ -1173,7 +1205,8 @@ class PdfTabMixin:
             return None
 
         if template.use_field_anchor and template.anchor_x_ratio is not None and template.anchor_y_ratio is not None:
-            self.pdf_viewer._detect_signature_fields_silent()
+            if not skip_detection:
+                self.pdf_viewer._detect_signature_fields_silent()
             rect = self.pdf_viewer.build_field_anchor_signature_rect_from_ratio(
                 template.anchor_x_ratio,
                 template.anchor_y_ratio,
@@ -1189,13 +1222,50 @@ class PdfTabMixin:
             template.height_ratio,
         )
 
+    def _run_after_bulk_field_detection(
+        self,
+        pages: List[int],
+        needs_detection: bool,
+        then_fn: Callable[[], None],
+    ) -> None:
+        """Run `then_fn()` immediately, or after a single batched background
+        field-detection pass over `pages` when `needs_detection` is True.
+
+        Shared by `_on_pdf_template_apply_to_pages` and the bulk branch of
+        `_on_pdf_signature_placed` — both previously called
+        `_detect_signature_fields_silent()` once per page inside a
+        synchronous loop for "adaptive" (field-anchored) bulk placement,
+        which for N pages meant N sequential blocking pdfium-render +
+        OpenCV calls on the UI thread. See
+        docs/analysis/2026-07-01_performance_optimization_audit.md.
+        """
+        if not needs_detection or not self.pdf_viewer:
+            then_fn()
+            return
+
+        self.statusBar().showMessage(f"Detecting fields on {len(pages)} page(s)...", 0)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+
+        def _on_ready(_all_candidates: Dict[int, list]) -> None:
+            QApplication.restoreOverrideCursor()
+            then_fn()
+
+        self.pdf_viewer.detect_fields_for_pages(pages, on_complete=_on_ready)
+
     def _apply_template_to_target_page(
         self,
         page_num: int,
         template: SignaturePlacementTemplate,
         run_id: Optional[str],
+        *,
+        skip_detection: bool = False,
     ) -> bool:
-        """Apply one template on one page."""
+        """Apply one template on one page.
+
+        `skip_detection` is forwarded to `_resolve_signature_placement_rect`
+        — set by the multi-page bulk-apply loop once it has already
+        batch-detected fields for all target pages.
+        """
         if not self.pdf_viewer or not self.pdf_viewer.renderer:
             return False
 
@@ -1214,7 +1284,9 @@ class PdfTabMixin:
         if signature_pixmap.isNull():
             return False
 
-        rect = self._resolve_signature_placement_rect(template, signature_pixmap)
+        rect = self._resolve_signature_placement_rect(
+            template, signature_pixmap, skip_detection=skip_detection
+        )
         if rect is None:
             return False
 
@@ -1325,31 +1397,41 @@ class PdfTabMixin:
                 page_count=len(target_pages),
             )
 
-        placed_count = 0
-        for page_num in target_pages:
-            if self._apply_template_to_target_page(page_num, template, run_id=run_id):
-                placed_count += 1
+        def _run_placement_loop() -> None:
+            placed_count = 0
+            for page_num in target_pages:
+                if self._apply_template_to_target_page(
+                    page_num, template, run_id=run_id, skip_detection=needs_detection
+                ):
+                    placed_count += 1
 
-        if self.audit_logger and run_id:
-            self.audit_logger.finish_run(
-                run_id,
-                success=(placed_count == len(target_pages)),
-                signature_count=placed_count,
-                details=f"Template applied on {placed_count}/{len(target_pages)} page(s)",
-            )
-
-        if placed_count:
-            skipped = len(target_pages) - placed_count
-            if skipped:
-                self.statusBar().showMessage(
-                    f"✅ Template '{template.name}' placed on {placed_count} page(s), {skipped} skipped."
+            if self.audit_logger and run_id:
+                self.audit_logger.finish_run(
+                    run_id,
+                    success=(placed_count == len(target_pages)),
+                    signature_count=placed_count,
+                    details=f"Template applied on {placed_count}/{len(target_pages)} page(s)",
                 )
+
+            if placed_count:
+                skipped = len(target_pages) - placed_count
+                if skipped:
+                    self.statusBar().showMessage(
+                        f"✅ Template '{template.name}' placed on {placed_count} page(s), {skipped} skipped."
+                    )
+                else:
+                    self.statusBar().showMessage(
+                        f"✅ Template '{template.name}' placed on {placed_count} page(s)"
+                    )
             else:
-                self.statusBar().showMessage(
-                    f"✅ Template '{template.name}' placed on {placed_count} page(s)"
-                )
-        else:
-            QMessageBox.warning(self, "Template Apply Failed", "Template could not be applied to any page.")
+                QMessageBox.warning(self, "Template Apply Failed", "Template could not be applied to any page.")
+
+        needs_detection = bool(
+            template.use_field_anchor
+            and template.anchor_x_ratio is not None
+            and template.anchor_y_ratio is not None
+        )
+        self._run_after_bulk_field_detection(target_pages, needs_detection, _run_placement_loop)
 
     def _on_pdf_template_save(self):
         """Save the currently placed signature as a reusable template."""
@@ -1463,52 +1545,58 @@ class PdfTabMixin:
             else:
                 run_id = None
 
-            placed_count = 0
-            for target_page in target_pages:
-                self.pdf_viewer.goto_page(target_page)
-                if self._bulk_use_same_pos:
-                    rect = self._compute_bulk_signature_rect_for_target(use_same_pos=True)
-                else:
-                    rect = self._compute_bulk_signature_rect_for_target(use_same_pos=False)
+            use_same_pos = self._bulk_use_same_pos
 
-                if not rect:
-                    continue
+            def _run_bulk_placement_loop() -> None:
+                placed_count = 0
+                for target_page in target_pages:
+                    self.pdf_viewer.goto_page(target_page)
+                    rect = self._compute_bulk_signature_rect_for_target(
+                        use_same_pos=use_same_pos, skip_detection=not use_same_pos
+                    )
 
-                tx, ty, tw, th = rect
-                self.pdf_viewer.page_view.add_signature_overlay(
-                    tx,
-                    ty,
-                    tw,
-                    th,
-                    self._bulk_pixmap,
-                    self._bulk_sig_path,
-                )
-                placed_count += 1
+                    if not rect:
+                        continue
 
-                if self.audit_logger:
-                    self.audit_logger.log_place_signature(
-                        target_page,
-                        self._bulk_sig_path,
+                    tx, ty, tw, th = rect
+                    self.pdf_viewer.page_view.add_signature_overlay(
                         tx,
                         ty,
                         tw,
                         th,
-                        run_id=run_id,
+                        self._bulk_pixmap,
+                        self._bulk_sig_path,
+                    )
+                    placed_count += 1
+
+                    if self.audit_logger:
+                        self.audit_logger.log_place_signature(
+                            target_page,
+                            self._bulk_sig_path,
+                            tx,
+                            ty,
+                            tw,
+                            th,
+                            run_id=run_id,
+                        )
+
+                self._finish_bulk_placement_run(run_id, placed_count, len(target_pages))
+                if self._current_pdf_path and self.pdf_viewer:
+                    save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
+                self._clear_bulk_signature_state()
+
+                self.pdf_viewer.goto_page(source_page)
+                if placed_count == len(target_pages):
+                    self.statusBar().showMessage(f"✅ Signature placed on {placed_count + 1} page(s)")
+                else:
+                    skipped = len(target_pages) - placed_count
+                    self.statusBar().showMessage(
+                        f"✅ Signature placed on {placed_count + 1} page(s), {skipped} page(s) skipped."
                     )
 
-            self._finish_bulk_placement_run(run_id, placed_count, len(target_pages))
-            if self._current_pdf_path and self.pdf_viewer:
-                save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
-            self._clear_bulk_signature_state()
-
-            self.pdf_viewer.goto_page(source_page)
-            if placed_count == len(target_pages):
-                self.statusBar().showMessage(f"✅ Signature placed on {placed_count + 1} page(s)")
-            else:
-                skipped = len(target_pages) - placed_count
-                self.statusBar().showMessage(
-                    f"✅ Signature placed on {placed_count + 1} page(s), {skipped} page(s) skipped."
-                )
+            # "Adaptive" mode (not use_same_pos) is the field-anchored case
+            # that needs detection; "same position" mode never detects.
+            self._run_after_bulk_field_detection(target_pages, not use_same_pos, _run_bulk_placement_loop)
             return
 
         # Single placement
@@ -1576,8 +1664,16 @@ class PdfTabMixin:
             "anchor_y_ratio": (y + height / 2) / page_height,
         }
 
-    def _compute_bulk_signature_rect_for_target(self, use_same_pos: bool) -> Optional[tuple]:
-        """Compute signature placement rectangle for the active target page."""
+    def _compute_bulk_signature_rect_for_target(
+        self, use_same_pos: bool, *, skip_detection: bool = False
+    ) -> Optional[tuple]:
+        """Compute signature placement rectangle for the active target page.
+
+        `skip_detection` is set by the bulk-placement loop in
+        `_on_pdf_signature_placed` once it has already batch-detected fields
+        for every target page (see `_run_after_bulk_field_detection`),
+        instead of this method re-detecting once per page.
+        """
         if not self.pdf_viewer or not self._bulk_signature_geometry:
             return None
 
@@ -1591,7 +1687,8 @@ class PdfTabMixin:
             )
 
         # Adaptive mode: auto-snapping to nearest detected field near anchor.
-        self.pdf_viewer._detect_signature_fields_silent()
+        if not skip_detection:
+            self.pdf_viewer._detect_signature_fields_silent()
         rect = self.pdf_viewer.build_field_anchor_signature_rect_from_ratio(
             geometry["anchor_x_ratio"],
             geometry["anchor_y_ratio"],

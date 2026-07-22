@@ -192,9 +192,9 @@
             event_label: text,
             value: 1,
           });
-          // If an anchor or data-href exists that goes to Gumroad, append UTM
+          // Hosted checkout links receive consistent conversion attribution.
           var href = el.getAttribute('data-href') || el.getAttribute('href');
-          if (href && (href.includes('gumroad') || href.includes('gum.new'))) {
+          if (href && (href.includes('gumroad') || href.includes('gum.new') || href.includes('dodopayments.com'))) {
             e.preventDefault();
             safeGtag('event', 'checkout_intent', {
               event_category: 'conversion',
@@ -221,7 +221,7 @@
           event_label: href,
           link_text: (a.textContent || '').trim(),
         });
-        if (href && (href.includes('gumroad') || href.includes('gum.new'))) {
+        if (href && (href.includes('gumroad') || href.includes('gum.new') || href.includes('dodopayments.com'))) {
           safeGtag('event', 'checkout_intent', {
             event_category: 'conversion',
             event_label: (a.textContent || '').trim() || href,

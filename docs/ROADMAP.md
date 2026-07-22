@@ -1,5 +1,16 @@
 # Signature Extractor — Product Roadmap
 
+## Addendum (2026-07-16)
+
+This roadmap contains useful historical feature detail but is not the current ordering
+authority for legal-signature or vertical expansion. The next product programme begins
+with defensible local completion (integrity, consent/intent, evidence package,
+verification, certificate support), then canonical vertical configurations, then
+optional connected/regulated trust. Use
+`docs/research/2026-07-16_signkit_market_legal_vertical_research.md` and
+`docs/analysis/2026-07-16_local_first_trust_architecture_decision.md`. No item there is
+runtime-complete merely because it is documented.
+
 ## Overview
 
 Desktop-first signature extraction tool with server/cloud expansion path. Core value: extract signatures from documents instantly with fine control, export for e-signing workflows or direct integration.

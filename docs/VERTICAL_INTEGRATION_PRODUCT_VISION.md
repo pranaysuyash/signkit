@@ -1,5 +1,16 @@
 # Signature Platform Product Vision: From Extraction to E‑Sign Suite
 
+## Addendum (2026-07-16)
+
+This is a historical broad-platform exploration. The current direction is not a
+cloud-first “DocuSign-class” clone. Use
+`docs/research/2026-07-16_signkit_market_legal_vertical_research.md` and
+`docs/analysis/2026-07-16_local_first_trust_architecture_decision.md` for the canonical
+local-first trust modes, jurisdiction/provider boundaries, vertical model, pricing
+hypotheses, and validation plan. Existing ideas below remain useful inputs, but their
+phases, legal statements, market positioning, and architecture are not implementation
+commitments unless adopted by a newer decision record.
+
 This document lays out how the current signature extraction tool evolves into a vertically integrated, DocuSign‑class e‑signature platform. It covers product vision, user journeys, features, architecture, compliance, and a phased roadmap aligned to the existing codebase.
 
 ---

@@ -97,17 +97,6 @@ class ProcessingParams:
 
 from desktop_app.processing.watermark import WatermarkEngine
 
-class SignatureExtractor:
-    """
-    Handles loading images, processing selections, and extracting signatures.
-    Now includes forensic watermarking.
-    """
-
-    def __init__(self):
-        self.current_image: Optional[np.ndarray] = None
-        self.original_path: Optional[str] = None
-        self.watermarker = WatermarkEngine()
-
 @dataclass
 class ProcessingSession:
     """Represents an image processing session."""
@@ -345,6 +334,7 @@ class SignatureExtractor:
         """Initialize the signature extractor."""
         self.sessions: Dict[str, ProcessingSession] = {}
         self._temp_files: set = set()
+        self.watermarker = WatermarkEngine()
         
     def create_session(self, image_path: str) -> str:
         """Create new processing session with image.
@@ -429,37 +419,57 @@ class SignatureExtractor:
         if session is None:
             return None
         
+        # Parameter rationale (heuristic defaults, not tuned against a
+        # labeled signature dataset in this codebase -- if auto-detect
+        # under/over-fires on real scans, these are the values to revisit
+        # first, ideally against a labeled set of real scanned signatures):
+        #   - adaptiveThreshold blockSize=51 (must be odd): large enough to
+        #     average out slow-varying scan illumination/shadow gradients
+        #     without fragmenting individual pen strokes; C=10 sets how far
+        #     below the local mean a pixel must be to count as "ink" --
+        #     higher C reduces false positives from faint paper texture.
+        #   - global threshold 180: assumes a light/white-ish page
+        #     background (typical for printed forms); catches strong,
+        #     uniformly dark ink strokes that a very locally-adaptive
+        #     threshold might miss, as an OR'd fallback signal.
+        #   - min/max area (0.1%-80% of crop): excludes small noise specks
+        #     and full-crop blobs (e.g. a mostly-dark scanned region), not
+        #     signature shape assumptions.
+        #   - aspect ratio 0.2-10, w>30px, h>15px: signatures are usually
+        #     wider than tall, but the wide 0.2 lower bound still allows
+        #     narrow/vertical cursive scripts; the absolute pixel minimums
+        #     reject stray noise blobs regardless of aspect ratio.
         image = session.original_image
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
+
         # Adaptive threshold to find dark regions (ink) on lighter background
         binary = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY_INV, 51, 10
         )
-        
+
         # Also try global threshold as fallback
         _, binary_global = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
-        
+
         # Combine both
         combined = cv2.bitwise_or(binary, binary_global)
-        
+
         # Morphological operations to clean up noise
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
         cleaned = cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel, iterations=2)
         cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, kernel, iterations=1)
-        
+
         # Find contours
         contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+
         if not contours:
             return None
-        
+
         # Filter contours by area — too small = noise, too large = background
         img_area = image.shape[0] * image.shape[1]
         min_area = img_area * 0.001  # At least 0.1% of image
         max_area = img_area * 0.8    # Not more than 80% of image
-        
+
         valid_contours = []
         for c in contours:
             area = cv2.contourArea(c)
@@ -727,6 +737,21 @@ class SignatureExtractor:
             # Determine which cluster is the "ink"
             # Usually ink is darker (lower L value in LAB)
             # L channel is index 0 in LAB
+            #
+            # Known limitation: this always picks the darkest of the k
+            # clusters as "ink," which assumes dark-ink-on-light-background.
+            # It will misidentify ink on light pen / dark paper (e.g. white
+            # gel pen on black paper), and on documents with strong shadows
+            # or multiple ink colors the darkest cluster may be a shadow or
+            # printed text rather than the actual signature. There is no
+            # confidence signal on this cluster-assignment step, so a
+            # misidentification currently fails silently (produces a wrong
+            # but plausible-looking extraction, not an error). Fixing this
+            # properly (e.g. detecting background lightness and choosing
+            # the cluster further from it, or surfacing a confidence score
+            # to the user) is a real algorithmic improvement, not just a
+            # parameter tweak -- flagged here rather than attempted without
+            # test images covering these cases.
             l_values = centers[:, 0]
             ink_cluster_idx = np.argmin(l_values)
             
@@ -761,12 +786,13 @@ class SignatureExtractor:
             try:
                 import time
                 import hashlib
-                
+                from desktop_app.config import APP_VERSION
+
                 meta = {
                     "app": "SignKit",
-                    "version": "1.0.0",
+                    "version": APP_VERSION,
                     "timestamp": int(time.time()),
-                    "source_hash": hashlib.md5(self.original_path.encode()).hexdigest() if self.original_path else "unknown",
+                    "source_hash": hashlib.md5(session.file_path.encode()).hexdigest() if session.file_path else "unknown",
                     "mode": "forensic"
                 }
                 png_bytes = self.watermarker.embed_watermark(png_bytes, meta)
@@ -824,9 +850,20 @@ class SignatureExtractor:
             min_dim = min(height, width)
             
             # Scoring Logic
+            #
+            # The blur/contrast/resolution cutoffs below (50/100, 20/40,
+            # 100px/200px) and their point deductions are heuristic defaults
+            # commonly used for Laplacian-variance blur detection and RMS
+            # contrast, not values calibrated against a labeled set of real
+            # signature scans in this codebase. They produce a relative,
+            # directional signal (worse image -> lower score) rather than a
+            # precisely calibrated absolute quality metric. If users report
+            # the health badge disagreeing with visibly obvious blur/
+            # contrast/resolution problems, these are the values to
+            # recalibrate first, ideally against real user-submitted scans.
             issues = []
             score = 100
-            
+
             # Blur Penalty
             if blur_var < 50:
                 score -= 40
@@ -875,11 +912,14 @@ class SignatureExtractor:
             
         except Exception as e:
             LOG.error(f"Failed to analyze quality for session {session_id}: {e}")
-            # Return a safe default on error
+            # Return a safe default on error, but include the actual reason so
+            # the UI (which surfaces `issues` directly in the health badge
+            # tooltip) can show the user something more actionable than an
+            # unexplained "Unknown" rating.
             return {
                 "score": 0,
                 "rating": "Unknown",
-                "issues": ["Analysis Failed"],
+                "issues": [f"Analysis failed: {e}"],
                 "metrics": {}
             }
     

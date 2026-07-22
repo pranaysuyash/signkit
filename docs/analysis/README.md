@@ -111,6 +111,18 @@ Exploration-backed discussion menu and decision gate for what to discuss, what t
 
 **Use this for**: Preserving the first-principles PDF workspace direction and the durable ownership model behind the PDF tab
 
+### [Performance Optimization Audit — 2026-07-01](./2026-07-01_performance_optimization_audit.md)
+
+Engineering audit + implementation record, extended same-day in three addenda. Original pass: per-finding verification against live code (several claims from an initial subagent pass turned out inaccurate on inspection), fixes for the UI-thread-blocking extraction pipeline, a dead-class bug that silently broke forensic watermarking, PDF page render caching, redundant image conversions, and backend image re-read on every threshold tweak. Addendum 1: PDF field-detection made genuinely async, and the library-list scan bounded to `limit` regardless of library size (a manifest index was deliberately rejected on first-principles grounds — it would be a second, driftable source of truth for data the filesystem already owns). Addendum 2: batched bulk/template field detection (N pages, one background pass instead of N sequential blocking calls). Addendum 3: fixed a separate, unrelated correctness bug found along the way — page navigation was silently corrupting stored field-candidate coordinates — by deleting the dead code that caused it (it never had a legitimate purpose) rather than patching the symptom.
+
+**Use this for**: Understanding current performance characteristics, why certain "obvious" optimizations were deliberately not done, and the test coverage backing each fix
+
+### [Broader Improvement Survey — 2026-07-01](./2026-07-01_broader_improvement_survey.md)
+
+Follow-on survey (frontend/UX, backend architecture, CV/extraction quality, feature gaps) after the performance audit above. Fixed: a `/health` endpoint leaking a filesystem path, an unhelpful silent quality-analysis failure, a duplicated version-placeholder literal, and added documented rationale (without changing values) for several unexplained CV/detection constants. Two of the survey's initial findings turned out stale/incorrect on verification and are documented as such. Flags six items needing an explicit product decision before building: an unauthenticated uploads-serving endpoint (security-relevant, severity depends on deployment topology), and five unimplemented roadmap features (OCR document cleanup, signature anomaly detection, digital-certificate signing, batch cancel/progress, auto-fill-detected-fields) plus a permanently-disabled undo/redo menu.
+
+**Use this for**: The current list of known-but-not-yet-decided improvement opportunities, and why the CV parameters weren't retuned without real test data
+
 ## Related Documentation
 
 - [ROADMAP.md](../ROADMAP.md) - Product development roadmap with 8 phases

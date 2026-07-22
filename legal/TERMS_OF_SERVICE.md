@@ -31,7 +31,7 @@ Subject to these Terms, we grant you a **limited, non-exclusive, non-transferabl
 - **Duration**: Perpetual (for the purchased version)
 - **Features**: All features unlocked
 - **Restrictions**: None (subject to these Terms)
-- **Cost**: One-time payment as displayed on Gumroad
+- **Cost**: One-time payment as displayed by the selected checkout provider
 
 ### 2.3 License Limitations
 
@@ -49,10 +49,10 @@ You may NOT:
 
 ### 3.1 Payment Terms
 
-- **Payment Processing**: Handled by Gumroad, a third-party service
-- **Currency**: As displayed on the Gumroad product page
+- **Payment Processing**: Handled primarily by Dodo Payments, with Gumroad available as an alternate checkout
+- **Currency**: As displayed by the selected checkout provider
 - **Taxes**: Applicable taxes will be added during checkout
-- **Payment Method**: As accepted by Gumroad
+- **Payment Method**: As accepted by the selected checkout provider
 
 ### 3.2 Refund Policy
 
@@ -60,7 +60,7 @@ You may NOT:
 
 - **Full refund** within 30 days of purchase
 - **No questions asked** - satisfaction guaranteed
-- **Process**: Request refund through Gumroad
+- **Process**: Request the refund through the provider used for purchase, or contact support@signkit.work with the purchase email and order reference
 - **License Deactivation**: Refunded licenses will be deactivated
 
 **Refund Conditions**:
@@ -211,7 +211,7 @@ Some jurisdictions do not allow certain limitations, so these may not apply to y
 
 - **Email address**: For license delivery and support
 - **License key**: For product activation and validation
-- **Purchase data**: Processed by Gumroad, not directly by us
+- **Purchase data**: Processed by Dodo Payments or Gumroad, depending on the checkout selected, rather than directly by us
 
 **Review our Privacy Policy**: https://signkit.work/privacy
 

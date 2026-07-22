@@ -8,74 +8,103 @@ import risk.
 from __future__ import annotations
 
 import sys
-from typing import Optional
+from typing import Any, Callable, Dict, Optional
 
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QPushButton, QSizePolicy, QWidget
 
 # ---------------------------------------------------------------------------
 # Async helpers
 # ---------------------------------------------------------------------------
+#
+# AsyncRunner/run_async/dispatch are generic (no dependency on the extraction
+# tab) and now live in desktop_app/widgets/async_utils.py, which is a valid
+# shared dependency for both desktop_app/views/ and desktop_app/pdf/.
+# Re-exported here for backward compatibility with existing imports.
 
-class AsyncRunner(QObject):
-    """Run a callable in the global thread pool and emit its result."""
+from desktop_app.widgets.async_utils import AsyncRunner, dispatch, run_async  # noqa: F401
 
-    finished = Signal(object)
-    error = Signal(Exception)
 
-    def __init__(self, func, *args, **kwargs):
-        super().__init__()
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
+def run_signature_preview(
+    *,
+    extractor,
+    is_forensic: bool,
+    session_id: str,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    threshold_value: int,
+    color_hex: str,
+    auto_clean: bool,
+    persist_fn: Callable[[], None],
+    request_id: int,
+    start_time: float,
+) -> Dict[str, Any]:
+    """Run signature extraction + quality analysis off the UI thread.
 
-    def run(self):
+    This is the body of what used to be ``on_preview`` before extraction and
+    quality analysis were moved onto a QThreadPool worker. It has no
+    dependency on any Qt widget, so it is safe to run from a worker thread
+    and safe to unit-test without a QApplication.
+
+    All failure modes are captured in the returned dict rather than raised,
+    so the caller's ``AsyncRunner.finished`` signal (queued back onto the
+    main/UI thread) is the single delivery path for both success and error
+    outcomes. This keeps the request_id staleness check in one place instead
+    of duplicating it across a success signal and an error signal.
+
+    Returns a dict with keys:
+      - request_id, start_time: echoed back so the UI-thread handler can
+        discard results superseded by a newer request.
+      - ok: whether extraction succeeded.
+      - png_bytes, quality, quality_error: present when ok is True.
+      - error: the exception, present when ok is False.
+    """
+    try:
+        if is_forensic:
+            png_bytes = extractor.process_selection_kmeans(
+                session_id=session_id, x1=x1, y1=y1, x2=x2, y2=y2, k=2
+            )
+        else:
+            png_bytes = extractor.process_selection(
+                session_id=session_id,
+                x1=x1, y1=y1, x2=x2, y2=y2,
+                color=color_hex,
+                threshold=threshold_value,
+                auto_clean=auto_clean,
+            )
+
+        # Best-effort backend sync; must never fail the local preview.
         try:
-            result = self.func(*self.args, **self.kwargs)
-            self.finished.emit(result)
-        except Exception as e:
-            self.error.emit(e)
+            persist_fn()
+        except Exception:
+            pass  # persist_fn already logs; local processing is source of truth.
 
+        quality = None
+        quality_error = None
+        try:
+            quality = extractor.analyze_quality(
+                session_id=session_id, x1=x1, y1=y1, x2=x2, y2=y2
+            )
+        except Exception as exc:
+            quality_error = exc
 
-def run_async(func, *args, **kwargs):
-    """Run *func* in the thread pool and return a future-like object."""
-
-    runner = AsyncRunner(func, *args, **kwargs)
-
-    class Future:
-        def __init__(self, runner):
-            self.runner = runner
-            self._result = None
-            self._error = None
-            self._finished = False
-            runner.finished.connect(self._on_finished)
-            runner.error.connect(self._on_error)
-
-        def _on_finished(self, result):
-            self._result = result
-            self._finished = True
-
-        def _on_error(self, error):
-            self._error = error
-            self._finished = True
-
-        def result(self):
-            if self._error:
-                raise self._error
-            return self._result
-
-        def isFinished(self):
-            return self._finished
-
-    future = Future(runner)
-
-    thread_pool = QThreadPool.globalInstance()
-    runnable = QRunnable.create(lambda: runner.run())
-    runnable.setAutoDelete(True)
-    thread_pool.start(runnable)
-
-    return future
+        return {
+            "ok": True,
+            "request_id": request_id,
+            "start_time": start_time,
+            "png_bytes": png_bytes,
+            "quality": quality,
+            "quality_error": quality_error,
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "request_id": request_id,
+            "start_time": start_time,
+            "error": exc,
+        }
 
 
 # ---------------------------------------------------------------------------

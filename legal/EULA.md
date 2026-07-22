@@ -37,9 +37,9 @@
 
 ## 4. PAYMENT AND REFUNDS
 
-**4.1 Payment**: License fees are processed through Gumroad. All payment terms are subject to Gumroad's policies.
+**4.1 Payment**: License fees are processed by the checkout provider selected at purchase. Dodo Payments is the primary provider and Gumroad is an alternate provider. The selected provider's buyer terms and payment policies also apply.
 
-**4.2 Refund Policy**: 30-day money-back guarantee. Request refunds through your Gumroad account.
+**4.2 Refund Policy**: 30-day money-back guarantee. Request a refund through the provider used for the purchase or by contacting support@signkit.work with the purchase email and order reference.
 
 ## 5. WARRANTY DISCLAIMER
 
