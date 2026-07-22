@@ -28,6 +28,23 @@
 - Does the $29/$39 one-time offer convert better through self-serve checkout or a guided
   workflow demo?
 
+## 2026-07-22 — First legal prospect batch
+
+**Evidence tier:** Tier 1 public-source qualification; not customer validation.
+
+- Four priority organizations were added to `PROSPECT_PIPELINE.csv`: SPN Legal & KN Law
+  Chambers, Lex Jurists, AKS Law Associates, and LLA Esquires.
+- Two nurture candidates were recorded separately: AMLEGALS and Ahlawat & Associates.
+- Qualification used official websites and explicit business inquiry routes. No personal
+  email was inferred or added.
+- The batch is `qualified_pending_approval`; no contact has been made.
+- Several India-based legal sites include Bar Council of India non-solicitation or
+  informational disclaimers. Outreach must remain a respectful product-research
+  question and must not imply legal-service solicitation.
+
+Detailed evidence and proposed first questions are in
+[`prospect_batch_2026-07-22.md`](prospect_batch_2026-07-22.md).
+
 ## Prospect-source policy
 
 The first prospect list will use official company websites, public inquiry pages,
