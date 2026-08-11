@@ -31,12 +31,13 @@ def test_document_session_roundtrip(tmp_path, monkeypatch):
     assert loaded == placements
 
 
-def test_document_session_ignores_missing_pdf(tmp_path, monkeypatch):
+def test_document_session_restores_after_pdf_changes(tmp_path, monkeypatch):
     pdf_path = tmp_path / "contract.pdf"
     pdf_path.write_bytes(b"%PDF-1.4 fake")
     monkeypatch.setenv("HOME", str(tmp_path))
 
-    save_document_session(str(pdf_path), [{"page": 0, "x": 1, "y": 2, "width": 3, "height": 4, "sig_path": "x"}])
+    placements = [{"page": 0, "x": 1, "y": 2, "width": 3, "height": 4, "sig_path": "x"}]
+    save_document_session(str(pdf_path), placements)
 
     pdf_path.write_bytes(b"%PDF-1.4 changed")
-    assert load_document_session(str(pdf_path)) == []
+    assert load_document_session(str(pdf_path)) == placements

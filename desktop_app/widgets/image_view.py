@@ -2,7 +2,7 @@ import logging
 from typing import Optional, Tuple
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QFrame, QApplication
 from PySide6.QtCore import Qt, Signal, QPointF, QRectF, QRect, QByteArray, QBuffer, QIODevice, QMimeData
-from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QWheelEvent, QMouseEvent, QDrag
+from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QWheelEvent, QMouseEvent, QDrag, QImageReader
 
 LOG = logging.getLogger(__name__)
 
@@ -58,7 +58,10 @@ class ImageView(QGraphicsView):
 
     def load_image(self, path: str):
         """Load image from file path."""
-        pixmap = QPixmap(path)
+        reader = QImageReader(path)
+        reader.setAutoTransform(True)
+        image = reader.read()
+        pixmap = QPixmap.fromImage(image) if not image.isNull() else QPixmap(path)
         self._set_pixmap(pixmap)
 
     def load_image_bytes(self, data: bytes):
@@ -82,12 +85,15 @@ class ImageView(QGraphicsView):
         self._set_pixmap(pixmap)
 
     def _set_pixmap(self, pixmap: QPixmap):
+        # Keep uploads and subsequent loads stable even after rotate/zoom gestures.
+        self.resetTransform()
         self._scene.clear()
         self.pixmap_item = self._scene.addPixmap(pixmap)
         self.setSceneRect(self.pixmap_item.boundingRect())
         self.fitInView(self.pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
         self.selection_rect_item = None
         self._zoom_level = 1.0
+        self._rotation = 0.0
         self.zoomChanged.emit(self._zoom_level)
 
     def clear_image(self):
@@ -198,10 +204,10 @@ class ImageView(QGraphicsView):
 
     def get_selection(self) -> Optional[Tuple[int, int, int, int]]:
         """Get selection coordinates (x1, y1, x2, y2) relative to image."""
-        if not self.selection_rect_item or not self.pixmap_item:
+        rect = self._selection_rect_in_scene_bounds()
+        if rect is None:
             return None
 
-        rect = self.selection_rect_item.rect()
         img_rect = self.pixmap_item.boundingRect()
         x1 = max(0, int(rect.left()))
         y1 = max(0, int(rect.top()))
@@ -215,24 +221,34 @@ class ImageView(QGraphicsView):
 
     def selected_rect_image_coords(self) -> Tuple[int, int, int, int]:
         """Get selection as (x1, y1, x2, y2) image coordinates. Returns (0,0,0,0) if no selection."""
-        sel = self.get_selection()
-        if sel:
-            return sel
-        # Fallback to programmatically-set bounds (used by tests)
-        if self._last_rect_scene_bounds.isValid():
-            r = self._last_rect_scene_bounds
-            x1, y1 = int(r.left()), int(r.top())
-            x2, y2 = int(r.right()), int(r.bottom())
-            # Clamp to image bounds
-            if self.pixmap_item:
-                iw = int(self.pixmap_item.boundingRect().width())
-                ih = int(self.pixmap_item.boundingRect().height())
-                x1 = max(0, min(x1, iw))
-                y1 = max(0, min(y1, ih))
-                x2 = max(0, min(x2, iw))
-                y2 = max(0, min(y2, ih))
-            return (x1, y1, x2, y2)
-        return (0, 0, 0, 0)
+        rect = self._selection_rect_in_scene_bounds()
+        if rect is None:
+            return (0, 0, 0, 0)
+
+        img_rect = self.pixmap_item.boundingRect()
+        x1 = max(0, int(rect.left()))
+        y1 = max(0, int(rect.top()))
+        x2 = min(int(img_rect.width()), int(rect.right()))
+        y2 = min(int(img_rect.height()), int(rect.bottom()))
+        return (x1, y1, x2, y2)
+
+    def _selection_rect_in_scene_bounds(self) -> Optional[QRectF]:
+        """Return current selection rect constrained to the loaded image."""
+        if not self.pixmap_item:
+            return None
+
+        rect = self.selection_rect_item.rect().normalized() if self.selection_rect_item else None
+        if rect is None or rect.isNull():
+            rect = QRectF(self._last_rect_scene_bounds)
+
+        if rect is None or rect.isNull():
+            return None
+
+        clipped = rect.intersected(self.pixmap_item.boundingRect())
+        if clipped.isNull() or clipped.width() <= 0 or clipped.height() <= 0:
+            return None
+
+        return clipped
 
     def set_selection_from_coords(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Programmatically set the selection rectangle from image coordinates."""
@@ -242,7 +258,7 @@ class ImageView(QGraphicsView):
         self._selection_end = QPointF(x2, y2)
         self._update_selection_rect()
         self._last_rect = QRect(int(x1), int(y1), int(x2 - x1), int(y2 - y1))
-        self._last_rect_scene_bounds = QRectF(QPointF(x1, y1), QPointF(x2, y2))
+        self._last_rect_scene_bounds = QRectF(self._selection_rect_in_scene_bounds() or QRectF(QPointF(x1, y1), QPointF(x2, y2)))
         sel = self.get_selection()
         if sel:
             self.selectionChanged.emit(sel)
@@ -339,9 +355,7 @@ class ImageView(QGraphicsView):
             if sel:
                 x1, y1, x2, y2 = sel
                 self._last_rect = QRect(x1, y1, x2 - x1, y2 - y1)
-                self._last_rect_scene_bounds = QRectF(
-                    QPointF(x1, y1), QPointF(x2, y2)
-                )
+                self._last_rect_scene_bounds = self._selection_rect_in_scene_bounds() or QRectF()
                 self.selectionChanged.emit(sel)
         else:
             super().mouseReleaseEvent(event)
@@ -357,4 +371,6 @@ class ImageView(QGraphicsView):
             self.selection_rect_item.setZValue(10)
 
         rect = QRectF(self._selection_start, self._selection_end).normalized()
+        rect = rect.intersected(self.pixmap_item.boundingRect())
         self.selection_rect_item.setRect(rect)
+        self._last_rect_scene_bounds = rect

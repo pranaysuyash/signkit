@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import sys
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QColor, QIcon, QKeySequence, QPalette, QPixmap
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QHBoxLayout,
+    QGridLayout,
     QLabel,
     QInputDialog,
     QListWidget,
@@ -24,6 +25,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QTextEdit,
+    QDoubleSpinBox,
+    QSpinBox,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -342,6 +345,8 @@ class PdfTabMixin:
 
         self.pdf_viewer = PDFViewer()
         self.pdf_viewer.signature_placed.connect(self._on_pdf_signature_placed)
+        self.pdf_viewer.signature_selected.connect(self._on_pdf_signature_overlay_selected)
+        self.pdf_viewer.page_changed.connect(self._on_pdf_page_changed)
 
         pdf_layout.addWidget(pdf_left_panel)
         pdf_layout.addWidget(self.pdf_viewer, 1)
@@ -490,6 +495,58 @@ class PdfTabMixin:
         lib_buttons.addWidget(paste_sig_btn)
         pdf_controls.addLayout(lib_buttons)
 
+        pdf_controls.addWidget(self._make_section_label("Signature Appearance", section_color_hex))
+
+        signature_style_grid = QGridLayout()
+        signature_style_grid.setContentsMargins(0, 0, 0, 0)
+        signature_style_grid.setHorizontalSpacing(8)
+        signature_style_grid.setVerticalSpacing(6)
+
+        self.pdf_signature_rotation_input = QSpinBox()
+        self.pdf_signature_rotation_input.setRange(0, 359)
+        self.pdf_signature_rotation_input.setSuffix("°")
+        self.pdf_signature_rotation_input.setValue(0)
+        self.pdf_signature_rotation_input.valueChanged.connect(self._on_pdf_signature_style_changed)
+
+        self.pdf_signature_brightness_input = QDoubleSpinBox()
+        self.pdf_signature_brightness_input.setRange(0.0, 3.0)
+        self.pdf_signature_brightness_input.setDecimals(2)
+        self.pdf_signature_brightness_input.setSingleStep(0.05)
+        self.pdf_signature_brightness_input.setValue(1.0)
+        self.pdf_signature_brightness_input.valueChanged.connect(self._on_pdf_signature_style_changed)
+
+        self.pdf_signature_contrast_input = QDoubleSpinBox()
+        self.pdf_signature_contrast_input.setRange(0.0, 3.0)
+        self.pdf_signature_contrast_input.setDecimals(2)
+        self.pdf_signature_contrast_input.setSingleStep(0.05)
+        self.pdf_signature_contrast_input.setValue(1.0)
+        self.pdf_signature_contrast_input.valueChanged.connect(self._on_pdf_signature_style_changed)
+
+        self.pdf_signature_saturation_input = QDoubleSpinBox()
+        self.pdf_signature_saturation_input.setRange(0.0, 3.0)
+        self.pdf_signature_saturation_input.setDecimals(2)
+        self.pdf_signature_saturation_input.setSingleStep(0.05)
+        self.pdf_signature_saturation_input.setValue(1.0)
+        self.pdf_signature_saturation_input.valueChanged.connect(self._on_pdf_signature_style_changed)
+
+        signature_style_grid.addWidget(QLabel("Rotation"), 0, 0)
+        signature_style_grid.addWidget(self.pdf_signature_rotation_input, 0, 1)
+        signature_style_grid.addWidget(QLabel("Brightness"), 1, 0)
+        signature_style_grid.addWidget(self.pdf_signature_brightness_input, 1, 1)
+        signature_style_grid.addWidget(QLabel("Contrast"), 2, 0)
+        signature_style_grid.addWidget(self.pdf_signature_contrast_input, 2, 1)
+        signature_style_grid.addWidget(QLabel("Saturation"), 3, 0)
+        signature_style_grid.addWidget(self.pdf_signature_saturation_input, 3, 1)
+
+        reset_style_btn = _create_button("Reset Style", parent_widget)
+        reset_style_btn.setToolTip("Reset signature style to default")
+        reset_style_btn.clicked.connect(self._on_pdf_signature_style_reset)
+
+        style_row = QHBoxLayout()
+        style_row.addLayout(signature_style_grid)
+        style_row.addWidget(reset_style_btn)
+        pdf_controls.addLayout(style_row)
+
         pdf_controls.addWidget(self._make_section_label("Signature Templates", section_color_hex))
         pdf_controls.addWidget(QLabel("Save templates from placed signatures to reuse later:"))
 
@@ -578,12 +635,26 @@ class PdfTabMixin:
         self._form_fields_cache = []
         self._current_pdf_template_id: Optional[str] = None
         self._last_pdf_placement = None
+        self._selected_pdf_signature_index: int = -1
+        self._selected_pdf_signature_style: Dict[str, float] = {
+            "rotation_deg": 0.0,
+            "brightness": 1.0,
+            "contrast": 1.0,
+            "saturation": 1.0,
+        }
+        self._is_syncing_signature_style_controls = False
         # Bulk placement state
         self._bulk_pages: list = []
         self._bulk_sig_path: str = ""
         self._bulk_pixmap: Optional[QPixmap] = None
         self._bulk_use_same_pos: bool = False
         self._bulk_signature_geometry: Optional[dict] = None
+        self._bulk_signature_style: Dict[str, float] = {
+            "rotation_deg": 0.0,
+            "brightness": 1.0,
+            "contrast": 1.0,
+            "saturation": 1.0,
+        }
         self._update_pdf_control_states()
     
     def _setup_pdf_menu(self):
@@ -672,6 +743,7 @@ class PdfTabMixin:
             return
 
         self._current_pdf_path = path
+        self._reset_pdf_signature_selection_state(reset_controls=True)
         self.session.init_pdf_state()
         if self.session.pdf_state:
             self.session.pdf_state.current_pdf_path = path
@@ -713,6 +785,94 @@ class PdfTabMixin:
             self._pdf_close_btn.setEnabled(has_pdf)
         if hasattr(self, "_pdf_save_btn"):
             self._pdf_save_btn.setEnabled(has_pdf)
+
+    @staticmethod
+    def _coerce_pdf_signature_style(signature_style: Optional[Dict[str, Any]]) -> Dict[str, float]:
+        """Normalize signature style values from control input and persisted data."""
+        style = signature_style or {}
+        def _coerce(value: Any, default: float) -> float:
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return float(default)
+
+        return {
+            "rotation_deg": _coerce(style.get("rotation_deg", 0.0), 0.0) % 360.0,
+            "brightness": _coerce(style.get("brightness", 1.0), 1.0),
+            "contrast": _coerce(style.get("contrast", 1.0), 1.0),
+            "saturation": _coerce(style.get("saturation", 1.0), 1.0),
+        }
+
+    def _signature_style_from_controls(self) -> Dict[str, float]:
+        return self._coerce_pdf_signature_style(
+            {
+                "rotation_deg": self.pdf_signature_rotation_input.value(),
+                "brightness": self.pdf_signature_brightness_input.value(),
+                "contrast": self.pdf_signature_contrast_input.value(),
+                "saturation": self.pdf_signature_saturation_input.value(),
+            }
+        )
+
+    def _set_signature_style_controls(self, signature_style: Dict[str, float]) -> None:
+        style = self._coerce_pdf_signature_style(signature_style)
+        self._is_syncing_signature_style_controls = True
+        try:
+            self.pdf_signature_rotation_input.setValue(int(round(style["rotation_deg"])))
+            self.pdf_signature_brightness_input.setValue(style["brightness"])
+            self.pdf_signature_contrast_input.setValue(style["contrast"])
+            self.pdf_signature_saturation_input.setValue(style["saturation"])
+        finally:
+            self._is_syncing_signature_style_controls = False
+
+        self._selected_pdf_signature_style = style
+
+    def _on_pdf_signature_style_changed(self, *_args) -> None:
+        if self._is_syncing_signature_style_controls:
+            return
+
+        style = self._signature_style_from_controls()
+        self._selected_pdf_signature_style = style
+
+        if not self.pdf_viewer:
+            return
+
+        if self._selected_pdf_signature_index >= 0:
+            self.pdf_viewer.page_view.update_signature_style(self._selected_pdf_signature_index, style)
+            if self._current_pdf_path:
+                save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
+            return
+
+        if self._pending_sig_path:
+            self.pdf_viewer.set_signature_style_for_placement(style)
+
+    def _on_pdf_signature_style_reset(self) -> None:
+        self._set_signature_style_controls(self._coerce_pdf_signature_style({}))
+        self._on_pdf_signature_style_changed()
+
+    def _reset_pdf_signature_selection_state(self, *, reset_controls: bool = False) -> None:
+        self._selected_pdf_signature_index = -1
+        self._selected_pdf_signature_style = self._signature_style_from_controls()
+        if reset_controls:
+            self._set_signature_style_controls(self._coerce_pdf_signature_style({}))
+            self._selected_pdf_signature_style = self._signature_style_from_controls()
+        if self.pdf_viewer and self._pending_sig_path:
+            self.pdf_viewer.set_signature_style_for_placement(self._selected_pdf_signature_style)
+
+    def _on_pdf_page_changed(self, _page: int) -> None:
+        """Clear overlay edit selection when the page changes."""
+        self._reset_pdf_signature_selection_state(reset_controls=False)
+
+    def _on_pdf_signature_overlay_selected(self, index: int) -> None:
+        if index < 0:
+            self._selected_pdf_signature_index = -1
+            # Keep current controls as pending style for the next placement.
+            self._selected_pdf_signature_style = self._signature_style_from_controls()
+            return
+
+        self._selected_pdf_signature_index = index
+        style = self.pdf_viewer.page_view.get_signature_style(index)
+        self._selected_pdf_signature_style = style
+        self._set_signature_style_controls(style)
     
     def on_pdf_close(self):
         """Close the current PDF."""
@@ -720,6 +880,9 @@ class PdfTabMixin:
             self.pdf_viewer.close_pdf()
         self._current_pdf_path = None
         self._current_pdf_template_id = None
+        self._pending_sig_path = None
+        self._clear_bulk_signature_state()
+        self._reset_pdf_signature_selection_state(reset_controls=True)
         if self.session.pdf_state:
             self.session.clear_pdf_state()
             self.audit_logger = None
@@ -1148,6 +1311,7 @@ class PdfTabMixin:
         if self.pdf_viewer:
             self.pdf_viewer.open_pdf(output_path)
         self._current_pdf_path = output_path
+        self._reset_pdf_signature_selection_state(reset_controls=True)
         self._form_fields_cache = []
         if self.session.pdf_state:
             self.session.pdf_state.current_pdf_path = output_path
@@ -1174,9 +1338,11 @@ class PdfTabMixin:
         
         # Store path for later use when saving
         self._pending_sig_path = sig_path
-        
+        self._selected_pdf_signature_index = -1
+
         # Set signature for placement in viewer (with path)
         self.pdf_viewer.set_signature_for_placement(pixmap, sig_path)
+        self.pdf_viewer.set_signature_style_for_placement(self._signature_style_from_controls())
         
         self.statusBar().showMessage(f"✏️ Click on PDF to place signature: {Path(sig_path).name}")
 
@@ -1574,8 +1740,14 @@ class PdfTabMixin:
         else:
             QMessageBox.warning(self, "Delete Failed", "Template could not be deleted.")
     
-    def _on_pdf_signature_placed(self, page, x, y, width, height):
+    def _on_pdf_signature_placed(self, page, x, y, width, height, style=None):
         """Handle signature placement on PDF."""
+        signature_style = self._coerce_pdf_signature_style(
+            style if isinstance(style, dict) else self._signature_style_from_controls()
+        )
+        self._selected_pdf_signature_style = signature_style
+        self._set_signature_style_controls(signature_style)
+
         # Check if this is bulk placement
         if self._bulk_pages and self._bulk_pixmap:
             source_page = self.pdf_viewer.current_page
@@ -1619,6 +1791,7 @@ class PdfTabMixin:
                         th,
                         self._bulk_pixmap,
                         self._bulk_sig_path,
+                        self._bulk_signature_style,
                     )
                     placed_count += 1
 
@@ -1679,6 +1852,10 @@ class PdfTabMixin:
             "y_ratio": y / page_height,
             "width_ratio": width / page_width,
             "height_ratio": height / page_height,
+            "rotation_deg": signature_style["rotation_deg"],
+            "brightness": signature_style["brightness"],
+            "contrast": signature_style["contrast"],
+            "saturation": signature_style["saturation"],
             "use_field_anchor": selected_field_index is not None,
             "field_type": field_metadata.get("field_type"),
             "field_label": field_metadata.get("label") or field_metadata.get("field_type"),
@@ -1691,6 +1868,10 @@ class PdfTabMixin:
             self.audit_logger.log_place_signature(
                 page, self._pending_sig_path, x, y, width, height
             )
+
+        if self.pdf_viewer and self.pdf_viewer.page_view.signatures:
+            self._selected_pdf_signature_index = len(self.pdf_viewer.page_view.signatures) - 1
+            self._selected_pdf_signature_style = signature_style
 
         if self._current_pdf_path and self.pdf_viewer:
             save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
@@ -1782,6 +1963,7 @@ class PdfTabMixin:
         self._bulk_pixmap = None
         self._bulk_use_same_pos = False
         self._bulk_signature_geometry = None
+        self._bulk_signature_style = self._coerce_pdf_signature_style({})
     
     def _on_pdf_paste_signature(self):
         """Paste signature from clipboard for placement."""
@@ -1823,9 +2005,11 @@ class PdfTabMixin:
             return
         
         self._pending_sig_path = temp_path
+        self._selected_pdf_signature_index = -1
         
         # Set signature for placement in viewer (with path)
         self.pdf_viewer.set_signature_for_placement(pixmap, temp_path)
+        self.pdf_viewer.set_signature_style_for_placement(self._signature_style_from_controls())
         
         self.statusBar().showMessage("📋 Click on PDF to place clipboard signature")
     
@@ -2187,8 +2371,10 @@ class PdfTabMixin:
         self._bulk_sig_path = sig_path
         self._bulk_pixmap = pixmap
         self._bulk_use_same_pos = use_same_pos
+        self._bulk_signature_style = self._signature_style_from_controls()
         
         self.pdf_viewer.set_signature_for_placement(pixmap, sig_path)
+        self.pdf_viewer.set_signature_style_for_placement(self._bulk_signature_style)
         self.statusBar().showMessage(
             f"📄 Click to place signature on {len(selected_pages)} page(s)"
         )

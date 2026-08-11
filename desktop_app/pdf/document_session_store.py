@@ -14,9 +14,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
-APP_DIR = Path.home() / ".signature_extractor"
-SESSIONS_FILE = APP_DIR / "pdf_document_sessions.json"
 _VERSION = 1
+
+
+def _app_dir() -> Path:
+    return Path.home() / ".signature_extractor"
+
+
+def _sessions_file() -> Path:
+    return _app_dir() / "pdf_document_sessions.json"
 
 
 @dataclass(frozen=True)
@@ -32,15 +38,16 @@ class DocumentPlacementSession:
 
 
 def _ensure_dir() -> None:
-    APP_DIR.mkdir(parents=True, exist_ok=True)
+    _app_dir().mkdir(parents=True, exist_ok=True)
 
 
 def _load_payload() -> Dict[str, Any]:
     _ensure_dir()
-    if not SESSIONS_FILE.exists():
+    sessions_file = _sessions_file()
+    if not sessions_file.exists():
         return {"version": _VERSION, "documents": []}
     try:
-        with SESSIONS_FILE.open("r", encoding="utf-8") as handle:
+        with sessions_file.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
     except Exception:
         return {"version": _VERSION, "documents": []}
@@ -54,10 +61,11 @@ def _load_payload() -> Dict[str, Any]:
 
 def _write_payload(payload: Dict[str, Any]) -> None:
     _ensure_dir()
-    tmp_path = SESSIONS_FILE.with_suffix(".json.tmp")
+    sessions_file = _sessions_file()
+    tmp_path = sessions_file.with_suffix(".json.tmp")
     with tmp_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
-    os.replace(tmp_path, SESSIONS_FILE)
+    os.replace(tmp_path, sessions_file)
 
 
 def _stat_pdf(pdf_path: str) -> tuple[Optional[int], Optional[int]]:
@@ -105,25 +113,21 @@ def save_document_session(pdf_path: str, placements: List[Dict[str, Any]]) -> Do
 
 
 def load_document_session(pdf_path: str) -> List[Dict[str, Any]]:
-    """Load persisted placements for a PDF when its file identity still matches."""
+    """Load persisted placements for a PDF path.
+
+    Placements are keyed by the document path, but reopen/edit flows should
+    still restore them even if the file contents or timestamps have changed.
+    """
     payload = _load_payload()
     documents = payload.get("documents", [])
     if not isinstance(documents, list):
         return []
 
-    file_size, modified_ns = _stat_pdf(pdf_path)
     for item in documents:
         if not isinstance(item, dict):
             continue
         if item.get("pdf_path") != pdf_path:
             continue
-
-        stored_size = item.get("file_size")
-        stored_mtime = item.get("modified_ns")
-        if stored_size is not None and file_size is not None and stored_size != file_size:
-            return []
-        if stored_mtime is not None and modified_ns is not None and stored_mtime != modified_ns:
-            return []
 
         placements = item.get("placements", [])
         if isinstance(placements, list):

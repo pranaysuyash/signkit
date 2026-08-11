@@ -231,6 +231,79 @@ class TestPlacementPreview:
         assert page_view.preview_pixmap is None
 
 
+class TestSignatureStyleEditing:
+    """Test signature appearance controls and persistence."""
+
+    def test_signature_style_roundtrip_and_update(self):
+        page_view = PDFPageView()
+        page_view.set_page(QPixmap(800, 600))
+
+        pixmap = QPixmap(120, 40)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pixmap)
+        painter.fillRect(0, 0, 120, 40, QColor(20, 40, 80))
+        painter.end()
+
+        style = {
+            "rotation_deg": 90,
+            "brightness": 1.1,
+            "contrast": 0.9,
+            "saturation": 0.8,
+        }
+        page_view.add_signature_overlay(100, 100, 120, 40, pixmap, "test.png", style)
+
+        stored_style = page_view.get_signature_style(0)
+        assert stored_style["rotation_deg"] == 90.0
+        assert stored_style["brightness"] == 1.1
+        assert page_view.signatures[0]["pixmap"].width() == 40
+        assert page_view.signatures[0]["pixmap"].height() == 120
+
+        updated = page_view.update_signature_style(
+            0,
+            {
+                "rotation_deg": 180,
+                "brightness": 1.0,
+                "contrast": 1.0,
+                "saturation": 1.0,
+            },
+        )
+
+        assert updated is True
+        assert page_view.get_signature_style(0)["rotation_deg"] == 180.0
+
+    def test_restored_signature_style_round_trip(self, sample_pdf, color_signature):
+        viewer = PDFViewer()
+        viewer.open_pdf(sample_pdf)
+
+        viewer.restore_signature_placements(
+            [
+                {
+                    "page": 0,
+                    "sig_path": color_signature,
+                    "x": 120,
+                    "y": 220,
+                    "width": 150,
+                    "height": 50,
+                    "style": {
+                        "rotation_deg": 270,
+                        "brightness": 0.85,
+                        "contrast": 1.15,
+                        "saturation": 0.75,
+                    },
+                }
+            ]
+        )
+
+        assert len(viewer.page_view.signatures) == 1
+        assert viewer.page_view.signatures[0]["style"]["rotation_deg"] == 270.0
+
+        placed = viewer.get_placed_signatures()
+        assert len(placed) == 1
+        assert placed[0]["rotation_deg"] == 270.0
+
+        viewer.close_pdf()
+
+
 class TestBulkPlacement:
     """Test bulk signature placement across multiple pages."""
     
