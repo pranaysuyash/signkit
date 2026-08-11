@@ -420,38 +420,59 @@ class SignatureExtractor:
             return None
         
         # Parameter rationale (heuristic defaults, not tuned against a
-        # labeled signature dataset in this codebase -- if auto-detect
-        # under/over-fires on real scans, these are the values to revisit
-        # first, ideally against a labeled set of real scanned signatures):
-        #   - adaptiveThreshold blockSize=51 (must be odd): large enough to
-        #     average out slow-varying scan illumination/shadow gradients
-        #     without fragmenting individual pen strokes; C=10 sets how far
-        #     below the local mean a pixel must be to count as "ink" --
-        #     higher C reduces false positives from faint paper texture.
-        #   - global threshold 180: assumes a light/white-ish page
-        #     background (typical for printed forms); catches strong,
-        #     uniformly dark ink strokes that a very locally-adaptive
-        #     threshold might miss, as an OR'd fallback signal.
-        #   - min/max area (0.1%-80% of crop): excludes small noise specks
-        #     and full-crop blobs (e.g. a mostly-dark scanned region), not
-        #     signature shape assumptions.
-        #   - aspect ratio 0.2-10, w>30px, h>15px: signatures are usually
-        #     wider than tall, but the wide 0.2 lower bound still allows
-        #     narrow/vertical cursive scripts; the absolute pixel minimums
-        #     reject stray noise blobs regardless of aspect ratio.
+        # labeled signature dataset): use Otsu as a baseline and keep a
+        # bounded offset so beige or shadowed paper does not become "ink".
+        # The previous fixed threshold of 180 fragmented the real sample into
+        # separate contours, then returned only the largest left-hand stroke.
         image = session.original_image
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Adaptive threshold to find dark regions (ink) on lighter background
+        otsu_threshold, _ = cv2.threshold(
+            gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )
+        global_threshold = int(np.clip(otsu_threshold + 16, 140, 180))
+        _, binary_global = cv2.threshold(
+            gray, global_threshold, 255, cv2.THRESH_BINARY_INV
+        )
+
+        # Prefer the complete global ink envelope. Cursive signatures are
+        # often made of many disconnected contours, so choosing one contour
+        # cannot represent the user's full mark.
+        ink_y, ink_x = np.where(binary_global > 0)
+        if ink_x.size:
+            x1, x2 = int(ink_x.min()), int(ink_x.max()) + 1
+            y1, y2 = int(ink_y.min()), int(ink_y.max()) + 1
+            width = x2 - x1
+            height = y2 - y1
+            image_area = image.shape[0] * image.shape[1]
+            envelope_area = width * height
+            aspect_ratio = width / height if height else 0
+            if (
+                width > 30
+                and height > 15
+                and 0.2 < aspect_ratio < 10
+                and envelope_area < image_area * 0.9
+            ):
+                padding = max(10, min(20, round(min(width, height) * 0.05)))
+                detected = (
+                    max(0, x1 - padding),
+                    max(0, y1 - padding),
+                    min(image.shape[1], x2 + padding),
+                    min(image.shape[0], y2 + padding),
+                )
+                LOG.info(
+                    "Auto-detected signature envelope: (%d,%d)-(%d,%d) threshold=%d",
+                    *detected,
+                    global_threshold,
+                )
+                return detected
+
+        # Adaptive threshold fallback for images where the global envelope is
+        # too broad or does not satisfy the basic shape checks.
         binary = cv2.adaptiveThreshold(
             gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY_INV, 51, 10
         )
-
-        # Also try global threshold as fallback
-        _, binary_global = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
-
-        # Combine both
         combined = cv2.bitwise_or(binary, binary_global)
 
         # Morphological operations to clean up noise

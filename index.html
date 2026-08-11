@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="SignKit is a local document-signing workspace for sensitive signed documents. Extract signatures, build a reusable library, and sign PDFs without cloud upload. $29 launch, $39 lifetime."
+      content="SignKit is a local-first document-signing workspace for sensitive signed documents. Extract, clean, save, and place signatures on PDFs locally by default. $29 launch, $39 regular Personal price."
     />
 
     <!-- Favicons -->
@@ -34,7 +34,7 @@
     <meta property="og:title" content="SignKit - Handle Sensitive Signed Documents Locally" />
     <meta
       property="og:description"
-      content="Privacy-first desktop app for sensitive signed documents. Extract signatures, reuse them across PDFs, and keep the workflow offline. $29 launch, then $39 lifetime."
+      content="Local-first desktop app for sensitive signed documents. Extract signatures, reuse them across PDFs, and finish the core workflow locally by default. $29 launch, then $39 regular Personal price."
     />
     <meta
       property="og:image"
@@ -44,7 +44,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="SignKit - Privacy-first local signing workspace"
+      content="SignKit - Local-first signing workspace"
     />
     <meta property="og:site_name" content="SignKit" />
 
@@ -57,7 +57,7 @@
     />
     <meta
       name="twitter:description"
-      content="Privacy-first desktop app for sensitive signed documents. Extract signatures, reuse them across PDFs, and keep the workflow offline. $29 launch, then $39 lifetime."
+      content="Local-first desktop app for sensitive signed documents. Extract signatures, reuse them across PDFs, and finish the core workflow locally by default. $29 launch, then $39 regular Personal price."
     />
     <meta
       name="twitter:image"
@@ -65,7 +65,7 @@
     />
     <meta
       name="twitter:image:alt"
-      content="SignKit - Privacy-first local signing workspace"
+      content="SignKit - Local-first signing workspace"
     />
 
     <!-- Canonical URL -->
@@ -376,6 +376,14 @@
         cursor: not-allowed;
         filter: grayscale(0.65);
         opacity: 0.65;
+      }
+
+      html[data-checkout-state="gumroad-primary"] [data-checkout-provider="gumroad"] {
+        background: var(--accent-2);
+        border-color: #111827;
+        color: #ffffff;
+        box-shadow: 6px 6px 0 #111827;
+        font-weight: 700;
       }
 
       .checkout-provider-note {
@@ -1058,6 +1066,7 @@
           </div>
 
           <div class="price-pill">
+            <!-- launch-claim: personal_price -->
             <span class="tag">Launch Offer</span>
             <span class="amount">$39</span>
             <span>$29 launch</span>
@@ -1069,13 +1078,15 @@
         <div class="grid">
           <!-- Left: hero -->
           <div class="hero-main">
-            <div class="hero-highlight">Privacy-first • No subscriptions</div>
+            <div class="hero-highlight">Local by default • No subscriptions</div>
             <h1>Handle sensitive signed documents locally.</h1>
+            <!-- launch-claim: job_local_pdf -->
             <p class="lead">
-              SignKit is a privacy-first desktop app for retainers, closing
+              SignKit is a local-first desktop app for retainers, closing
               packets, intake forms, offer letters, tax packets, and other
-              signed PDFs. Extract signatures, keep a reusable library, and
-              finish the PDF without sending files to cloud tools.
+              signed PDFs. Extract, clean, save, and place signatures on PDFs
+              locally by default, with a reusable local Vault for the marks you
+              prepare.
             </p>
 
             <ul>
@@ -1083,14 +1094,15 @@
                 <div class="hero-bullet-icon">🔐</div>
                 <span
                   >Keep contracts, client forms, and signed PDFs on your
-                  device from start to finish.</span
+                  device by default while you extract, clean, save, and place
+                  signatures.</span
                 >
               </li>
               <li>
                 <div class="hero-bullet-icon">💰</div>
                 <span
-                  >$29 launch price, then $39 lifetime. No subscriptions. No monthly
-                  fees.</span
+                  >$29 launch price, then $39 regular Personal price. One-time
+                  licence. No recurring charges.</span
                 >
               </li>
               <li>
@@ -1122,8 +1134,10 @@
               </a>
             </div>
 
+            <!-- launch-claim: checkout_provider_state -->
             <p class="checkout-provider-note">
-              Dodo Payments delivers the download and licence key after payment.
+              Secure checkout is available through the configured provider.
+              Gumroad is the current fallback while Dodo is not configured.
             </p>
 
             <!-- Platform badges -->
@@ -1136,7 +1150,7 @@
               "
             >
               <span style="font-size: 0.8rem; color: #4b5563"
-                >Available for:</span
+                >Available for (see release bundle):</span
               >
               <div style="display: flex; gap: 6px">
                 <span
@@ -1175,19 +1189,23 @@
               </div>
             </div>
 
+            <!-- launch-claim: local_processing_boundary -->
             <div class="tiny-note" style="margin-top: 8px">
-              One-time payment. Own it forever. Intro launch: $29, regular $39.
-              Your data never touches our servers.
+              One-time Personal licence. Intro launch: $29, regular $39. Core
+              extraction and PDF work run locally by default; checkout receives
+              purchase and delivery information. The release bundle is the
+              source of truth for current platform downloads.
             </div>
           </div>
 
           <!-- Right: product preview card -->
+          <!-- launch-claim: product_evidence -->
           <div class="preview-card">
-            <div class="preview-tag">Live preview</div>
+            <div class="preview-tag">Product preview</div>
             <div class="preview-heading">Signature extraction in SignKit</div>
             <div class="preview-sub">
               Upload a photo of your signature, adjust the threshold, and export
-              a clean transparent version in seconds.
+              a clean transparent version for your PDF workflow.
             </div>
 
             <div
@@ -1215,9 +1233,9 @@
 
             <div class="preview-footer">
               <div class="preview-badges">
-                <div class="badge offline">Offline app</div>
-                <div class="badge privacy">No cloud storage</div>
-                <div class="badge one-time">Own forever</div>
+                <div class="badge offline">Local by default</div>
+                <div class="badge privacy">Working files stay local</div>
+                <div class="badge one-time">One-time licence</div>
               </div>
               <div class="preview-price">
                 <span class="amount" style="font-weight: 800; font-size: 1.3rem"
@@ -1229,8 +1247,8 @@
             </div>
 
             <div class="tiny-note" style="margin-top: 6px">
-              One payment. Dodo Payments provides the receipt, download, and licence key.
-              Gumroad remains available as an alternate checkout.
+              Secure checkout is available through the configured provider.
+              Gumroad is the current fallback while Dodo is not configured.
             </div>
           </div>
         </div>
@@ -1238,16 +1256,18 @@
         <!-- Screenshots section -->
         <div class="trust-strip">
           <div class="trust-card">
-            <strong>100% offline</strong>
-            <p>Sensitive signed documents stay on your machine from start to finish.</p>
+            <strong>Local by default</strong>
+            <p>Core extraction and PDF work run on your machine by default.</p>
           </div>
+          <!-- launch-claim: one_time_pricing -->
           <div class="trust-card">
             <strong>One-time purchase</strong>
-            <p>Launch pricing is $29, then $39 lifetime. No per-seat or subscription pressure.</p>
+            <p>Launch pricing is $29, then $39 for the regular Personal licence. No recurring charges.</p>
           </div>
+          <!-- launch-claim: operator_context -->
           <div class="trust-card">
             <strong>Built for repeat document work</strong>
-            <p>Useful for legal, HR, finance, real-estate, and admin teams handling signed packets.</p>
+            <p>Useful for legal, HR, finance, real-estate, and admin operators handling signed packets.</p>
           </div>
         </div>
 
@@ -1317,6 +1337,7 @@
           </div>
         </div>
 
+        <!-- launch-claim: personal_included_workflow -->
         <section class="purchase-card" id="buy" aria-labelledby="buy-heading">
           <div>
             <div class="hero-highlight">SignKit Personal</div>
@@ -1338,7 +1359,8 @@
           <div class="purchase-summary">
             <div class="purchase-price"><strong>$29</strong><span>launch price · one time</span></div>
             <p style="color: #374151;">
-              Secure payment, receipt, downloads, and licence-key delivery through Dodo Payments.
+              Secure checkout is available through the configured provider.
+              Gumroad is the current fallback while Dodo is not configured.
             </p>
             <a
               class="btn-primary"
@@ -1351,24 +1373,30 @@
               class="btn-ghost"
               data-checkout-provider="gumroad"
               data-checkout-placement="pricing-fallback"
+              data-checkout-primary-label="Buy SignKit through Gumroad — $29 one time"
+              data-checkout-fallback-label="Prefer Gumroad? Buy there"
               target="_blank"
               rel="noopener noreferrer"
-            >Prefer Gumroad? Buy there</a>
+            ><span data-checkout-label>Prefer Gumroad? Buy there</span></a>
             <p class="fallback-copy" data-checkout-configuration-note tabindex="-1">
-              Gumroad is an alternate purchase route for customers who prefer it.
+              Check the provider destination for the current receipt, download,
+              and licence-key delivery details.
             </p>
           </div>
         </section>
 
+        <!-- launch-claim: recurring_workflow_enquiry -->
         <section class="workflow-section" aria-labelledby="workflow-heading">
           <div>
             <div class="hero-highlight">For recurring document operations</div>
             <h2 id="workflow-heading">One file is a tool problem. Hundreds are a workflow problem.</h2>
             <p>
-              SignKit handles the individual, local workflow. If your team repeatedly
-              processes signed packets, scanned forms, or custom document types, map the
-              full path from incoming file to validated business output.
+              SignKit handles the individual, local workflow. Recurring packet
+              work stays an enquiry and pilot path: if your team repeatedly
+              processes signed packets, scanned forms, or custom document types,
+              map the full path from incoming file to validated business output.
             </p>
+            <p>An enquiry can explore:</p>
             <ul class="workflow-capabilities" aria-label="Document workflow capabilities">
               <li>OCR and scan cleanup</li>
               <li>Signature and missing-field detection</li>
@@ -1381,8 +1409,8 @@
           <div class="workflow-action">
             <strong>Keep the privacy boundary intact.</strong>
             <p>
-              The enquiry shares only what you choose to type. SignKit does not send
-              filenames, document contents, or processing metadata.
+              The enquiry receives only what you choose to type. Do not attach
+              documents or include sensitive contents in the message.
             </p>
             <a
               href="https://pranaysuyash.com/contact?source=signkit&amp;entry=landing&amp;intent=document-workflow"
@@ -1414,10 +1442,11 @@
                 What platforms does SignKit support?
               </h3>
               <p style="color: #4b5563; font-size: 0.9rem">
-                SignKit is packaged as a desktop app for macOS, Windows, and
-                Linux. The exact binaries attached to a release are listed on
-                the checkout provider, so check the current download bundle if you need a
-                specific platform before purchase.
+                <!-- launch-claim: platform_availability -->
+                SignKit targets macOS, Windows, and Linux. The exact binaries
+                attached to a release are the source of truth, so check the
+                current download bundle if you need a specific platform before
+                purchase.
               </p>
             </div>
 
@@ -1436,9 +1465,10 @@
                 Is there a subscription or is it really one time?
               </h3>
               <p style="color: #4b5563; font-size: 0.9rem">
-                It is truly one-time. Launch offer is $29, then $39 for
-                lifetime access. Future minor updates are included. No recurring
-                charges.
+                <!-- launch-claim: licence_updates -->
+                It is a one-time Personal licence. Launch offer is $29, then
+                $39 at the regular Personal price. Minor updates are included
+                within the purchased major version. No recurring charges.
               </p>
             </div>
 
@@ -1454,12 +1484,13 @@
               "
             >
               <h3 style="font-size: 1.1rem; margin-bottom: 8px">
-                Does it work completely offline?
+                Does SignKit run locally?
               </h3>
               <p style="color: #4b5563; font-size: 0.9rem">
-                Yes. SignKit is a desktop app that runs 100 percent offline.
-                Your PDFs and signatures never leave your machine. No internet
-                connection is required after installation.
+                Core extraction and PDF work run locally by default. Checkout
+                receives purchase and delivery information, and optional
+                licence or update services may use a network connection. See
+                the Privacy Policy for the boundary.
               </p>
             </div>
 
@@ -1478,12 +1509,12 @@
                 What if I need a refund?
               </h3>
               <p style="color: #4b5563; font-size: 0.9rem">
-                Purchases are processed through Dodo Payments or the alternate Gumroad
-                checkout. Contact
+                <!-- launch-claim: refund_policy -->
+                The canonical policy is a 30-day money-back guarantee. Request
+                a refund through the provider used for purchase, or contact
                 <a href="mailto:support@signkit.work" style="color: #4f46e5"
                   >support@signkit.work</a
-                >
-                if you have any issues.
+                > with the purchase email and order reference.
               </p>
             </div>
           </div>
@@ -1509,7 +1540,7 @@
                 <span style="font-weight: 700; font-size: 1.2rem;">SignKit</span>
               </div>
               <p style="font-size: 0.85rem; color: #4b5563; margin-bottom: 16px; line-height: 1.5;">
-                Extract signatures. Sign PDFs. All offline.
+                Extract signatures. Place them on PDFs. Local by default.
               </p>
               <div style="display: flex; gap: 8px;">
                 <a href="https://twitter.com/signkitwork" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid #111827; border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 #111827; transition: transform 0.08s;" onmouseover="this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.transform=''">
@@ -1582,47 +1613,6 @@
         });
       });
 
-      // A/B Test Configuration
-      // Set AUTO_SPLIT to true for automatic random traffic splitting from root
-      // Direct paths (/root, /buy, /purchase, /gum) always work regardless of AUTO_SPLIT
-      const AUTO_SPLIT = false; // Change to true to enable auto A/B testing
-
-      const path = window.location.pathname;
-
-      // Automatic traffic splitting ONLY on root path '/'
-      // Paths like /root, /buy, /purchase, /gum will NEVER auto-redirect
-      if (AUTO_SPLIT && (path === '/' || path === '/index.html')) {
-        const existingVariant = localStorage.getItem('ab_variant');
-        let variant;
-
-        if (existingVariant) {
-          // Keep user on same variant
-          variant = existingVariant;
-        } else {
-          // Randomly assign variant (25% each)
-          const rand = Math.random();
-          if (rand < 0.25) variant = 'root'; // control on /root
-          else if (rand < 0.5) variant = 'buy';
-          else if (rand < 0.75) variant = 'purchase';
-          else variant = 'gum';
-
-          localStorage.setItem('ab_variant', variant);
-        }
-
-        // Redirect to assigned variant
-        if (variant === 'root') window.location.href = '/root';
-        else if (variant === 'buy') window.location.href = '/buy';
-        else if (variant === 'purchase') window.location.href = '/purchase';
-        else if (variant === 'gum') window.location.href = '/gum';
-      }
-
-      // Track control variant impression (index.html is the control)
-      // if (window.gtag && (path === '/' || path === '/index.html')) {
-      //   gtag('event', 'ab_test_impression', {
-      //     variant: 'control',
-      //     experiment_id: 'checkout_flow_test',
-      //   });
-      // }
     </script>
   </body>
 </html>

@@ -1,5 +1,12 @@
 # macOS Native Integration Plan
 
+Status note (2026-07-24): This document remains a **parity roadmap** for PySide macOS quality and packager polish.
+For product split decision tied to premium perception, use:
+
+- [gtm_mac_runtime_split_record.md](/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/docs/exploration/2026-07-24_authorized_template_folder_signing_workflow/gtm_mac_runtime_split_record.md)
+
+The recommendation at this stage is to complete controlled workflow trust features first, then evaluate native split only on evidence from W16.
+
 ## Current Status (November 2, 2025)
 
 ### ✅ Completed

@@ -7,6 +7,16 @@
   const dodoUrl = hasDodoCheckout
     ? `${config.dodoBaseUrl}${encodeURIComponent(productId)}`
     : '';
+  const gumroadUrl = validHttpsUrl(config.gumroadUrl);
+
+  function validHttpsUrl(value) {
+    try {
+      const url = new URL(String(value || ''));
+      return url.protocol === 'https:' ? url.href : '';
+    } catch (_error) {
+      return '';
+    }
+  }
 
   function trackCheckout(provider, placement) {
     if (typeof window.gtag === 'function') {
@@ -19,23 +29,52 @@
     }
   }
 
+  function setCheckoutRole(link, role) {
+    link.dataset.checkoutRole = role;
+    link.classList.remove('checkout-primary', 'checkout-fallback', 'checkout-unavailable');
+    link.classList.add(`checkout-${role}`);
+    const label = link.querySelector?.('[data-checkout-label]');
+    const labelText = role === 'primary'
+      ? link.dataset.checkoutPrimaryLabel
+      : link.dataset.checkoutFallbackLabel;
+    if (label && labelText) {
+      label.textContent = labelText;
+    }
+  }
+
+  function disableCheckoutLink(link, title) {
+    link.removeAttribute('href');
+    link.setAttribute('aria-disabled', 'true');
+    link.title = title;
+    setCheckoutRole(link, 'unavailable');
+  }
+
+  function enableCheckoutLink(link, url, role) {
+    link.href = url;
+    link.removeAttribute('aria-disabled');
+    link.removeAttribute('title');
+    setCheckoutRole(link, role);
+  }
+
+  function focusConfigurationNote() {
+    document.querySelector('[data-checkout-configuration-note]')?.focus();
+  }
+
   function configureCheckoutLinks() {
     document.querySelectorAll('[data-checkout-provider="dodo"]').forEach((link) => {
       if (hasDodoCheckout) {
-        link.href = dodoUrl;
-        link.removeAttribute('aria-disabled');
-        link.classList.remove('checkout-unavailable');
+        enableCheckoutLink(link, dodoUrl, 'primary');
       } else {
-        link.removeAttribute('href');
-        link.setAttribute('aria-disabled', 'true');
-        link.classList.add('checkout-unavailable');
-        link.title = 'Dodo checkout will be enabled when the SignKit product ID is configured.';
+        disableCheckoutLink(
+          link,
+          'Dodo checkout is unavailable until a valid SignKit product ID is configured.',
+        );
       }
 
       link.addEventListener('click', (event) => {
         if (!hasDodoCheckout) {
           event.preventDefault();
-          document.querySelector('[data-checkout-configuration-note]')?.focus();
+          focusConfigurationNote();
           return;
         }
         trackCheckout('dodo', link.dataset.checkoutPlacement || 'unknown');
@@ -43,13 +82,29 @@
     });
 
     document.querySelectorAll('[data-checkout-provider="gumroad"]').forEach((link) => {
-      link.href = config.gumroadUrl;
+      if (gumroadUrl) {
+        enableCheckoutLink(link, gumroadUrl, hasDodoCheckout ? 'fallback' : 'primary');
+      } else {
+        disableCheckoutLink(link, 'Gumroad checkout is unavailable until its URL is configured.');
+      }
       link.addEventListener('click', () => {
-        trackCheckout('gumroad', link.dataset.checkoutPlacement || 'fallback');
+        if (gumroadUrl) {
+          trackCheckout('gumroad', link.dataset.checkoutPlacement || 'fallback');
+        }
       });
     });
 
     document.documentElement.dataset.dodoCheckout = hasDodoCheckout ? 'configured' : 'missing';
+    document.documentElement.dataset.checkoutProvider = hasDodoCheckout
+      ? 'dodo'
+      : gumroadUrl
+        ? 'gumroad'
+        : 'unavailable';
+    document.documentElement.dataset.checkoutState = hasDodoCheckout
+      ? 'dodo-primary'
+      : gumroadUrl
+        ? 'gumroad-primary'
+        : 'unavailable';
   }
 
   if (document.readyState === 'loading') {

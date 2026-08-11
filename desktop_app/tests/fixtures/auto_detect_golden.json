@@ -1,0 +1,6 @@
+{
+  "fixture": "512px-Mohammad_Rafiquzzaman_signature.jpg",
+  "image_size": [512, 184],
+  "expected_bbox": [14, 15, 507, 175],
+  "tolerance_px": 0
+}

@@ -1,6 +1,7 @@
 import os
 import io
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -34,6 +35,13 @@ class DummyBackendManager:
     """Stub backend manager that reports offline immediately."""
     def is_available(self):
         return False
+
+
+class OnlineBackendManager:
+    """Stub backend manager for the online status-bar path."""
+
+    def is_available(self):
+        return True
 
 
 @pytest.fixture
@@ -93,6 +101,14 @@ def test_active_pane_rotation_buttons(main_window):
     assert main_window._active_pane == "result"
     assert main_window.rotate_cw_btn.isEnabled()
     assert main_window.rotate_ccw_btn.isEnabled()
+
+
+def test_backend_health_updates_top_level_status_label(main_window):
+    main_window.backend_manager = OnlineBackendManager()
+
+    main_window._check_backend_health()
+
+    assert main_window.backend_status_label.text() == "Backend: Online"
 
 
 def test_rotate_preview_updates_rotation_state(main_window):
@@ -269,9 +285,46 @@ def test_main_window_uses_single_canonical_pdf_tab(main_window):
     assert pdf_tabs == ["📄 PDF Signing"]
 
 
-def test_workflow_review_action_opens_attributed_content_free_url(monkeypatch, main_window):
+def test_pdf_open_loads_visible_viewer_and_close_clears_state(monkeypatch, main_window):
+    pdf_path = str(
+        Path(__file__).resolve().parent / "fixtures" / "sample.pdf"
+    )
+    if not Path(pdf_path).exists() or not getattr(main_window, "pdf_viewer", None):
+        pytest.skip("PDF viewer dependencies or fixture are unavailable")
+
+    monkeypatch.setattr(main_window, "_native_open_file", lambda *args, **kwargs: pdf_path)
+    monkeypatch.setattr(QMessageBox, "information", lambda *args, **kwargs: QMessageBox.StandardButton.Ok)
+
+    main_window.on_pdf_open()
+
+    assert main_window._current_pdf_path == pdf_path
+    assert main_window.session.pdf_state is not None
+    assert main_window.pdf_viewer.renderer is not None
+    assert main_window.pdf_viewer.page_label.text().startswith("Page 1 of")
+
+    main_window.on_pdf_close()
+
+    assert main_window._current_pdf_path is None
+    assert main_window.session.pdf_state is None
+    assert main_window.pdf_viewer.renderer is None
+
+
+def test_workflow_review_action_locked_state_routes_to_upgrade(monkeypatch, main_window):
+    upgrade_calls = []
+    monkeypatch.setattr(QMessageBox, "information", lambda *args, **kwargs: QMessageBox.StandardButton.Ok)
+    monkeypatch.setattr(main_window, "_open_workflow_upgrade", lambda: upgrade_calls.append(True))
+
+    main_window.workflow_review_action.trigger()
+
+    assert upgrade_calls == [True]
+
+
+def test_workflow_review_action_fallback_uses_attributed_content_free_url(monkeypatch, main_window):
     opened_urls = []
     monkeypatch.setattr(main_window, "_open_url", opened_urls.append)
+    main_window.workflow_premium_enabled = True
+    del main_window.workflow_console_tab
+    del main_window._workflow_console_tab_index
 
     main_window.workflow_review_action.trigger()
 

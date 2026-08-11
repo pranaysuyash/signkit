@@ -25,16 +25,18 @@ except ImportError:
 # Import app components
 from desktop_app.views.main_window import MainWindow
 from desktop_app.api.client import ApiClient
+from desktop_app.launch_profile import get_profile
 from desktop_app.state.session import SessionState
 
 
 class UltraComprehensiveScreenshotCapture:
     """Ultra-comprehensive automated screenshot capture for ALL features."""
     
-    def __init__(self, output_dir: str = "screenshots"):
+    def __init__(self, output_dir: str = "screenshots", profile_name: str = "mac-premium"):
         self.output_dir = Path(project_root) / output_dir
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(exist_ok=True, parents=True)
         self.screenshot_count = 0
+        self.profile = get_profile(profile_name)
         
         # Test assets
         self.signature_image = project_root / "512px-Mohammad_Rafiquzzaman_signature.jpg"
@@ -101,8 +103,9 @@ class UltraComprehensiveScreenshotCapture:
         if self.main_window and hasattr(self.main_window, 'src_view'):
             src_view = self.main_window.src_view
             if src_view.has_image():
-                pixmap = src_view._pixmap
-                if pixmap:
+                pixmap_item = src_view.pixmap_item
+                if pixmap_item:
+                    pixmap = pixmap_item.pixmap()
                     # Create selection (centered, 60% of image size)
                     img_width = pixmap.width()
                     img_height = pixmap.height()
@@ -111,8 +114,12 @@ class UltraComprehensiveScreenshotCapture:
                     sel_x = (img_width - sel_width) // 2
                     sel_y = (img_height - sel_height) // 2
                     
-                    src_view._selection_rect = QRect(sel_x, sel_y, sel_width, sel_height)
-                    src_view.update()
+                    src_view.set_selection_from_coords(
+                        sel_x,
+                        sel_y,
+                        sel_x + sel_width,
+                        sel_y + sel_height,
+                    )
                     QApplication.processEvents()
                     print(f"   🖱️  Selection: {sel_width}x{sel_height} at ({sel_x}, {sel_y})")
     
@@ -178,6 +185,17 @@ class UltraComprehensiveScreenshotCapture:
                     QApplication.processEvents()
                     print(f"   📄 Switched to PDF tab")
                     return
+
+    def switch_to_tab(self, tab_text: str):
+        """Switch to a named current-product tab for capture evidence."""
+        if not self.main_window or not hasattr(self.main_window, "tab_widget"):
+            return
+        for index in range(self.main_window.tab_widget.count()):
+            if self.main_window.tab_widget.tabText(index) == tab_text:
+                self.main_window.tab_widget.setCurrentIndex(index)
+                QApplication.processEvents()
+                print(f"   ↪ Switched to {tab_text}")
+                return
     
     def load_pdf_directly(self, pdf_path: Path):
         """Load PDF directly."""
@@ -267,7 +285,11 @@ class UltraComprehensiveScreenshotCapture:
         self.main_window = MainWindow(
             self.api_client,
             self.session_state,
-            backend_manager=None
+            backend_manager=None,
+            window_title=self.profile.resolve_title(),
+            workflow_premium_enabled=self.profile.premium_ui,
+            onboarding_default_plan_id=self.profile.default_plan_id,
+            show_onboarding_upgrade_card=not self.profile.premium_ui,
         )
         
         # Set window size
@@ -417,14 +439,28 @@ class UltraComprehensiveScreenshotCapture:
         # PART 10: FINAL STATES
         final_delay = 43000 if self.demo_pdf.exists() else 35500
         sequence.extend([
-            (final_delay, lambda: self.main_window.tab_widget.setCurrentIndex(0),
+            (final_delay, lambda: self.switch_to_tab("Workflow Dashboard"),
+             "Switching to Workflow Dashboard"),
+            (final_delay + 1000, lambda: self.capture_window("23_workflow_dashboard"),
+             "23. Workflow Dashboard"),
+            (final_delay + 2000, lambda: self.switch_to_tab("Workflow Grants"),
+             "Switching to Workflow Grants"),
+            (final_delay + 3000, lambda: self.capture_window("24_workflow_grants"),
+             "24. Workflow Grants"),
+            (final_delay + 4000, lambda: self.switch_to_tab("Recipe Builder"),
+             "Switching to Recipe Builder"),
+            (final_delay + 5000, lambda: self.capture_window("25_recipe_builder"),
+             "25. Recipe Builder"),
+            (final_delay + 6000, lambda: self.switch_to_tab("Vault"),
+             "Switching to Vault"),
+            (final_delay + 7000, lambda: self.capture_window("26_vault"),
+             "26. Vault"),
+            (final_delay + 8000, lambda: self.main_window.tab_widget.setCurrentIndex(0),
              "Switching back to extraction tab"),
-            
-            (final_delay + 1000, lambda: self.capture_window("23_extraction_final"),
-             "23. Extraction tab final"),
-            
-            (final_delay + 2000, lambda: self.capture_window("24_full_interface"),
-             "24. Full interface overview"),
+            (final_delay + 9000, lambda: self.capture_window("27_extraction_final"),
+             "27. Extraction tab final"),
+            (final_delay + 10000, lambda: self.capture_window("28_full_interface"),
+             "28. Full interface overview"),
         ])
         
         # Execute sequence
@@ -468,6 +504,12 @@ def main():
         default="screenshots",
         help="Output directory (default: screenshots/)"
     )
+    parser.add_argument(
+        "--profile",
+        choices=("standard", "mac-premium"),
+        default="mac-premium",
+        help="Current launch profile to capture (default: mac-premium)",
+    )
     
     args = parser.parse_args()
     
@@ -490,7 +532,10 @@ def main():
     print()
     
     try:
-        capturer = UltraComprehensiveScreenshotCapture(output_dir=args.output)
+        capturer = UltraComprehensiveScreenshotCapture(
+            output_dir=args.output,
+            profile_name=args.profile,
+        )
         capturer.run_ultra_comprehensive_sequence()
         return capturer.app.exec()
     except Exception as e:

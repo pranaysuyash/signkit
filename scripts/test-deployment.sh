@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${1:-https://signkit.work}"
+BASE_URL="${BASE_URL%/}"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -17,6 +18,24 @@ check_200() {
     fail "$url expected 200, got $code"
   fi
   echo "OK 200 $url"
+}
+
+check_redirect_to_root() {
+  local path="$1"
+  local url="${BASE_URL}${path}"
+  local response
+  local code
+  local redirect
+  response="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "$url")"
+  code="${response%% *}"
+  redirect="${response#* }"
+  if [[ "$code" != "301" ]]; then
+    fail "$url expected 301 to /, got $code"
+  fi
+  if [[ "$redirect" != "/" ]] && [[ "$redirect" != "${BASE_URL}/" ]]; then
+    fail "$url expected redirect destination /, got ${redirect:-<empty>}"
+  fi
+  echo "OK 301 $url -> /"
 }
 
 content_type() {
@@ -46,11 +65,25 @@ check_sitemap() {
 }
 
 check_200 "/"
-check_200 "/root"
-check_200 "/buy"
-check_200 "/purchase"
-check_200 "/gum"
-check_200 "/test-variants"
+check_200 "/index.html"
+for variant in root buy purchase gum test-variants; do
+  check_redirect_to_root "/${variant}"
+  check_redirect_to_root "/${variant}/"
+  check_redirect_to_root "/${variant}.html"
+done
+for route in \
+  /web/live/ /web/live/index.html \
+  /web/new_landing_page/ /web/new_landing_page/index.html \
+  /web/cloud_workspace/ /web/cloud_workspace/index.html; do
+  check_redirect_to_root "${route}"
+done
+for route in \
+  /deploy_dist/index.html /docs/GUMROAD_EMAIL_TEMPLATES.html \
+  /web/archives/main_pre_merge_20251121_184736/claude_landing_page/index.html \
+  /web/backups/landing-page-sync-20251123/index.html \
+  /web/concepts/2026-07-31-b2c-redesign/index.html; do
+  check_redirect_to_root "${route}"
+done
 check_robots
 check_sitemap
 

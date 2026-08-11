@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from desktop_app.pdf.template_store import (
     save_template,
     _safe_templates_payload,
 )
+from desktop_app.workflows.models import SignatureFieldBinding
 
 
 def _configure_store_path(monkeypatch, path: Path) -> None:
@@ -126,3 +128,92 @@ def test_template_field_anchor_metadata(monkeypatch, tmp_path: Path) -> None:
     assert loaded.field_type == "signature"
     assert loaded.field_label == "Sign here"
     assert loaded.source_pdf_name == "contract.pdf"
+
+
+def test_template_store_migrates_v1_legacy_payload(monkeypatch, tmp_path: Path) -> None:
+    """Read legacy scalar payload as version-1 style and expose canonical bindings."""
+    _configure_store_path(monkeypatch, tmp_path)
+    legacy_payload = {
+        "version": 1,
+        "templates": [
+            {
+                "template_id": "legacy-1",
+                "name": "Legacy",
+                "signature_path": "/tmp/sig.png",
+                "page_index": 2,
+                "x_ratio": 0.1,
+                "y_ratio": 0.2,
+                "width_ratio": 0.3,
+                "height_ratio": 0.04,
+                "use_field_anchor": True,
+                "field_type": "signature",
+                "field_label": "Sig",
+                "field_confidence": 0.88,
+                "anchor_x_ratio": 0.5,
+                "anchor_y_ratio": 0.6,
+                "source_pdf_name": "contract.pdf",
+                "source_pdf_path": "/tmp/contract.pdf",
+            }
+        ],
+    }
+    payload_file = tmp_path / "pdf_templates.json"
+    payload_file.write_text(json.dumps(legacy_payload))
+
+    templates = list_templates()
+    assert len(templates) == 1
+    template = templates[0]
+    assert template.template_id == "legacy-1"
+    assert template.version == 2
+    assert template.field_bindings
+    assert len(template.field_bindings) == 1
+    assert template.field_bindings[0].signature_asset_ref == "/tmp/sig.png"
+    assert template.field_bindings[0].anchor_x_ratio == 0.5
+
+
+def test_template_store_save_supports_multi_binding(monkeypatch, tmp_path: Path) -> None:
+    """Persist and reload a template with multiple placement bindings."""
+    _configure_store_path(monkeypatch, tmp_path)
+
+    binding_a = SignatureFieldBinding.from_legacy_values(
+        signature_path="/tmp/signature-a.png",
+        page_index=0,
+        x_ratio=0.11,
+        y_ratio=0.12,
+        width_ratio=0.2,
+        height_ratio=0.04,
+        field_label="Signer A",
+    )
+    binding_b = SignatureFieldBinding.from_legacy_values(
+        signature_path="/tmp/signature-b.png",
+        page_index=1,
+        x_ratio=0.21,
+        y_ratio=0.22,
+        width_ratio=0.2,
+        height_ratio=0.04,
+        field_label="Signer B",
+    )
+
+    template = SignaturePlacementTemplate(
+        template_id="multi-1",
+        name="Multi",
+        signature_path=binding_a.signature_asset_ref,
+        page_index=binding_a.page_index,
+        x_ratio=binding_a.x_ratio,
+        y_ratio=binding_a.y_ratio,
+        width_ratio=binding_a.width_ratio,
+        height_ratio=binding_a.height_ratio,
+        field_bindings=[binding_a, binding_b],
+    )
+    saved = save_template(template)
+
+    payload = _safe_templates_payload()
+    raw_item = payload["templates"][0]
+    assert raw_item["version"] == 2
+    assert len(raw_item["field_bindings"]) == 2
+    assert raw_item["field_bindings"][0]["signature_asset_ref"] == "/tmp/signature-a.png"
+
+    loaded = get_template("multi-1")
+    assert loaded is not None
+    assert loaded.field_bindings is not None
+    assert len(loaded.field_bindings) == 2
+    assert loaded.field_bindings[1].signature_asset_ref == "/tmp/signature-b.png"

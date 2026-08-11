@@ -20,6 +20,7 @@ datas_list = [
     (str(SRC_DIR / "backend" / ".env"), "backend") if (SRC_DIR / "backend" / ".env").exists() else None,
     (str(SRC_DIR / "legal"), "legal") if (SRC_DIR / "legal").exists() else None,
     (str(SRC_DIR / "desktop_app" / "resources"), "desktop_app/resources") if (SRC_DIR / "desktop_app" / "resources").exists() else None,
+    (str(SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg"), "desktop_app/resources") if (SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg").exists() else None,
     
     # Include app assets (icons)
     (str(SRC_DIR / "assets" / "files"), "assets/files") if (SRC_DIR / "assets" / "files").exists() else None,

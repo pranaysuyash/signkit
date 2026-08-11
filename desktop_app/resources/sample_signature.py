@@ -1,9 +1,52 @@
 from PIL import Image, ImageDraw
-import tempfile
 import os
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+
+SAMPLE_SIGNATURE_NAME = "512px-Mohammad_Rafiquzzaman_signature.jpg"
+
+
+def _canonical_sample_path() -> Path | None:
+    """Locate the checked-in sample in source and packaged app layouts."""
+
+    source_root = Path(__file__).resolve().parents[2]
+    candidates = [
+        Path(__file__).resolve().with_name(SAMPLE_SIGNATURE_NAME),
+        source_root / SAMPLE_SIGNATURE_NAME,
+    ]
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root:
+        bundle = Path(bundle_root)
+        candidates.extend(
+            [
+                bundle / "desktop_app" / "resources" / SAMPLE_SIGNATURE_NAME,
+                bundle / SAMPLE_SIGNATURE_NAME,
+            ]
+        )
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def generate_sample_signature() -> str:
+    """Return a temporary copy of the canonical real signature sample.
+
+    The synthetic drawing remains as a source-tree fallback for development
+    layouts that do not include the checked-in asset yet.
+    """
+
+    canonical_path = _canonical_sample_path()
+    if canonical_path is not None:
+        fd, path = tempfile.mkstemp(suffix=canonical_path.suffix)
+        os.close(fd)
+        shutil.copy2(canonical_path, path)
+        return path
+
     img = Image.new("RGB", (800, 400), "#FFFFFF")
     draw = ImageDraw.Draw(img)
     ink = "#1a1a2e"

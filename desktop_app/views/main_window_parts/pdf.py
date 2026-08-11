@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QLineEdit,
     QPushButton,
+    QScrollArea,
     QTextEdit,
     QSizePolicy,
     QVBoxLayout,
@@ -189,14 +190,32 @@ class PdfTabMixin:
         pdf_tab = QWidget()
         pdf_layout = QHBoxLayout(pdf_tab)
 
-        # Create left panel exactly like extraction tab
+        # Keep the control surface wide enough for action labels and provide a
+        # vertical overflow path. The old fixed 300 px panel clipped long
+        # actions such as "Apply Signature to Multiple Pages..." on normal
+        # laptop-sized windows.
         pdf_left_panel = QWidget()
         pdf_left_panel.setObjectName("pdfControlsPanel")
         pdf_left_panel.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
-        pdf_left_panel.setFixedWidth(300)  # Match extraction tab exactly
-        pdf_controls = QVBoxLayout(pdf_left_panel)
-        pdf_controls.setContentsMargins(16, 18, 16, 18)  # Match extraction tab
-        pdf_controls.setSpacing(10)  # Match extraction tab
+        pdf_left_panel.setFixedWidth(360)
+
+        pdf_panel_layout = QVBoxLayout(pdf_left_panel)
+        pdf_panel_layout.setContentsMargins(0, 0, 0, 0)
+
+        pdf_scroll = QScrollArea(pdf_left_panel)
+        pdf_scroll.setObjectName("pdfControlsScroll")
+        pdf_scroll.setWidgetResizable(True)
+        pdf_scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        pdf_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        pdf_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        pdf_controls_host = QWidget()
+        pdf_controls_host.setObjectName("pdfControlsContent")
+        pdf_controls = QVBoxLayout(pdf_controls_host)
+        pdf_controls.setContentsMargins(16, 18, 16, 18)
+        pdf_controls.setSpacing(10)
+        pdf_scroll.setWidget(pdf_controls_host)
+        pdf_panel_layout.addWidget(pdf_scroll)
 
         # >>> ADD: match Extraction tab panel styling on macOS for 1:1 visual parity
         if sys.platform == "darwin":
@@ -360,16 +379,19 @@ class PdfTabMixin:
         open_pdf_btn = _create_button("Open PDF...", parent_widget)
         set_button_icon(open_pdf_btn, "open", "Open PDF...", use_emoji=False)
         open_pdf_btn.clicked.connect(self._on_pdf_tab_open)
+        self._pdf_open_btn = open_pdf_btn
         pdf_controls.addWidget(open_pdf_btn)
 
         close_pdf_btn = _create_button("Close PDF", parent_widget)
         set_button_icon(close_pdf_btn, "close", "Close PDF", use_emoji=False)
         close_pdf_btn.clicked.connect(self._on_pdf_tab_close)
+        self._pdf_close_btn = close_pdf_btn
         pdf_controls.addWidget(close_pdf_btn)
 
         save_pdf_btn = _create_button("Save Signed PDF...", parent_widget)
         set_button_icon(save_pdf_btn, "save", "Save Signed PDF...", use_emoji=False)
         save_pdf_btn.clicked.connect(self._on_pdf_tab_save)
+        self._pdf_save_btn = save_pdf_btn
         pdf_controls.addWidget(save_pdf_btn)
 
         detect_fields_btn = _create_button("Find Fields", parent_widget)
@@ -488,13 +510,13 @@ class PdfTabMixin:
 
         template_btns = QHBoxLayout()
         save_template_btn = _create_button("Save Template", parent_widget)
-        set_button_icon(save_template_btn, "save", "Save current signature as a template", use_emoji=False)
+        set_button_icon(save_template_btn, "save", "Save Template", use_emoji=False)
         save_template_btn.setToolTip("Create a reusable placement template from a placed signature")
         save_template_btn.clicked.connect(self._on_pdf_template_save)
         template_btns.addWidget(save_template_btn)
 
         apply_template_btn = _create_button("Apply Template", parent_widget)
-        set_button_icon(apply_template_btn, "sparkle", "Apply selected template on this page", use_emoji=False)
+        set_button_icon(apply_template_btn, "sparkle", "Apply Template", use_emoji=False)
         apply_template_btn.setToolTip("Apply the selected template to this page")
         apply_template_btn.clicked.connect(self._on_pdf_template_apply)
         template_btns.addWidget(apply_template_btn)
@@ -502,19 +524,19 @@ class PdfTabMixin:
 
         template_batch_btns = QHBoxLayout()
         apply_template_pages_btn = _create_button("Apply to Pages...", parent_widget)
-        set_button_icon(apply_template_pages_btn, "bulk", "Apply template to selected pages", use_emoji=False)
+        set_button_icon(apply_template_pages_btn, "bulk", "Apply to Pages...", use_emoji=False)
         apply_template_pages_btn.setToolTip("Apply the selected template to multiple pages")
         apply_template_pages_btn.clicked.connect(self._on_pdf_template_apply_to_pages)
         template_batch_btns.addWidget(apply_template_pages_btn)
 
         delete_template_btn = _create_button("Delete Template", parent_widget)
-        set_button_icon(delete_template_btn, "close", "Delete selected template", use_emoji=False)
+        set_button_icon(delete_template_btn, "close", "Delete Template", use_emoji=False)
         delete_template_btn.clicked.connect(self._on_pdf_template_delete)
         template_batch_btns.addWidget(delete_template_btn)
         pdf_controls.addLayout(template_batch_btns)
 
-        bulk_sign_btn = _create_button("Apply Signature to Multiple Pages...", parent_widget)
-        set_button_icon(bulk_sign_btn, "bulk", "Apply signature to multiple pages", use_emoji=False)
+        bulk_sign_btn = _create_button("Apply to Multiple Pages...", parent_widget)
+        set_button_icon(bulk_sign_btn, "bulk", "Apply to Multiple Pages...", use_emoji=False)
         bulk_sign_btn.setToolTip("Apply signature to multiple pages at once")
         bulk_sign_btn.clicked.connect(self._on_bulk_sign_clicked)
         pdf_controls.addWidget(bulk_sign_btn)
@@ -562,6 +584,7 @@ class PdfTabMixin:
         self._bulk_pixmap: Optional[QPixmap] = None
         self._bulk_use_same_pos: bool = False
         self._bulk_signature_geometry: Optional[dict] = None
+        self._update_pdf_control_states()
     
     def _setup_pdf_menu(self):
         """Add PDF menu to menu bar. Called from __init__ if PDF_AVAILABLE."""
@@ -640,13 +663,19 @@ class PdfTabMixin:
         path = self._native_open_file("Open PDF", "PDF Files (*.pdf)")
         if not path:
             return
-        
-        # Initialize PDF state in session
+
+        # Load the visible viewer before mutating session state. This keeps a
+        # failed open from leaving the app claiming that a blank document is
+        # active.
+        if not hasattr(self, "pdf_viewer") or not self.pdf_viewer.open_pdf(path):
+            self.statusBar().showMessage(f"Unable to open PDF: {Path(path).name}", 4000)
+            return
+
+        self._current_pdf_path = path
         self.session.init_pdf_state()
         if self.session.pdf_state:
             self.session.pdf_state.current_pdf_path = path
-        
-        # For now, show a simple message (full viewer integration coming next)
+
         QMessageBox.information(
             self, "PDF Opened",
             f"PDF opened: {Path(path).name}\n\n"
@@ -663,17 +692,41 @@ class PdfTabMixin:
         self._restore_persisted_pdf_placements(path)
         
         self.statusBar().showMessage(f"Opened PDF: {Path(path).name}")
+        self._update_pdf_control_states()
         if hasattr(self, "_refresh_toolbar_action_states"):
             self._refresh_toolbar_action_states()
+
+    def _restore_persisted_pdf_placements(self, path: str) -> None:
+        """Restore placements saved for the exact current PDF file."""
+        if not self.pdf_viewer:
+            return
+        placements = load_document_session(path)
+        if placements:
+            self.pdf_viewer.restore_signature_placements(placements)
+            if self.session.pdf_state:
+                self.session.pdf_state.placed_signatures = list(placements)
+
+    def _update_pdf_control_states(self) -> None:
+        """Keep document actions aligned with the visible viewer state."""
+        has_pdf = bool(self._current_pdf_path and self.pdf_viewer and self.pdf_viewer.renderer)
+        if hasattr(self, "_pdf_close_btn"):
+            self._pdf_close_btn.setEnabled(has_pdf)
+        if hasattr(self, "_pdf_save_btn"):
+            self._pdf_save_btn.setEnabled(has_pdf)
     
     def on_pdf_close(self):
         """Close the current PDF."""
+        if hasattr(self, "pdf_viewer"):
+            self.pdf_viewer.close_pdf()
+        self._current_pdf_path = None
+        self._current_pdf_template_id = None
         if self.session.pdf_state:
             self.session.clear_pdf_state()
             self.audit_logger = None
             self.statusBar().showMessage("PDF closed")
         else:
             self.statusBar().showMessage("No PDF open")
+        self._update_pdf_control_states()
         if hasattr(self, "_refresh_toolbar_action_states"):
             self._refresh_toolbar_action_states()
     

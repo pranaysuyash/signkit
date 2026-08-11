@@ -4,7 +4,7 @@
 set -e
 
 echo "================================================"
-echo "  Signature Extractor - Distribution Builder"
+echo "  SignKit - Distribution Builder"
 echo "================================================"
 echo ""
 
@@ -46,6 +46,7 @@ fi
 
 # Parse arguments
 BUILD_TARGET=${1:-"current"}
+BUILD_PREMIUM=${BUILD_PREMIUM:-false}
 
 case "$BUILD_TARGET" in
     "arm64"|"apple-silicon")
@@ -94,6 +95,15 @@ echo "Build Plan:"
 echo "-----------"
 [ "$BUILD_ARM" = true ] && echo -e "${GREEN}✓ Apple Silicon (arm64)${NC}" || echo "  Skip: Apple Silicon"
 [ "$BUILD_INTEL" = true ] && echo -e "${GREEN}✓ Intel (x86_64)${NC}" || echo "  Skip: Intel"
+if [ "$BUILD_PREMIUM" = true ]; then
+    if [ "$BUILD_ARM" = true ] && [ "$ARCH" = "arm64" ]; then
+        echo -e "${GREEN}✓ Premium macOS (Apple Silicon)${NC}"
+    else
+        echo "  Skip Premium: set BUILD_PREMIUM=true and ARCH=arm64"
+    fi
+else
+    echo "  Skip Premium: set BUILD_PREMIUM=true"
+fi
 echo ""
 
 read -p "Continue with this build plan? (y/n) " -n 1 -r
@@ -134,19 +144,19 @@ if [ "$BUILD_ARM" = true ]; then
     echo "================================================"
     echo ""
     
-    python -m PyInstaller \
-        --clean \
-        --noconfirm \
-        build-tools/SignatureExtractor_macOS.spec
+    python build-tools/build.py \
+        --build-platform darwin \
+        --profile standard \
+        --spec build-tools/SignatureExtractor_macOS.spec
     
-    if [ -d "dist/SignatureExtractor.app" ]; then
+    if [ -d "dist/SignKit.app" ]; then
         echo -e "${GREEN}✓ ARM64 build completed${NC}"
-        APP_SIZE=$(du -sh dist/SignatureExtractor.app | cut -f1)
+        APP_SIZE=$(du -sh dist/SignKit.app | cut -f1)
         echo "  Size: $APP_SIZE"
         
         # Rename to indicate architecture
-        mv dist/SignatureExtractor.app dist/SignatureExtractor_ARM64.app
-        echo "  Output: dist/SignatureExtractor_ARM64.app"
+        mv dist/SignKit.app dist/SignKit_ARM64.app
+        echo "  Output: dist/SignKit_ARM64.app"
     else
         echo -e "${RED}✗ ARM64 build failed${NC}"
         exit 1
@@ -161,16 +171,17 @@ if [ "$BUILD_INTEL" = true ]; then
     echo "================================================"
     echo ""
     
-    python -m PyInstaller \
-        --clean \
-        --noconfirm \
-        build-tools/SignatureExtractor_Intel.spec
+    python build-tools/build.py \
+        --build-platform darwin \
+        --profile standard \
+        --spec build-tools/SignatureExtractor_Intel.spec
     
-    if [ -d "dist/SignatureExtractor_Intel.app" ]; then
+    if [ -d "dist/SignKit.app" ]; then
         echo -e "${GREEN}✓ Intel build completed${NC}"
-        APP_SIZE=$(du -sh dist/SignatureExtractor_Intel.app | cut -f1)
+        APP_SIZE=$(du -sh dist/SignKit.app | cut -f1)
         echo "  Size: $APP_SIZE"
-        echo "  Output: dist/SignatureExtractor_Intel.app"
+        mv dist/SignKit.app dist/SignKit_Intel.app
+        echo "  Output: dist/SignKit_Intel.app"
     else
         echo -e "${RED}✗ Intel build failed${NC}"
         exit 1
@@ -184,29 +195,60 @@ echo "  Creating Distribution Packages"
 echo "================================================"
 echo ""
 
-if [ -d "dist/SignatureExtractor_ARM64.app" ]; then
+if [ -d "dist/SignKit_ARM64.app" ]; then
     echo "Creating DMG for Apple Silicon..."
     hdiutil create \
-        -volname "Signature Extractor (Apple Silicon)" \
-        -srcfolder dist/SignatureExtractor_ARM64.app \
+        -volname "SignKit (Apple Silicon)" \
+        -srcfolder dist/SignKit_ARM64.app \
         -ov \
         -format UDZO \
-        dist/SignatureExtractor_ARM64.dmg
+        dist/SignKit_macOS_ARM64.dmg
     
-    DMG_SIZE=$(du -sh dist/SignatureExtractor_ARM64.dmg | cut -f1)
+    DMG_SIZE=$(du -sh dist/SignKit_macOS_ARM64.dmg | cut -f1)
     echo -e "${GREEN}✓ ARM64 DMG created: $DMG_SIZE${NC}"
 fi
 
-if [ -d "dist/SignatureExtractor_Intel.app" ]; then
-    echo "Creating DMG for Intel..."
+if [ -f "dist/SignKit_Premium_macOS_ARM64.dmg" ]; then
+    echo -e "${GREEN}✓ Premium macOS (ARM64)${NC}"
+    echo "  DMG:  dist/SignKit_Premium_macOS_ARM64.dmg"
+    echo "  For:  premium tier on Apple Silicon Macs"
+    echo ""
+fi
+
+
+if [ "$BUILD_PREMIUM" = true ] && [ "$BUILD_ARM" = true ] && [ "$ARCH" = "arm64" ]; then
+    echo "Creating Premium DMG for Apple Silicon..."
+    python build-tools/build.py \
+        --build-platform darwin \
+        --profile mac-premium \
+        --spec build-tools/SignatureExtractor_macOS_Premium.spec
+    mv dist/SignKitPremium.app dist/SignKitPremium_ARM64.app
     hdiutil create \
-        -volname "Signature Extractor (Intel)" \
-        -srcfolder dist/SignatureExtractor_Intel.app \
+        -volname "SignKit Premium (Apple Silicon)" \
+        -srcfolder dist/SignKitPremium_ARM64.app \
         -ov \
         -format UDZO \
-        dist/SignatureExtractor_Intel.dmg
+        dist/SignKit_Premium_macOS_ARM64.dmg
+    if [ -f "dist/SignKit_Premium_macOS_ARM64.dmg" ]; then
+        DMG_SIZE=$(du -sh dist/SignKit_Premium_macOS_ARM64.dmg | cut -f1)
+        echo -e "${GREEN}✓ Premium ARM64 DMG created: $DMG_SIZE${NC}"
+    fi
+    if [ -d "dist/SignKitPremium_ARM64.app" ]; then
+        rm -rf dist/SignKitPremium_ARM64.app
+    fi
+fi
+
+
+if [ -d "dist/SignKit_Intel.app" ]; then
+    echo "Creating DMG for Intel..."
+    hdiutil create \
+        -volname "SignKit (Intel)" \
+        -srcfolder dist/SignKit_Intel.app \
+        -ov \
+        -format UDZO \
+        dist/SignKit_macOS_Intel.dmg
     
-    DMG_SIZE=$(du -sh dist/SignatureExtractor_Intel.dmg | cut -f1)
+    DMG_SIZE=$(du -sh dist/SignKit_macOS_Intel.dmg | cut -f1)
     echo -e "${GREEN}✓ Intel DMG created: $DMG_SIZE${NC}"
 fi
 
@@ -216,19 +258,19 @@ echo "  Build Summary"
 echo "================================================"
 echo ""
 
-if [ -d "dist/SignatureExtractor_ARM64.app" ]; then
+if [ -d "dist/SignKit_ARM64.app" ]; then
     echo -e "${GREEN}✓ Apple Silicon (ARM64)${NC}"
-    echo "  App:  dist/SignatureExtractor_ARM64.app"
-    echo "  DMG:  dist/SignatureExtractor_ARM64.dmg"
+    echo "  App:  dist/SignKit_ARM64.app"
+    echo "  DMG:  dist/SignKit_macOS_ARM64.dmg"
     echo "  Arch: arm64"
     echo "  For:  macOS 11.0+ on Apple Silicon Macs"
     echo ""
 fi
 
-if [ -d "dist/SignatureExtractor_Intel.app" ]; then
+if [ -d "dist/SignKit_Intel.app" ]; then
     echo -e "${GREEN}✓ Intel (x86_64)${NC}"
-    echo "  App:  dist/SignatureExtractor_Intel.app"
-    echo "  DMG:  dist/SignatureExtractor_Intel.dmg"
+    echo "  App:  dist/SignKit_Intel.app"
+    echo "  DMG:  dist/SignKit_macOS_Intel.dmg"
     echo "  Arch: x86_64"
     echo "  For:  macOS 10.13+ on Intel Macs"
     echo ""
@@ -250,6 +292,6 @@ echo -e "${GREEN}Build complete!${NC}"
 echo ""
 echo "Testing:"
 echo "--------"
-echo "Test ARM64: open dist/SignatureExtractor_ARM64.app"
-[ -d "dist/SignatureExtractor_Intel.app" ] && echo "Test Intel: open dist/SignatureExtractor_Intel.app"
+echo "Test ARM64: open dist/SignKit_ARM64.app"
+[ -d "dist/SignKit_Intel.app" ] && echo "Test Intel: open dist/SignKit_Intel.app"
 echo ""

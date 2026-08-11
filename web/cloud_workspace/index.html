@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#14342f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2314342f'/%3E%3Ctext x='10' y='42' font-family='monospace' font-size='23' font-weight='700' fill='%23cbe56f'%3ESK%3C/text%3E%3C/svg%3E" />
+    <title>SignKit Workspace</title>
+    <link rel="stylesheet" href="/workspace-app/styles.css" />
+  </head>
+  <body>
+    <div class="paper-grain" aria-hidden="true"></div>
+    <main class="auth-shell" id="auth-shell">
+      <section class="auth-story">
+        <p class="eyebrow">SIGNKIT WORKSPACE</p>
+        <h1>Document work deserves a visible chain of care.</h1>
+        <p class="lede">
+          Start in the browser. Keep each packet, review, and recorded confirmation
+          legible to the person responsible for it.
+        </p>
+        <div class="topology-card">
+          <span class="topology-dot"></span>
+          <div>
+            <strong>Cloud topology</strong>
+            <p>Browser workspace with no local app requirement.</p>
+          </div>
+        </div>
+        <p class="fine-print">
+          This foundation stores workflow metadata, not documents or signature files.
+        </p>
+      </section>
+      <section class="auth-card" aria-labelledby="auth-title">
+        <div class="brand-lockup"><span>SK</span> SignKit</div>
+        <p class="eyebrow">CONTROL PLANE</p>
+        <h2 id="auth-title">Enter your workspace</h2>
+        <p class="auth-copy">Use an account to protect your private workflow register.</p>
+        <div class="tab-row" role="tablist" aria-label="Account action">
+          <button class="tab is-active" id="login-tab" type="button" role="tab">Sign in</button>
+          <button class="tab" id="register-tab" type="button" role="tab">Create account</button>
+        </div>
+        <form id="login-form" class="auth-form">
+          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required /></label>
+          <button class="primary-button" type="submit">Open workspace <span>→</span></button>
+        </form>
+        <form id="register-form" class="auth-form is-hidden">
+          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+          <button class="primary-button" type="submit">Create workspace <span>→</span></button>
+        </form>
+        <p id="auth-message" class="form-message" role="status"></p>
+      </section>
+    </main>
+
+    <main class="app-shell is-hidden" id="app-shell">
+      <aside class="rail">
+        <a class="brand-lockup" href="#top"><span>SK</span> SignKit</a>
+        <div class="workspace-label">YOUR WORKSPACE</div>
+        <nav aria-label="Workspace navigation">
+          <a class="nav-link is-active" href="#top">Execution register</a>
+          <a class="nav-link" href="#templates">Template catalog</a>
+          <a class="nav-link" href="#trust-boundary">Trust boundary</a>
+        </nav>
+        <section class="topology-rail-card">
+          <p class="eyebrow">ACTIVE TOPOLOGY</p>
+          <strong>Cloud</strong>
+          <p>Browser-native control plane. No desktop sync is enabled.</p>
+        </section>
+        <button class="sign-out" id="sign-out" type="button">Sign out</button>
+      </aside>
+
+      <section class="workspace" id="top">
+        <header class="workspace-header">
+          <div>
+            <p class="eyebrow">EXECUTION REGISTER</p>
+            <h1>Make the next responsible action obvious.</h1>
+          </div>
+          <button class="primary-button" id="new-execution" type="button">New execution <span>+</span></button>
+        </header>
+
+        <section class="status-banner" id="trust-boundary">
+          <div class="status-marker">01</div>
+          <div>
+            <strong>Workflow control, not a signing claim.</strong>
+            <p>SignKit records owner-entered reviews and confirmations. It does not yet send documents, verify identity, or create a legal signing certificate.</p>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Execution summary">
+          <article><span id="metric-active">0</span><p>Active packets</p></article>
+          <article><span id="metric-review">0</span><p>Awaiting review</p></article>
+          <article><span id="metric-completed">0</span><p>Completed register</p></article>
+        </section>
+
+        <section class="content-grid">
+          <div class="execution-panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">LIVE WORK</p><h2>Execution register</h2></div>
+              <span id="execution-count" class="count-badge">0 packets</span>
+            </div>
+            <div id="execution-list" class="execution-list" aria-live="polite"></div>
+          </div>
+          <aside class="passport-panel" aria-live="polite">
+            <div id="passport-empty" class="empty-passport">
+              <p class="eyebrow">EXECUTION PASSPORT</p>
+              <h2>Select a packet</h2>
+              <p>Open a packet to see its template lineage, responsible people, and chronological receipt.</p>
+            </div>
+            <div id="passport-content" class="is-hidden"></div>
+          </aside>
+        </section>
+
+        <section class="catalog-section" id="templates">
+          <div class="section-heading">
+            <div><p class="eyebrow">VERSIONED CATALOG</p><h2>Start from a controlled template</h2></div>
+          </div>
+          <div id="template-list" class="template-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="execution-dialog" aria-labelledby="execution-dialog-title">
+      <form id="execution-form" class="execution-form">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">NEW CLOUD EXECUTION</p><h2 id="execution-dialog-title">Prepare onboarding control</h2></div>
+          <button class="close-button" id="close-dialog" type="button" aria-label="Close form">×</button>
+        </div>
+        <p id="template-description" class="dialog-copy"></p>
+        <input id="template-code" name="template_code" type="hidden" />
+        <div class="field-grid">
+          <label>Participant name<input name="participant_name" maxlength="160" required /></label>
+          <label>Participant email<input name="participant_email" type="email" required /></label>
+          <label>Reviewer name<input name="reviewer_name" maxlength="160" required /></label>
+          <label>Reviewer email<input name="reviewer_email" type="email" required /></label>
+          <label>Effective date<input name="effective_date" type="date" /></label>
+        </div>
+        <label>Operator note <span class="optional">optional</span><textarea name="notes" rows="3" maxlength="2000" placeholder="Keep this to the minimum needed for the workflow."></textarea></label>
+        <p class="privacy-inline">The register keeps names, emails, date, and your note. It does not store the packet itself.</p>
+        <div class="dialog-actions"><button class="secondary-button" id="cancel-dialog" type="button">Cancel</button><button class="primary-button" type="submit">Create execution <span>→</span></button></div>
+        <p id="execution-message" class="form-message" role="status"></p>
+      </form>
+    </dialog>
+
+    <script src="/workspace-app/app.js" defer></script>
+  </body>
+</html>

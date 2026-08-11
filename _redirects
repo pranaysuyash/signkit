@@ -1,13 +1,34 @@
-# Extensionless routes (avoid SPA fallback eating robots/sitemap)
-/root /root.html 200
-/root/ /root.html 200
-/buy /buy.html 200
-/buy/ /buy.html 200
-/purchase /purchase.html 200
-/purchase/ /purchase.html 200
-/gum /gum.html 200
-/gum/ /gum.html 200
-/test-variants /test-variants.html 200
-/test-variants/ /test-variants.html 200
+# Canonical public landing route. Legacy variants remain in the repository for
+# review/history only and must never become an effective production route.
+/root / 301
+/root/ / 301
+/root.html / 301
+/buy / 301
+/buy/ / 301
+/buy.html / 301
+/purchase / 301
+/purchase/ / 301
+/purchase.html / 301
+/gum / 301
+/gum/ / 301
+/gum.html / 301
+/test-variants / 301
+/test-variants/ / 301
+/test-variants.html / 301
+# Alternative landing and concept entrypoints are retained for review/assets,
+# but the root landing remains the only public acquisition surface.
+/web/live/ / 301
+/web/live/index.html / 301
+/web/new_landing_page/ / 301
+/web/new_landing_page/index.html / 301
+/web/cloud_workspace/ / 301
+/web/cloud_workspace/index.html / 301
+# Archive, backup, concept, and generated deploy trees are not public landing
+# surfaces. Keep them in the repository for review without serving stale claims.
+/deploy_dist/* / 301
+/docs/*.html / 301
+/web/archives/* / 301
+/web/backups/* / 301
+/web/concepts/* / 301
 /robots.txt /robots.txt 200
 /sitemap.xml /sitemap.xml 200

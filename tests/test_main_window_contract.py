@@ -86,8 +86,111 @@ def test_main_window_responsive_breakpoints(qapp):
     assert hasattr(window, '_is_compact')
     assert hasattr(window, '_is_narrow')
     assert hasattr(window, '_apply_responsive_breakpoints')
+    assert window._onboarding_default_plan_id == "starter"
+    assert window.get_default_purchase_plan_id() == "starter"
+    assert window._show_onboarding_upgrade_card is True
 
     window.close()
+
+
+def test_workflow_tabs_locked_for_standard_profile(qapp):
+    """Standard profile should expose workflow features as discoverable but premium-locked."""
+
+    from desktop_app.api.client import ApiClient
+    from desktop_app.state.session import SessionState
+    from PySide6.QtWidgets import QPushButton
+    from desktop_app.views.main_window import MainWindow
+
+    mock_client = Mock(spec=ApiClient)
+    mock_client.base_url = "http://127.0.0.1:8001"
+    mock_session = Mock(spec=SessionState)
+
+    window = MainWindow(mock_client, mock_session)
+    assert window.workflow_premium_enabled is False
+    assert window.workflow_console_tab.property("feature_locked") is True
+    assert window.workflow_grants_tab.property("feature_locked") is True
+    assert window.recipe_builder_tab.property("feature_locked") is True
+    assert any(
+        isinstance(btn, QPushButton) and btn.text() == "Upgrade to Workflow Premium"
+        for btn in window.workflow_console_tab.findChildren(QPushButton)
+    )
+    assert "Workflow Dashboard (Premium)" in window.tab_widget.tabText(window._workflow_console_tab_index)
+    assert "Workflow Grants (Premium)" in window.tab_widget.tabText(window._workflow_grants_tab_index)
+    assert "Recipe Builder (Premium)" in window.tab_widget.tabText(window._recipe_builder_tab_index)
+
+    window.close()
+
+
+def test_workflow_lock_copy_mentions_folder_triplet(qapp):
+    """Standard profile should explain folder-triple execution model in locked states."""
+
+    from desktop_app.api.client import ApiClient
+    from desktop_app.state.session import SessionState
+    from desktop_app.views.main_window import MainWindow
+    from PySide6.QtWidgets import QLabel
+
+    mock_client = Mock(spec=ApiClient)
+    mock_client.base_url = "http://127.0.0.1:8001"
+    mock_session = Mock(spec=SessionState)
+
+    window = MainWindow(mock_client, mock_session)
+    labels = window.workflow_console_tab.findChildren(QLabel)
+    combined_text = " ".join(label.text() for label in labels)
+    assert "Unsigned Docs → Signed Docs" in combined_text or "unsigned docs" in combined_text.lower()
+
+    window.close()
+
+
+def test_workflow_tabs_enabled_for_premium_profile(qapp):
+    """mac-premium profile should get interactive workflow tabs."""
+
+    from desktop_app.api.client import ApiClient
+    from desktop_app.state.session import SessionState
+    from desktop_app.views.main_window import MainWindow
+    from desktop_app.views.main_window_parts.workflow_console import WorkflowConsole
+    from desktop_app.views.main_window_parts.grant_manager import GrantManager
+    from desktop_app.views.main_window_parts.recipe_builder import RecipeBuilder
+
+    mock_client = Mock(spec=ApiClient)
+    mock_client.base_url = "http://127.0.0.1:8001"
+    mock_session = Mock(spec=SessionState)
+
+    window = MainWindow(mock_client, mock_session, workflow_premium_enabled=True)
+    assert window.workflow_premium_enabled is True
+    assert isinstance(window.workflow_console_tab, WorkflowConsole)
+    assert isinstance(window.workflow_grants_tab, GrantManager)
+    assert isinstance(window.recipe_builder_tab, RecipeBuilder)
+    assert window.workflow_console_tab.property("feature_locked") is None
+
+    assert hasattr(window.workflow_console_tab, "refresh")
+    assert hasattr(window.workflow_grants_tab, "refresh")
+    assert hasattr(window.recipe_builder_tab, "refresh")
+    assert window._onboarding_default_plan_id == "starter"
+    assert window.get_default_purchase_plan_id() == "starter"
+    assert window._show_onboarding_upgrade_card is True
+
+    window.close()
+
+
+def test_main_window_title_can_be_set_by_launch_profile(qapp):
+    """Window title should use the provided launch title so premium builds can brand distinctly."""
+
+    from desktop_app.api.client import ApiClient
+    from desktop_app.state.session import SessionState
+    from desktop_app.views.main_window import MainWindow
+
+    mock_client = Mock(spec=ApiClient)
+    mock_client.base_url = "http://127.0.0.1:8001"
+    mock_session = Mock(spec=SessionState)
+
+    window = MainWindow(mock_client, mock_session, window_title="SignKit Premium")
+    assert window.windowTitle() == "SignKit Premium"
+
+    default_window = MainWindow(mock_client, mock_session)
+    assert default_window.windowTitle() == "SignKit"
+
+    window.close()
+    default_window.close()
 
 
 if __name__ == "__main__":

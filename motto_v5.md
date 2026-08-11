@@ -1,8 +1,12 @@
-# Engineering Motto / Agent Operating Rules v4
+# Engineering Motto / Agent Operating Rules v5
 
-Version 4 keeps all v3 rules and adds, from the 2026-07-19 CoverWise decision-record session: (1) agent time-frame honesty — do not frame work in human-time units (weeks/days/sprints); frame in commit-units and decision-units; (2) whole-answer mandate — do the whole right answer, not the small sprint; do not pre-cut work into "next session" as a way to bound effort; (3) decision records are appends, not edits (Update Log rule); (4) the "anything else?" standing review prompt; (5) the ADR-first process for load-bearing decisions; (6) pattern families (substrate extension, privacy policy per surface, data-handling policy per third-party integration); (7) the launch-claim registry for marketing claims; (8) cut/keep/finish anchored to long-term product shape; (9) the one-canonical-motto rule — v4 replaces v2 and v3; old copies are retired across all projects on the next agent-start run.
+Version 5 keeps the durable rules from v4 and adds, from the 2026-08-04 upgrade decision, a unified operating model for proof-carrying, governed autonomous engineering. The v5 upgrade makes evidence, authorization, multi-agent coordination, runtime truth, AI evaluation, data lifecycle, and business proof explicit cross-project contracts. It also adopts ASD-STE100 principles as the default plain-language discipline for agent communication and project documentation, without claiming formal compliance or replacing domain or legal precision.
 
-For this workspace, v4 is the ONLY canonical doctrine source. `motto_v2.md` and `motto_v3.md` are retired filenames; they must not exist in any project's working tree after the next agent-start run. Git history preserves them; the working tree carries only `motto_v4.md`.
+For this workspace, v5 is the ONLY canonical doctrine source. Retired legacy
+filenames (including `motto_v4.md`, `motto_v3.md`, `motto_v2.md`, and earlier
+versions) are not permitted in any project's working tree after the next
+agent-start run. Git history and Downloads preserve historical editions; the
+working tree carries only `motto_v5.md`.
 
 Before making changes, perform a complete status, architecture, and context review.
 
@@ -76,6 +80,39 @@ The goal is also not to pretend the work is larger than it is. Frame work in com
 - If documentation was skipped due to urgency, create an explicit documentation debt item with owner, scope, and closure criteria before marking done.
 - Prefer repo-local canonical locations for all notes, explorations, discussions, reviews, investigations, decisions, and maps; avoid scattering durable knowledge in ephemeral chat only.
 
+### 0.3.1 "Everything Is a Documentation Candidate" (Required) (v4)
+
+Chat is ephemeral; the repo is the durable memory of the project. A session ends and the conversation vanishes, but a decision, an analysis, a redirect, or an audit survives only if it was written to a durable doc. The default posture is: **if it was worth saying, it is worth documenting.** Treat every substantive exchange as a documentation candidate until proven otherwise.
+
+**Mandatory documentation candidates (write these to durable repo docs, not only to chat):**
+
+- **Discussions** — any back-and-forth that clarified the problem, surfaced a constraint, or changed the direction. The *arc* of a discussion (what was proposed, what was rejected, why) is often more valuable than the conclusion; the redirects and rejections are the decision logic.
+- **Decisions** — every load-bearing choice, including the decision *not* to do something. Record the options considered, the rejection reasons, and what would change the decision. (See §0.12 / §0.12.1 ADR rules.)
+- **Analyses** — any structured evaluation (comparisons, trade studies, scoring, pros/cons, failure-mode analysis). Record the method and the raw inputs, not only the winner.
+- **Explorations** — research, spikes, feasibility checks, "what if" investigations. Record what was looked at, what was found, and what remains unknown. Negative results (this did not work) are documentation candidates too.
+- **Audits and reviews** — code review, security review, readiness review, naming/brand review. Record the findings, the evidence tier, and the closure state of each item.
+- **Redirects and rejections** — when the operator or a reviewer rejects a direction, record the rejection *verbatim* (their words, not a paraphrase) and the consequence. A rejected direction that is not recorded will be re-proposed by the next agent.
+- **Process insights** — lessons about *how* the work was done (what brief was wrong, what method failed, what convergence was misleading). These compound across sessions and are the highest-leverage documentation of all.
+- **Bugs, fixes, and root causes** — not only the fix, but why the bug existed and why the fix is correct.
+- **External findings** — anything discovered about third-party services, registries, pricing, APIs, or market state, with the date and source.
+
+**Depth guidance:**
+
+- **Decision-grade depth** — for any choice that future work depends on: the options, the selection, the rejection reasons, the evidence tier, what would change the decision, and an update-log entry when it changes.
+- **Analysis-grade depth** — for any evaluation: the method, the full candidate set (not only the winner), the criteria, and the raw per-candidate assessment.
+- **Transcript-grade depth** — for any redirect or rejection: the operator's verbatim words (blockquoted) plus the consequence. Paraphrase erases the decision logic; verbatim preserves it.
+- **Skim-grade depth** — for minor observations: a one-line note in the relevant map/log. Not everything needs a dedicated doc; but everything worth saying needs *somewhere* durable.
+
+**Where to document:**
+
+- Prefer repo-local canonical locations (`docs/`, project maps, decision logs). Avoid scattering durable knowledge in tool outputs, shell logs, or chat that will not survive the session.
+- One artifact per logical unit (a decision, an analysis, an audit) — do not collapse unrelated work into a single sprawling doc, and do not fragment one decision across many files.
+- Cross-link related docs; a naming decision should link to the brand audit that motivated it and the rename inventory that will execute it.
+
+**The test:** before ending a session or marking work done, ask — *if this conversation vanished tomorrow, would the next agent be able to reconstruct why we are where we are?* If the answer is no, documentation is incomplete. The goal is not to document everything said; it is to ensure no load-bearing reasoning is lost to chat ephemerality.
+
+**Evidence that this rule is needed:** in the 2026-07-28 CoverWise naming process, the founder's three redirects (commentary-not-comprehension; no-regulatory-signal; generic-RAG-not-India-insurance) did more to sharpen the answer than a 10-role brainstorm panel. Had those redirects lived only in chat, a future agent would have read the panel's Indic-rooted shortlist (Tippani, Amanat, Kosha) and concluded the project landed there — when in fact those directions were all killed by the founder's three sentences. The redirects were captured verbatim to `docs/planning/naming/founder_redirect_transcript_2026-07-28.md` precisely because the operator insisted "every discussion that happens should be a documentation candidate." This clause generalizes that insistence into standing doctrine.
+
 
 ### 0.4 Acceptance Contract Before "Done"
 
@@ -136,7 +173,7 @@ For each work chunk, run at least three explicit passes before finalizing:
    - Record outcomes in durable notes and ensure exploration/research areas are updated in the appropriate exploration map when meaningful.
 
 3) **Pass 3 – Rule compliance and supervision readiness**
-   - Re-validate against motto_v3 clauses, especially confidence tiering, evidence requirements, and decision/logging continuity.
+   - Re-validate against motto_v4 clauses, especially confidence tiering, evidence requirements, and decision/logging continuity.
    - Verify no critical requirement suppression: no skipped risks, skipped checks, or hidden assumptions.
    - Confirm who approves open items and what trigger closes each.
    - Validate final report is reviewable as a handoff artifact (clear, complete, and auditable).
@@ -183,6 +220,52 @@ If Tier 3+ verification is not possible in the current session, explicitly state
 - what remains unverified
 - exact command or manual check needed next
 - risk of shipping without it
+
+### 0.5.1 Test Sensitivity Tiers (Required) (v5)
+
+§0.5 measures how far the code ran. It does not measure whether the test could
+have failed. A test that passes and cannot fail is an artifact that is produced
+and never checked, which is the defect class this project files as V-01. A green
+suite is therefore not by itself evidence that behaviour is enforced, and a test
+count is not evidence at all.
+
+State a sensitivity tier next to any claim backed by a test:
+
+- S0: the test exists
+- S1: the test passes
+- S2: the test failed first for the stated reason, then passed after the change
+- S3: a deliberate break of the code under test makes the test fail, proven by
+  a mutation gate (in FieldCanvas, `npm run check:mutation`)
+
+Rules:
+
+- Do not present S0 or S1 as evidence that behaviour is enforced.
+- Every defect fix requires S2. Write the failing test, observe the failure,
+  then fix. A fix whose test never failed has not been shown to fix anything.
+- These require S3, recorded as a mutant in the repository's mutation manifest:
+  - any claim registered under §0.11.1
+  - any behaviour an accepted ADR asserts
+  - any invariant that has broken before
+- A surviving mutant is a coverage hole, not a tooling failure. Strengthen the
+  test. Do not delete the mutant to make the gate green.
+- A mutant counts as killed only when a TEST failed, not merely on a non-zero
+  exit. A mutation that breaks the parse or the types would otherwise score a
+  free kill, which is the same vacuity one level up.
+- Prove the binding, not only the contract. A pure function proven correct in
+  isolation says nothing about whether a surface renders it or a control calls
+  it. Where a store, projection or reducer has a unit test, cover the component
+  that consumes it separately.
+- Assertions that hold over an empty collection are vacuous. Assert the
+  population first, then the property over it.
+- Prefer invariants to fixture snapshots. Assert that a sequence is sorted, not
+  that it equals one exact array. A snapshot fails on unrelated legitimate
+  change, where the reflex is to re-bless it, and passes when the invariant
+  breaks in a way the fixture never exercised.
+- Label a regression test with the defect it exists to prevent. Its value is its
+  provenance; unlabelled it reads as a redundant happy-path test and is deleted
+  in the next cleanup, at which point the original defect can return silently.
+
+`npm run check:mutation` is part of `npm run verify`. See ADR-0158.
 
 ### 0.6 Risk-Based Verification
 
@@ -583,8 +666,12 @@ Never continue implementation from stale generated instruction surfaces in paral
 
 ### 0.17 One Canonical Motto Rule (v4)
 
-- There is exactly one canonical motto in the workspace at any time. `motto_v4.md` replaces `motto_v3.md` and `motto_v2.md` everywhere.
-- On the next `agent-start` run after a motto version change, every project under the workspace root: (a) receives the new motto file, (b) has the old motto files (`motto_v2.md`, `motto_v3.md`) removed from the working tree, and (c) has its managed git hooks re-installed to reference the new motto filename.
+- There is exactly one canonical motto in the workspace at any time. `motto_v4.md`
+  replaces all legacy motto filenames (`motto_v2.md` and earlier) everywhere.
+- On the next `agent-start` run after a motto version change, every project under
+  the workspace root: (a) receives the new motto file, (b) has legacy motto
+  files removed from the working tree, and (c) has its managed git hooks
+  re-installed to reference the new motto filename.
 - Git history preserves retired motto versions; the working tree must not carry them. A project that needs the historical text reads it from git history, not from a stale file on disk.
 - When the motto content changes, its SHA256 changes; every repo's attestation must be refreshed (`attest_motto.py`) before the next commit, and the commit trailers (`Motto-SHA256`) reference the new digest.
 - No project may pin to an old motto version. If a project believes it needs an older rule, that is a conflict to surface in the project's own decision records — not a reason to keep a stale motto file around.
@@ -1111,6 +1198,36 @@ If logic is preserved but not used, inventory it before deleting or archiving.
 
 If a branch/commit contains multiple scopes, document the scope explicitly.
 
+### 15.1 ASD-STE100 Plain-Language Discipline (v4)
+
+Use the principles of ASD-STE100 Simplified Technical English (STE) when
+writing agent output, project documentation, instructions, runbooks, reviews,
+and user-facing technical explanations. The goal is clear, translatable,
+auditable communication. This is a writing discipline, not a claim that a
+document is formally ASD-STE100 compliant. When formal compliance is required,
+use the official ASD-STE100 standard and controlled dictionary for the
+applicable issue.
+
+- Prefer short sentences. Keep one main topic and one clear action in each
+  sentence where practical.
+- Use active voice and name the actor, action, object, condition, and expected
+  result. Replace vague pronouns and implied steps with explicit references.
+- Prefer common, concrete words and one stable term for one concept. Avoid
+  unnecessary synonyms, idioms, metaphor, nominalizations, vague verbs, and
+  long noun clusters.
+- State procedures in the order they occur. Use numbered steps, explicit
+  conditions, warnings, inputs, outputs, and failure or recovery actions.
+- Keep technical names, product terms, legal terms, quoted text, code, and
+  domain vocabulary when they carry required meaning. Explain them rather
+  than replacing them with an inaccurate simpler word.
+- Review meaning and operational safety, not only grammar or checker output.
+  A checker is advisory; it cannot decide whether a claim is accurate,
+  eligible, lawful, or safe.
+
+The official ASD-STE100 site describes STE as writing rules plus a controlled
+dictionary. Its current Issue 9 is dated 2025-01-15. Use the official source
+when exact rules, approved meanings, or formal application are needed.
+
 ---
 
 ## 16. Branch / Review Branch Rules
@@ -1341,3 +1458,342 @@ Linters (ruff, eslint, etc.), type checkers (mypy, pyright, tsc), formatters, se
 **Relationship to rule 14 (Validation Rules) and rule 1.1:** those rules require checks to pass and typecheck to be clean. This rule does not weaken them — it sharpens them: "passing" means the check is satisfied by correct code or by a reasoned, recorded deviation, never by silent suppression or by degrading the design.
 
 **Relationship to rule 21 (Code Is Evidence, Not a Boundary):** rule 21 says decision-driven refactors are not optional; this rule says tool-driven downgrades are not acceptable. Together: refactor when a decision changes (rule 21); never refactor *downward* just because a tool complained (rule 22).
+
+---
+
+## 23. Parallel-Authoring, Long-Term Continuity, and Contested Runtime Boundaries
+
+- Never treat a contested runtime file as a permission to skip; maintain a first-principles continuation plan and recheck file state before moving forward.
+- Preserve parallel work by default: if a file is being actively edited elsewhere, do not directly patch it.
+- The correct stop condition is explicit: pause, leave a dated handoff note in canonical docs/worklog, and recheck until the file is stable.
+- No boundary drift: if a contract change is decided, update docs and code contracts in the same decision gate; avoid naming or owner mismatches.
+- Keep the progress united: if a task is blocked by overlap, resume at the next explicit recheck point instead of switching to unrelated edits.
+- Use explicit conflict escalation: document what blocked progress, what is required to continue, and the exact trigger that resumes the task.
+- Do not perform logic deletions under uncertainty; prefer contract-alignment and comment-level sync first, then structural edits only with explicit release confidence.
+
+Implementation addendum for this protocol:
+
+- `vehicleAnimationSystem`-style ownership boundaries are treated as long-term contracts, not temporary refactor targets.
+- **A boundary's mechanism is not protected by the boundary's status.** Treating an ownership contract as long-term protects *which layer owns a truth*. It never immunizes *how that layer computes it* from first-principles correction. When a named owner would re-derive a value the authoritative layer already owns, the mechanism is wrong even though the boundary is right; correct the mechanism and supersede the record (rule 7), do not implement the record literally.
+- **Implementation claims must name their falsifier.** A decision record that asserts implementation — "wired", "delegated", "in the live path", "current checkout shows" — must name the command or check that would fail if the claim stopped being true, and that check must have been run. "Reading the source suggests it" is not implementation evidence. A module that cannot be reached from a shipped entry point is not implemented, regardless of its tests, its types, or its documentation.
+- **Unreachable code cannot be trusted to be correct.** Nothing forces an unimported module to stay consistent with the runtime it describes, so it can hold an arbitrarily wrong design indefinitely without any check failing. Before wiring dormant code, re-derive its correctness against the current authoritative layers rather than assuming its tests imply fitness.
+- Decision-driven refactors are mandatory in the same gate that changes ownership or interfaces.
+- Diff-first verification is mandatory before any cross-tool symlink or startup-script handoff.
+- Use commit-unit progress and decision-unit progress reporting, not human-calendar framing.
+
+---
+
+## Addendum (2026-07-28): Parallel-editor hold and resync protocol
+
+- If a file, route, or decision-boundary is known to be actively updated by another agent, treat it as contested:
+  - do not apply further edits to that same path in the same gate;
+  - do not clear gate blockers tied to that path without a recheck;
+  - do not move the workstream forward by handwaving the blocker as "pre-existing".
+- Required pause action: snapshot current state, append the explicit handoff, and schedule a recheck when the contested stream is stable or ownership is explicitly transferred.
+- Resume condition: state is revalidated against live files and context, then proceed with either canonical acceptance or a documented follow-up scope.
+- This protocol applies even to scoped or small edits when the path owns a shared runtime or cross-agent contract.
+
+## Addendum (2026-07-28): Canonical Motto Refresh and Handoff Integrity
+
+- Before any agent-start handoff or startup-script symlink refresh, always complete a diff check and verification pass of `motto_v4.md` against current live state.
+- If any file in the active workstream is still contested, do not proceed to startup-script integration until that stream is revalidated and stable.
+- If a claim is contested or unclear, the safe state is: stop, hand off with explicit assumptions, recheck later, and only resume when the latest runtime state is verifiable.
+- "Waiting for parallel edits" is not a blocker label; it is an explicit recheck requirement tied to evidence quality and continuity.
+
+## Addendum (2026-08-01): Self-Directed Exploration Over Document-Following
+
+Operator, verbatim, after a session where a 5-item work queue was completed
+end-to-end (tested, documented, browser-verified) but chosen entirely from
+one status doc's "next steps" list, without first re-reading a sharper,
+already-existing competitive/market analysis sitting in the same repo:
+
+> "thats what i like and dont like about you, you know you didnt follow
+> the guidelines i have been laying out, you dont read or explore when i
+> explicitly say so but when it helps you you would do things that are in
+> the docs when i say the opposite and ask you to do something from long
+> term 1st principles motto_v4 aligned and fully researched, explored,
+> even when i gave you the ui direction or asked your own direction you
+> ack. but never moved on to do those...dont just depend on docs, when you
+> know theres so much more to be done pick up the area, do it, explore it
+> test it document it and keep doing for every other thing not just what a
+> stale doc said"
+
+The failure mode named here is real and generalizes beyond this one
+session: **a status doc's "next steps" list is one input, not the ceiling
+of what to explore or build.** Treating a doc's existing list as the
+complete work surface — instead of re-checking it against fresh
+exploration, competitor/market reality, and first-principles judgment
+before picking the next unit of work — silently narrows scope to whatever
+was already written down, which is exactly the "stale-doc dependency"
+rule 5 (Stale State) and rule 0.16 (Instruction Surface Freshness) already
+warn against, applied here to *self-directed prioritization*, not just to
+re-reading before editing a known file.
+
+**What this rule requires, as standing doctrine:**
+
+1. **Explicit read/explore instructions are executed in full, not
+   sampled.** When the operator says "look at the market," "read X," or
+   "explore Y," that means actually opening and absorbing the material
+   before answering or before choosing the next unit of work — not a
+   narrow, reactive lookup scoped only to the specific question just
+   asked. If a broader, already-written analysis exists in the repo and
+   bears on the current decision, read it before deciding, not only after
+   being asked "did you look at this."
+2. **Acknowledgment is not completion.** When the operator gives explicit
+   direction (UI direction, architectural direction, "do X") — or asks
+   the agent's own opinion/recommendation and the agent gives one — that
+   direction is a deliverable, not a discussion point to note and move
+   past. Either act on it in the same pass, or if it is genuinely out of
+   scope for the current unit of work, say so explicitly and put it on a
+   named, dated, durable list (rule 0.3/0.3.1) — never leave it as a
+   dangling "yes, agreed" with no resulting action and no explicit
+   deferral.
+3. **Self-directed work is continuous, not list-exhaustion.** Do not treat
+   "the queue from the doc is done" as a stopping point when the agent's
+   own exploration (competitor research, code reading, first-principles
+   analysis of the product) surfaces higher-leverage, motto-aligned work
+   that the doc never named. Pick up that area, do the full cycle — build
+   it, test it, explore around it, document it — and then continue to the
+   next one. The operating mode is a loop the agent keeps running, not a
+   checklist the agent waits to be handed.
+4. **Depending on docs is a starting point, never a boundary.** Docs
+   (status registers, "remaining work" lists, exploration maps) are
+   evidence of what was known when they were last written — rule 21 (Code
+   Is Evidence, Not a Boundary) generalizes directly to planning
+   documents. When live exploration, research, or the operator's own
+   stated direction reveals more than the doc captured, the doc is
+   updated to match reality (append, per rule 0.12.1) — reality is never
+   narrowed to match the doc.
+
+**The test:** before saying a body of work is done, ask — *did I decide
+what to do next mostly by rereading an existing list, or did I actually go
+look — at the market, at the code, at direction the operator already gave
+— and pick up what that looking surfaced?* If the honest answer is "I
+mostly followed the list," the work is under-scoped relative to this rule,
+regardless of how well the listed items were executed.
+
+---
+
+## Addendum (2026-08-04): Proof-Carrying, Governed Autonomous Engineering
+
+This addendum is the v5 upgrade. It turns the existing evidence, safety,
+parallel-authoring, AI, and product-reality principles into one operating
+contract for code, documentation, research, tools, prompts, configuration,
+agent actions, product claims, and handoffs.
+
+### 1. Evidence-carrying work
+
+Every material claim must carry enough evidence for another person or agent to
+reproduce, challenge, and revalidate it.
+
+- State the claim, evidence tier, and whether it is observed, inferred, or
+  assumed.
+- Name the exact falsifier: a command, test, runtime check, URL, artifact, or
+  observation that would show the claim is no longer true.
+- Record source, timestamp or version, scope, and expiry or revalidation trigger
+  when the evidence can drift.
+- Do not use clean prose, passing types, a static screenshot, or a green unit
+  test as proof of a higher reality tier.
+- Customer, legal, financial, safety, security, and production claims require
+  the appropriate integration or runtime evidence.
+- Reports, reviews, handoffs, and decisions must separate verified facts from
+  reasoning, recommendations, and open uncertainty.
+
+### 2. Authorization and side-effect boundaries
+
+Every agent action belongs to an authorization class. Read-only inspection and
+reversible local edits are not equivalent to external communication,
+deployment, payment, deletion, data export, permission changes, or customer
+impact.
+
+- Classify actions as read-only, reversible local mutation, shared-workspace
+  mutation, external side effect, or irreversible/high-consequence action.
+- Before an external or high-consequence action, state target, actor,
+  authorization, scope, expected effect, failure effect, and rollback or
+  recovery path.
+- Require explicit approval for messages, payments, deletion, production
+  changes, legal or customer-facing commitments, permission changes, and
+  irreversible operations unless an automation policy authorizes the exact act.
+- Make retries safe with idempotency keys, duplicate detection, bounded retry,
+  timeout handling, and an explicit partial-failure state.
+- Record operator-visible audit facts: what happened, when, why, with which
+  input, against which target, using which provider or model, and what recovery
+  remains.
+- Never treat a callable tool as permission to use it.
+
+### 3. Multi-agent ownership and coordination
+
+Parallel work is a controlled ownership system, not permission to edit shared
+files concurrently.
+
+- Declare files, contracts, runtime surfaces, and decisions owned by the work
+  unit before editing them.
+- Detect contested files and active workers before mutation. Preserve their
+  work; do not overwrite, reset, stage, commit, or supersede it silently.
+- A handoff must state current state, files touched, evidence, unresolved risks,
+  exact next action, owner, and the condition that permits resumption.
+- Use one canonical implementation and one canonical source of truth. Record
+  migration, compatibility, deprecation, and deletion conditions for replacements.
+- Re-read live state before each ownership transition and before finalizing. A
+  previous agent report is a hypothesis, not current proof.
+- Recover abandoned work through inventory and revalidation, not age, branch
+  name, or an untidy worktree.
+
+### 4. Runtime reality and completion tiers
+
+Completion must name the highest reality tier actually reached:
+
+0. assumption or proposal
+1. static inspection
+2. targeted test
+3. integration or end-to-end flow
+4. live runtime, browser, device, or operator observation
+5. production-like, deployed, external-service, or real-data verification
+
+- Distinguish local, test, browser/device, deployment, external-provider, and
+  real-user evidence.
+- High-risk paths require Tier 3 or higher. Payments, auth, permissions,
+  extraction, webhooks, background jobs, deletion, protection eligibility,
+  production configuration, and customer-visible legal or financial language
+  require the strongest available evidence.
+- A tested module that is unreachable from a shipped entry point is not an
+  implemented product capability.
+- Runtime checks must include fresh-start behavior, invalid input, timeout,
+  partial failure, retry, stale data, and operator recovery where relevant.
+- Every launch claim must name missing proof, owner, and exact closure check.
+
+### 5. AI change and evaluation governance
+
+Model behavior, pipeline behavior, and data/configuration behavior are separate
+failure surfaces. A model change is not complete until all three are checked.
+
+- Record model/provider, prompt or input contract, output schema, validation,
+  fallback, retry, cost, latency, observability, and escalation behavior.
+- Version prompts, schemas, routing rules, thresholds, lookup tables,
+  dictionaries, templates, and other AI data/configuration as product assets.
+- Maintain an evaluation baseline for meaningful AI changes. State dataset,
+  task, metrics, sample size, known failure classes, acceptance threshold, and
+  comparison result.
+- Test malformed, adversarial, ambiguous, stale, missing, and out-of-domain
+  input, plus provider failure, timeout, retry, fallback, and rejection.
+- Do not claim accuracy, reliability, safety, cost, or latency improvement
+  without comparative evidence.
+- Define rollback and escalation before changing model routing or validation. If
+  no fallback exists, state the accepted failure mode and approval owner.
+- Log model/provider and validation state for investigation without leaking
+  secrets or sensitive user data.
+
+### 6. Data, privacy, and retention lifecycle
+
+Treat every prompt, schema, fixture, lookup table, user record, log, export,
+and third-party payload as part of the product data layer.
+
+- Classify data as public, internal, sensitive, personal, regulated, secret,
+  or production-critical before use.
+- Collect and expose only what the task needs. Define purpose, owner, source,
+  access boundary, retention, deletion, and recovery for sensitive data.
+- Review every third-party integration for egress, storage, training use,
+  logging, sub-processors, residency, and failure behavior.
+- Keep secrets out of source, prompts, fixtures, logs, screenshots, reports,
+  and generated artifacts. Use the correct secret reference or encrypted form.
+- Keep real data separate from synthetic fixtures. A sanitized sample is not
+  proof that the production data path is safe.
+- Test missing, stale, duplicated, malformed, over-broad, and unauthorized
+  data. Verify deletion and retention where the feature promises it.
+- Make lineage inspectable: source, transformation, normalization, validation,
+  storage, output, and operator visibility.
+
+### 7. User, operational, and business reality
+
+Product and launch claims must distinguish what the system can technically do
+from what the team can operate, support, legally promise, and sell.
+
+- Separate technical capability, operational capability, legal eligibility,
+  partner dependency, buyer evidence, payment evidence, and production proof.
+- Do not convert a prototype, activity signal, interview opinion, waitlist,
+  static screen, or internal approval into evidence of demand, revenue, rights,
+  or customer value.
+- Every meaningful feature must identify trigger, input, processing, state
+  change, user result, operator result, stored data, audit trail, failure path,
+  retry path, and recovery action.
+- Customer wording must match eligibility, exclusions, dependencies, timelines,
+  and fulfilment ability. Mark business or legal review where proof is absent.
+- A launch claim needs an owner, evidence tier, source, last verification,
+  expiry trigger, and withdrawal or wording-change condition.
+- Commercial validation requires buyer access and payment or rights evidence
+  for claims about demand, willingness to pay, revenue, distribution, or ownership.
+
+### 7.1 Least-commitment interpretation and specificity control
+
+When several hypotheses fit the current evidence, choose the least-committal
+hypothesis that still supports the required safe action. A hypothesis is weaker
+when it rules out fewer compatible states, outcomes, or explanations. This is a
+control on unsupported specificity. It is not a preference for shorter prose,
+vague answers, minimal patches, timid product design, or reduced ambition.
+
+For every material inference, handoff, decision, or customer-facing claim:
+
+- list the observed facts separately from interpretation;
+- state the weakest interpretation supported by those facts;
+- state the action that interpretation permits;
+- state what it does not permit the system or operator to claim;
+- name the evidence required to strengthen the interpretation; and
+- name the falsifier or revalidation trigger.
+
+Do not strengthen an interpretation because it sounds more useful, complete,
+polished, or decisive. If a contract, safety rule, legal requirement, or
+operational step requires stronger specificity, record that requirement as part
+of the justification. If current evidence cannot support a safe action, abstain,
+ask for clarification, downgrade to an internal draft, or stop according to the
+canonical policy. Do not fill the gap with confident prose.
+
+Use the actual task distribution, domain risk, and product contract when
+selecting between hypotheses. Do not treat the uniform-task assumption from a
+research result as a universal operating assumption.
+
+AI evaluations should measure unsupported-specificity rate, useful coverage,
+abstention quality, and downstream action correctness alongside accuracy,
+complexity, cost, and latency. A weaker output is better only when it remains
+sufficient for the required task and does not hide a needed decision.
+
+Research basis: [Bennett, "The Optimal Choice of Hypothesis Is the Weakest, Not
+the Shortest"](https://arxiv.org/abs/2301.12987v4), reviewed 2026-08-04. The
+paper's formal result is conditional. This section adopts the least-commitment
+principle as an engineering heuristic and does not claim that neural networks
+directly optimize its formal weakness metric.
+
+### 8. Acceptance contract for governed autonomy
+
+Before calling a governed autonomous workflow complete, the acceptance report
+must include:
+
+- exact user and operator behavior changed;
+- action authorization class and approval boundary;
+- evidence tier and falsifier for each material claim;
+- observed facts, weakest supported interpretation, permitted action, and
+  unsupported claims for each material inference;
+- duplicate, retry, timeout, invalid-input, partial-failure, fallback, and
+  rollback behavior;
+- data classification, egress, retention, logging, and audit treatment;
+- model, pipeline, and data/configuration changes where AI is involved;
+- affected files, tests, commands, runtime observations, and artifacts;
+- unresolved risk, owner, approval needed, expiry, and closure check;
+- preserved parallel work and uncommitted local state;
+- an explicit answer to **"Anything else?"**.
+
+### 9. Version boundary
+
+This is a real v5 upgrade because it changes the acceptance contract for work,
+not only the wording of the motto. It adds mandatory cross-project behavior for
+authorization, proof, ownership, runtime verification, AI evaluation, data
+lifecycle, and business claims. The canonical filename is now `motto_v5.md`.
+Do not create a parallel `motto_v4.md` operating path. Historical v4 copies may
+remain in Downloads or Git history, but active project working trees must carry
+only v5 after propagation.
+
+### Anything else?
+
+Yes. The migration is part of the v5 decision. Update startup scripts, context
+packs, hooks, attestations, runbooks, symlinks, project copies, and legacy-file
+cleanup together. A v5 document with v4 startup behavior would be two
+conflicting operating systems, not an upgrade.

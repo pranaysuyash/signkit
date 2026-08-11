@@ -3609,9 +3609,24 @@ class ExtractionTabMixin:
             self._update_action_states(preview_ready=bool(self._last_result_png))
 
     def on_buy_license(self):
-        from desktop_app.config import get_purchase_url
+        from desktop_app.config import get_purchase_url, get_pricing_plan
 
-        QDesktopServices.openUrl(QUrl(get_purchase_url()))
+        default_plan = self._resolve_purchase_plan_id(get_pricing_plan("starter").plan_id)
+        QDesktopServices.openUrl(QUrl(get_purchase_url(default_plan)))
+
+    def _resolve_purchase_plan_id(self, fallback: str) -> str:
+        """Resolve plan id from main window override or safe fallback."""
+        from desktop_app.config import get_pricing_plan as resolve_plan
+
+        if hasattr(self, "get_default_purchase_plan_id"):
+            get_plan = getattr(self, "get_default_purchase_plan_id")
+            if callable(get_plan):
+                try:
+                    return resolve_plan(get_plan()).plan_id
+                except Exception:
+                    return resolve_plan(fallback).plan_id
+
+        return resolve_plan(fallback).plan_id
 
     # No activation prompt; purchase is optional and handled via menu link.
 

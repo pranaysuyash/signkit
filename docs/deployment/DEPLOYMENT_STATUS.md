@@ -1,5 +1,13 @@
 # SignKit Landing Page - Deployment Status
 
+> **Superseded addendum (2026-08-02):** The dated status below is historical
+> evidence, not current production proof. The live site currently fails the
+> canonical route smoke because legacy routes still return 200. Do not use the
+> listed variant URLs as a readiness signal. Follow
+> [`docs/LANDING_DEPLOYMENT_PROCESS.md`](../LANDING_DEPLOYMENT_PROCESS.md) and
+> rerun `bash scripts/test-deployment.sh https://signkit.work` after publishing
+> the current `_redirects` manifest.
+
 **Last Updated:** November 18, 2025  
 **Status:** ✅ DEPLOYED & LIVE  
 **Branch:** `main`

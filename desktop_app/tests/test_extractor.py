@@ -10,11 +10,13 @@ never existed and every forensic-mode watermark attempt raised AttributeError
 import io
 import json
 import struct
+from pathlib import Path
 
 import pytest
 from PIL import Image, ImageDraw
 
 from desktop_app.processing.extractor import SignatureExtractor
+from desktop_app.resources.sample_signature import generate_sample_signature
 
 
 def _make_signature_image(path: str, size=(200, 100)) -> None:
@@ -44,6 +46,42 @@ def test_create_session_tracks_file_path(extractor, sample_image_path):
     assert session.file_path == sample_image_path
     assert session.width == 200
     assert session.height == 100
+
+
+def test_real_sample_is_used_and_auto_detection_covers_full_signature(extractor):
+    """The first-run sample must exercise the supplied real signature image."""
+    canonical = Path(__file__).resolve().parents[2] / "512px-Mohammad_Rafiquzzaman_signature.jpg"
+    generated = Path(generate_sample_signature())
+
+    assert generated.read_bytes() == canonical.read_bytes()
+
+    session_id = extractor.create_session(str(generated))
+    x1, y1, x2, y2 = extractor.auto_detect_signature(session_id)
+
+    # The supplied mark spans nearly the full 512px image width. This guards
+    # against returning only the first disconnected stroke.
+    assert x1 <= 20
+    assert x2 >= 490
+    assert y1 <= 25
+    assert y2 >= 165
+
+
+def test_real_sample_auto_detection_matches_versioned_golden_box(extractor):
+    """Keep the supplied sample as a deterministic regression fixture."""
+    project_root = Path(__file__).resolve().parents[2]
+    golden_path = Path(__file__).parent / "fixtures" / "auto_detect_golden.json"
+    golden = json.loads(golden_path.read_text(encoding="utf-8"))
+    sample_path = project_root / golden["fixture"]
+
+    session_id = extractor.create_session(str(sample_path))
+    detected = extractor.auto_detect_signature(session_id)
+    expected = tuple(golden["expected_bbox"])
+    tolerance = int(golden["tolerance_px"])
+
+    assert all(
+        abs(actual - target) <= tolerance
+        for actual, target in zip(detected, expected)
+    ), f"detected={detected}, expected={expected}, tolerance={tolerance}"
 
 
 def test_process_selection_returns_valid_rgba_png(extractor, sample_image_path):

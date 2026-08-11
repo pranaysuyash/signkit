@@ -7,10 +7,20 @@ from typing import Optional, cast, TYPE_CHECKING
 
 from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QMessageBox, QWidget, QTabWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from desktop_app.api.client import ApiClient
-from desktop_app.config import WORKFLOW_REVIEW_URL
+from desktop_app.config import WORKFLOW_REVIEW_URL, get_pricing_plan
 from desktop_app.processing import SignatureExtractor
 from desktop_app.resources.icons import get_icon
 from desktop_app.state.session import SessionState
@@ -27,6 +37,10 @@ from desktop_app.views.main_window_parts import (
     PDF_AVAILABLE,
     PDF_IMPORT_ERROR,
 )
+from desktop_app.views.main_window_parts.recipe_builder import RecipeBuilder
+from desktop_app.views.main_window_parts.grant_manager import GrantManager
+from desktop_app.views.main_window_parts.workflow_console import WorkflowConsole
+from desktop_app.workflows.workflow_utils import resolve_operator_subject
 
 LOG = logging.getLogger(__name__)
 
@@ -48,17 +62,31 @@ class MainWindow(
 ):
     """Top-level window that orchestrates extraction and PDF signing flows."""
 
-    def __init__(self, api_client: ApiClient, session_state: SessionState, backend_manager: Optional['BackendManager'] = None, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        api_client: ApiClient,
+        session_state: SessionState,
+        backend_manager: Optional["BackendManager"] = None,
+        parent: Optional[QWidget] = None,
+        window_title: str | None = None,
+        workflow_premium_enabled: bool = False,
+        onboarding_default_plan_id: str = "starter",
+        show_onboarding_upgrade_card: bool = True,
+    ) -> None:
         super().__init__(parent)
         self.api_client = api_client
         self.session = session_state
         self.backend_manager = backend_manager
+        self.workflow_premium_enabled = workflow_premium_enabled
+        self._onboarding_default_plan_id = get_pricing_plan(onboarding_default_plan_id).plan_id
+        self._show_onboarding_upgrade_card = show_onboarding_upgrade_card
+        self._default_purchase_plan_id = get_pricing_plan(self._onboarding_default_plan_id).plan_id
         
         # Initialize local processing engine
         self.local_extractor = SignatureExtractor()
         self.vault = NotaryVault()
 
-        self.setWindowTitle("SignKit")
+        self.setWindowTitle(window_title or "SignKit")
         app_icon = get_icon("file")
         if not app_icon.isNull():
             self.setWindowIcon(app_icon)
@@ -73,7 +101,9 @@ class MainWindow(
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.North)
         self.tab_widget.currentChanged.connect(self._on_tab_changed)
         self.tab_widget.setAccessibleName("Main workflow tabs")
-        self.tab_widget.setAccessibleDescription("Switch between signature extraction and PDF signing workflows")
+        self.tab_widget.setAccessibleDescription(
+            "Switch between signature extraction, PDF signing, and automation workflow tabs"
+        )
         if sys.platform == "darwin":
             self.tab_widget.setDocumentMode(True)
             self.tab_widget.setMovable(True)
@@ -84,6 +114,7 @@ class MainWindow(
 
         self._setup_extraction_ui()
         self._setup_pdf_ui()
+        self._setup_workflow_tabs()
         
         # Setup Vault Tab
         self.vault_tab = VaultTab(self.vault)
@@ -127,6 +158,11 @@ class MainWindow(
         # Show onboarding dialog on first run
         QTimer.singleShot(500, self._maybe_show_onboarding)
 
+    def get_default_purchase_plan_id(self) -> str:
+        """Return the onboarding profile’s default plan id for all buy flows."""
+
+        return self._default_purchase_plan_id
+
     def _on_tab_changed(self, index: int) -> None:
         """Handle tab-switching between extraction, PDF, and vault workflows."""
         try:
@@ -137,13 +173,129 @@ class MainWindow(
 
             extraction_index = getattr(self, "_extraction_tab_index", 0)
             pdf_index = getattr(self, "_pdf_tab_index", -1)
+            workflow_index = getattr(self, "_workflow_console_tab_index", -1)
+            workflow_grants_index = getattr(self, "_workflow_grants_tab_index", -1)
+            recipe_builder_index = getattr(self, "_recipe_builder_tab_index", -1)
 
             if index == extraction_index and hasattr(self, "status_bar"):
                 self.status_bar.showMessage("Ready — signature extraction", 1200)
             elif index == pdf_index and hasattr(self, "status_bar"):
                 self.status_bar.showMessage("Ready — PDF signing", 1200)
+            elif index == workflow_index and hasattr(self, "status_bar"):
+                if self.workflow_premium_enabled:
+                    self.status_bar.showMessage("Workflow Dashboard loaded", 1200)
+                    if hasattr(self, "workflow_console_tab") and hasattr(self.workflow_console_tab, "refresh"):
+                        self.workflow_console_tab.refresh()
+                else:
+                    self.status_bar.showMessage("Workflow Dashboard is premium-only", 1200)
+            elif index == workflow_grants_index and hasattr(self, "status_bar"):
+                if self.workflow_premium_enabled:
+                    self.status_bar.showMessage("Workflow Grants loaded", 1200)
+                    if hasattr(self, "workflow_grants_tab") and hasattr(self.workflow_grants_tab, "refresh"):
+                        self.workflow_grants_tab.refresh()
+                else:
+                    self.status_bar.showMessage("Workflow Grants is premium-only", 1200)
+            elif index == recipe_builder_index and hasattr(self, "status_bar"):
+                if self.workflow_premium_enabled:
+                    self.status_bar.showMessage("Recipe Builder loaded", 1200)
+                    if hasattr(self, "recipe_builder_tab") and hasattr(self.recipe_builder_tab, "refresh"):
+                        self.recipe_builder_tab.refresh()
+                else:
+                    self.status_bar.showMessage("Recipe Builder is premium-only", 1200)
         except Exception as error:
             LOG.debug("Tab change handler failed: %s", error)
+
+    def _create_workflow_locked_tab(self, title: str, description: str) -> QWidget:
+        tab = QWidget()
+        tab.setObjectName("workflowLockedTab")
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setSpacing(14)
+
+        headline = QLabel(title, tab)
+        headline.setStyleSheet("font-size: 20px; font-weight: 600;")
+        layout.addWidget(headline)
+
+        detail = QLabel(
+            f"{description}\n\n"
+            "Upgrade to SignKit Premium to unlock recurring folder workflows, role-based grants, and queue operations.\n\n"
+            "Define: Unsigned Docs Folder → Signed Docs Folder → optional Review Queue.\n"
+            f"{self._create_workflow_locked_copy()}\n"
+            "Only authorized operators with matching grants can run these automated flows.",
+            tab,
+        )
+        detail.setWordWrap(True)
+        detail.setStyleSheet("color: #888;")
+        layout.addWidget(detail)
+
+        upgrade_btn = QPushButton("Upgrade to Workflow Premium", tab)
+        upgrade_btn.clicked.connect(self._open_workflow_upgrade)
+        upgrade_btn.setProperty("primary", True)
+        layout.addWidget(upgrade_btn)
+        layout.addStretch(1)
+
+        return tab
+
+    def _create_workflow_locked_copy(self) -> str:
+        """Return plan-aware premium copy for lock screens."""
+
+        profile_plan = self._onboarding_default_plan_id
+        if profile_plan == "team":
+            return (
+                "Team Premium enables controlled recurring execution: folder triplets, execution grants, and operator-level controls."
+            )
+        if profile_plan == "business":
+            return (
+                "Business Premium adds higher-volume controls plus policy, incident visibility, and stricter governance."
+            )
+        return (
+            "Starter is best for manual workflows. Upgrade to unlock folder triplets, role-bound grants, and unattended batch runs."
+        )
+
+    def _setup_workflow_tabs(self) -> None:
+        """Create operator-focused workflow tabs for dashboard and recipe builder."""
+        operator_subject = resolve_operator_subject(session_subject=getattr(self.session, "user_email", None))
+
+        if not self.workflow_premium_enabled:
+            self.workflow_console_tab = self._create_workflow_locked_tab(
+                "Workflow Dashboard (Premium)",
+                "The workflow dashboard coordinates automatic document processing jobs and review queues.",
+            )
+            self._workflow_console_tab_index = self.tab_widget.addTab(
+                self.workflow_console_tab, "Workflow Dashboard (Premium)"
+            )
+            self.workflow_console_tab.setProperty("feature_locked", True)
+
+            self.workflow_grants_tab = self._create_workflow_locked_tab(
+                "Workflow Grants (Premium)",
+                "Grants control who can run specific recipes under defined folder and policy constraints.",
+            )
+            self._workflow_grants_tab_index = self.tab_widget.addTab(
+                self.workflow_grants_tab, "Workflow Grants (Premium)"
+            )
+            self.workflow_grants_tab.setProperty("feature_locked", True)
+
+            self.recipe_builder_tab = self._create_workflow_locked_tab(
+                "Recipe Builder (Premium)",
+                "Recipe Builder saves repeatable template-driven signing definitions with field placements.",
+            )
+            self._recipe_builder_tab_index = self.tab_widget.addTab(
+                self.recipe_builder_tab, "Recipe Builder (Premium)"
+            )
+            self.recipe_builder_tab.setProperty("feature_locked", True)
+
+            return
+
+        self.workflow_console_tab = WorkflowConsole(default_subject=operator_subject)
+        self._workflow_console_tab_index = self.tab_widget.addTab(self.workflow_console_tab, "Workflow Dashboard")
+
+        self.workflow_grants_tab = GrantManager(default_subject=operator_subject)
+        self._workflow_grants_tab_index = self.tab_widget.addTab(self.workflow_grants_tab, "Workflow Grants")
+
+        self.recipe_builder_tab = RecipeBuilder()
+        self._recipe_builder_tab_index = self.tab_widget.addTab(self.recipe_builder_tab, "Recipe Builder")
+
+        self.workflow_console_tab.refresh()
 
     def _on_pdf_tab_open(self) -> None:
         """Backward-compatible PDF tab open hook used by toolbar and control wiring."""
@@ -169,19 +321,19 @@ class MainWindow(
             if is_available and not self._backend_online:
                 # Backend just came online
                 self._backend_online = True
-                self.extraction_view.backend_status_label.setText("Backend: Online")
-                self.extraction_view.backend_status_label.setStyleSheet("color: #00cc00; padding: 2px 8px;")
+                self.backend_status_label.setText("Backend: Online")
+                self.backend_status_label.setStyleSheet("color: #00cc00; padding: 2px 8px;")
                 LOG.info("Backend is now online")
             elif not is_available and self._backend_online:
                 # Backend went offline
                 self._backend_online = False
-                self.extraction_view.backend_status_label.setText("Backend: Checking...")
-                self.extraction_view.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
+                self.backend_status_label.setText("Backend: Checking...")
+                self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
                 LOG.info("Backend connection lost, will keep checking")
             elif not is_available and not self._backend_online:
                 # Still waiting for backend to start
-                self.extraction_view.backend_status_label.setText("Backend: Starting...")
-                self.extraction_view.backend_status_label.setStyleSheet("color: #0066cc; padding: 2px 8px;")
+                self.backend_status_label.setText("Backend: Starting...")
+                self.backend_status_label.setStyleSheet("color: #0066cc; padding: 2px 8px;")
         except Exception as e:
             LOG.debug(f"Backend health check failed: {e}")
 
@@ -192,7 +344,11 @@ class MainWindow(
         should_show = settings.value("onboarding/show_on_startup", True, type=bool)
 
         if should_show:
-            dialog = OnboardingDialog(self)
+            dialog = OnboardingDialog(
+                self,
+                default_plan_id=self._onboarding_default_plan_id,
+                show_strategic_upgrade=self._show_onboarding_upgrade_card,
+            )
 
             # Set up backend health check callback
             def check_backend(callback):
@@ -449,10 +605,14 @@ class MainWindow(
 
         help_menu.addSeparator()
 
-        self.workflow_review_action = QAction("Recurring Document Workflows…", self)
-        self.workflow_review_action.setStatusTip(
-            "Discuss recurring batches or custom document workflows without sharing document data"
+        workflow_label = "Recurring Document Workflows (Premium)…" if not self.workflow_premium_enabled else "Recurring Document Workflows…"
+        workflow_tip = (
+            "Unlock recurring batches and policy-based automation workflows."
+            if not self.workflow_premium_enabled
+            else "Open recurring batches and custom document workflows."
         )
+        self.workflow_review_action = QAction(workflow_label, self)
+        self.workflow_review_action.setStatusTip(workflow_tip)
         self.workflow_review_action.triggered.connect(self._open_workflow_review)
         help_menu.addAction(self.workflow_review_action)
 
@@ -506,8 +666,38 @@ class MainWindow(
         tools_menu.addAction(self.verify_sig_action)
 
     def _open_workflow_review(self) -> None:
-        """Open the source-attributed workflow enquiry without document metadata."""
+        """Open the workflow operator console directly in-app."""
+        if not self.workflow_premium_enabled:
+            QMessageBox.information(
+                self,
+                "Premium Required",
+                "Recurring workflow automation is a premium feature.\n\n"
+                "Upgrade in License → Buy License to unlock:\n"
+                "• Input (unsigned) + output (signed) + review folders\n"
+                "• Role-based execution grants\n"
+                "• Template-driven recipe reuse and queue controls",
+            )
+            self._open_workflow_upgrade()
+            return
+
+        if not hasattr(self, "tab_widget"):
+            self._open_url(WORKFLOW_REVIEW_URL)
+            return
+        if (
+            hasattr(self, "_workflow_console_tab_index")
+            and hasattr(self, "workflow_console_tab")
+            and callable(getattr(self.workflow_console_tab, "refresh", None))
+        ):
+            self.tab_widget.setCurrentIndex(self._workflow_console_tab_index)
+            self.workflow_console_tab.refresh()
+            self.status_bar.showMessage("Opened Workflow Dashboard", 2000)
+            return
+
         self._open_url(WORKFLOW_REVIEW_URL)
+
+    def _open_workflow_upgrade(self) -> None:
+        """Open the workflow upgrade flow."""
+        self.on_buy_license()
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(

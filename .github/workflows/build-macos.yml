@@ -32,7 +32,7 @@ jobs:
 
       - name: Build Intel app
         run: |
-          python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_Intel.spec
+          python build-tools/build.py --build-platform darwin --profile standard --spec build-tools/SignatureExtractor_Intel.spec
 
       - name: Create DMG
         run: |
@@ -71,7 +71,7 @@ jobs:
 
       - name: Build ARM64 app
         run: |
-          python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_macOS.spec
+          python build-tools/build.py --build-platform darwin --profile standard --spec build-tools/SignatureExtractor_macOS.spec
 
       - name: Create DMG
         run: |
@@ -88,9 +88,56 @@ jobs:
           name: SignKit-ARM64-macOS
           path: dist/SignKit_macOS_ARM64.dmg
 
+  build-apple-silicon-premium:
+    name: Build Apple Silicon Premium (ARM64)
+    runs-on: macos-latest # ARM64 runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'arm64'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r desktop_app/requirements.txt
+          pip install -r build-tools/requirements-build.txt
+
+      - name: Build Premium ARM64 app
+        run: |
+          python build-tools/build.py --build-platform darwin --profile mac-premium --spec build-tools/SignatureExtractor_macOS_Premium.spec
+
+      - name: Verify build
+        run: |
+          if [ ! -d "dist/SignKitPremium.app" ]; then
+            echo "Build failed - app not found"
+            exit 1
+          fi
+          ls -lh dist/
+
+      - name: Create Premium DMG
+        run: |
+          hdiutil create \
+            -volname "SignKit Premium (Apple Silicon)" \
+            -srcfolder dist/SignKitPremium.app \
+            -ov \
+            -format UDZO \
+            dist/SignKit_Premium_macOS_ARM64.dmg
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignKit-Premium-macOS-ARM64
+          path: dist/SignKit_Premium_macOS_ARM64.dmg
+
   create-release:
     name: Create Release
-    needs: [build-intel, build-apple-silicon]
+    needs: [build-intel, build-apple-silicon, build-apple-silicon-premium]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -107,12 +154,19 @@ jobs:
           name: SignKit-ARM64-macOS
           path: ./artifacts
 
+      - name: Download Premium ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SignKit-Premium-macOS-ARM64
+          path: ./artifacts
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             ./artifacts/SignKit_macOS_Intel.dmg
             ./artifacts/SignKit_macOS_ARM64.dmg
+            ./artifacts/SignKit_Premium_macOS_ARM64.dmg
           body: |
             ## SignKit ${{ github.ref_name }}
 
@@ -123,6 +177,10 @@ jobs:
             - For: Mac with Apple M1, M2, M3, or M4 chip
             - To check: Apple menu  → About This Mac → Look for "Apple M" chip
 
+            **Apple Silicon Premium**
+            - Download: `SignKit_Premium_macOS_ARM64.dmg`
+            - For: Premium tier macOS users on Apple Silicon
+
             **Intel**
             - Download: `SignKit_macOS_Intel.dmg`
             - For: Mac with Intel processor
@@ -132,7 +190,7 @@ jobs:
 
             1. Download the appropriate DMG file for your Mac
             2. Open the DMG file
-            3. Drag SignatureExtractor.app to your Applications folder
+            3. Drag SignKit.app to your Applications folder
             4. Right-click the app and select "Open" (first launch only)
 
             ### What's New

@@ -723,7 +723,11 @@ class PDFViewer(QWidget):
         self.all_signatures.clear()
         for sig in signatures:
             page_num = int(sig.get("page", 0))
-            self.all_signatures.setdefault(page_num, []).append(dict(sig))
+            restored = dict(sig)
+            if "pixmap" not in restored:
+                sig_path = str(restored.get("sig_path", ""))
+                restored["pixmap"] = QPixmap(sig_path) if sig_path else QPixmap()
+            self.all_signatures.setdefault(page_num, []).append(restored)
         self._load_page_signatures()
 
     def _load_page_field_candidates(self) -> None:

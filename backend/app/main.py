@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from backend.app.routers import auth, extraction
+from backend.app.routers import auth, extraction, workspace
 from backend.app.database import Base, engine
 from backend.app.paths import LOG_DIR, UPLOADS_DIR
 import os
@@ -98,6 +98,20 @@ async def health_check():
 # Include routers
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(extraction.router, prefix="/extraction", tags=["Extraction"])
+app.include_router(workspace.router, prefix="/workspace", tags=["Workspace"])
+
+# Browser-native product surface. It shares the protected /workspace API but is
+# deliberately separate from the historical landing-site assets.
+WORKSPACE_WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "cloud_workspace")
+if os.path.isdir(WORKSPACE_WEB_DIR):
+    app.mount(
+        "/workspace-app",
+        StaticFiles(directory=WORKSPACE_WEB_DIR, html=True),
+        name="workspace-app",
+    )
+    logger.info("Successfully mounted browser workspace assets")
+else:
+    logger.warning("Browser workspace assets unavailable: %s", WORKSPACE_WEB_DIR)
 
 @app.get("/")
 async def read_root():

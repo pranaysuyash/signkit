@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from typing import Optional, cast
 
+from desktop_app.config import PricingPlan, get_pricing_plan, get_pricing_plans, get_purchase_url
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QPalette
 from PySide6.QtWidgets import (
@@ -65,12 +66,20 @@ def _create_button(
 class OnboardingDialog(QDialog):
     """Welcome dialog shown on first app launch with quick start guide."""
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        *,
+        default_plan_id: str | None = None,
+        show_strategic_upgrade: bool = True,
+    ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Welcome to SignKit")
         self.setModal(True)
         self.setMinimumWidth(560)
         self.setMaximumWidth(700)
+        self._default_plan_id = get_pricing_plan(default_plan_id).plan_id
+        self._show_strategic_upgrade = show_strategic_upgrade
 
         # Apply theme-aware styling
         self._apply_theme()
@@ -88,6 +97,7 @@ class OnboardingDialog(QDialog):
         # Subtitle
         subtitle = QLabel(
             "Handle sensitive signed documents locally"
+            + (" and run recurring packet workflows from folders." if not self._show_strategic_upgrade else ".")
         )
         subtitle.setStyleSheet("font-size: 14px; color: gray;")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -125,12 +135,21 @@ class OnboardingDialog(QDialog):
         guide_label.setStyleSheet("font-size: 14px;")
         layout.addWidget(guide_label)
 
-        steps = [
+        steps = (
+            [
             ("1.", "Open a signed document", "Click 'Open & Upload Image' to load a scan, form, contract, or other document containing the signature you need"),
             ("2.", "Select signature", "Draw a rectangle around your signature in the source view"),
             ("3.", "Adjust settings", "Fine-tune the threshold and color removal to isolate your signature"),
-            ("4.", "Reuse locally", "Export the cleaned signature, save it to your library, or place it on a PDF packet"),
-        ]
+            ("4.", "Run", "Use the manual flow first: place and verify output before automating."),
+            ]
+            if self._show_strategic_upgrade
+            else [
+                ("1.", "Open a template and sample packet", "Open a signed doc, define reusable roles, then save a placement recipe."),
+                ("2.", "Map signature spaces", "Assign each role to a vault asset with position and page placement."),
+                ("3.", "Define folders", "Set unsigned input, signed output, and optional review queue folders."),
+                ("4.", "Authorize runners", "Create a grant so approved operators can execute recurring recipes."),
+            ]
+        )
 
         for emoji, title, description in steps:
             step_widget = self._create_step_widget(emoji, title, description)
@@ -155,34 +174,55 @@ class OnboardingDialog(QDialog):
         # License section
         license_section = QVBoxLayout()
         license_section.setSpacing(8)
-        
+
         license_label = QLabel("<b>License & Activation:</b>")
         license_label.setStyleSheet("font-size: 14px;")
         license_section.addWidget(license_label)
-        
-        license_info = QLabel(
-            "Test license for full access: <b>pranay@example.com</b><br>"
-            "For production use, purchase a license and activate it via Help → Enter License Key"
+
+        usage_copy = (
+            "Build trusted repeatable flows around folders + templates. "
+            "Define signature spaces once, then process packets from input folders to signed outputs."
         )
+        license_info = QLabel(usage_copy)
         license_info.setStyleSheet("font-size: 12px; color: gray; margin-left: 16px;")
         license_info.setWordWrap(True)
         license_info.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         license_section.addWidget(license_info)
-        
+
+        self._add_plan_persona_cards(license_section)
+
+        if self._show_strategic_upgrade:
+            self._add_plan_tiles(license_section)
+        else:
+            premium_mode_badge = QLabel(
+                "Premium profile active — your app already includes recurring workflow access."
+            )
+            premium_mode_badge.setStyleSheet("font-size: 12px; color: #5f6368; margin-left: 16px;")
+            premium_mode_badge.setWordWrap(True)
+            license_section.addWidget(premium_mode_badge)
+
+            _plan_cta_layout = QHBoxLayout()
+            _plan_cta_layout.setContentsMargins(16, 4, 0, 0)
+            buy_license_btn = _create_button(
+                "Open Billing Portal",
+                self,
+            )
+            buy_license_btn.clicked.connect(self._open_purchase_page)
+            _plan_cta_layout.addWidget(buy_license_btn)
+            _plan_cta_layout.addStretch()
+            license_section.addLayout(_plan_cta_layout)
+
+        # License actions (shared across both modes)
         license_btn_layout = QHBoxLayout()
         license_btn_layout.setContentsMargins(16, 4, 0, 0)
-        
+
         enter_license_btn = _create_button("Enter License", self, primary=True, color='green')
         enter_license_btn.clicked.connect(self._open_license_dialog)
         license_btn_layout.addWidget(enter_license_btn)
-        
-        buy_license_btn = _create_button("Buy License", self)
-        buy_license_btn.clicked.connect(self._open_purchase_page)
-        license_btn_layout.addWidget(buy_license_btn)
-        
+
         license_btn_layout.addStretch()
         license_section.addLayout(license_btn_layout)
-        
+
         layout.addLayout(license_section)
         
         # Separator
@@ -223,6 +263,117 @@ class OnboardingDialog(QDialog):
 
         # Store backend check function reference
         self._backend_check_fn = None
+
+    def _add_plan_tiles(self, parent_layout: QVBoxLayout) -> None:
+        plans = get_pricing_plans()
+        plan_rows = QHBoxLayout()
+        for index, plan in enumerate(plans):
+            if index > 0:
+                spacer = QWidget()
+                spacer.setFixedWidth(8)
+                plan_rows.addWidget(spacer)
+            plan_tile = self._build_plan_tile(plan)
+            plan_rows.addWidget(plan_tile)
+        parent_layout.addLayout(plan_rows)
+
+    def _add_plan_persona_cards(self, parent_layout: QVBoxLayout) -> None:
+        use_case_title = QLabel("<b>Who this is for</b>")
+        use_case_title.setStyleSheet("font-size: 14px; margin-top: 12px;")
+        parent_layout.addWidget(use_case_title)
+
+        use_case_cards = QHBoxLayout()
+        for i, plan in enumerate(get_pricing_plans()[:3]):
+            if i > 0:
+                spacer = QWidget()
+                spacer.setFixedWidth(8)
+                use_case_cards.addWidget(spacer)
+            plan_summary = plan.use_cases[0] if plan.use_cases else plan.persona_summary or plan.user_profile
+            use_case_cards.addWidget(self._build_use_case_tile(plan.name, plan.subtitle, plan_summary))
+        parent_layout.addLayout(use_case_cards)
+
+    def _build_use_case_tile(self, title: str, role: str, detail: str) -> QWidget:
+        tile = QWidget()
+        layout = QVBoxLayout(tile)
+        layout.setSpacing(6)
+        layout.setContentsMargins(12, 8, 12, 8)
+
+        heading = QLabel(f"<b>{title}</b>")
+        heading.setStyleSheet("font-size: 12px;")
+        heading.setWordWrap(True)
+        layout.addWidget(heading)
+
+        role_label = QLabel(role)
+        role_label.setStyleSheet("font-size: 10px; font-weight: 600; color: #5f6368;")
+        role_label.setWordWrap(True)
+        layout.addWidget(role_label)
+
+        body = QLabel(detail)
+        body.setStyleSheet("font-size: 10px; color: #444;")
+        body.setWordWrap(True)
+        layout.addWidget(body)
+        return tile
+
+    def _build_plan_tile(self, plan: PricingPlan) -> QWidget:
+        tile = QWidget()
+        layout = QVBoxLayout(tile)
+        layout.setSpacing(6)
+        layout.setContentsMargins(12, 10, 12, 10)
+
+        header = QLabel(
+            f"<b>{plan.name}</b> · {plan.user_profile}"  # concise persona anchor
+        )
+        header.setWordWrap(True)
+        header.setStyleSheet("font-size: 13px; color: #1e1e1e;")
+        layout.addWidget(header)
+
+        badge_text = plan.badge if plan.recommended else "Balanced"
+        badge = QLabel(badge_text)
+        badge.setStyleSheet("font-size: 10px; color: #5f6368;")
+        layout.addWidget(badge)
+
+        subtitle = QLabel(plan.headline)
+        subtitle.setWordWrap(True)
+        subtitle.setStyleSheet("font-size: 12px; margin-bottom: 4px;")
+        layout.addWidget(subtitle)
+
+        persona = QLabel(f"Who it is for: {plan.user_profile}")
+        persona.setStyleSheet("font-size: 10px; color: #5f6368; margin-bottom: 6px;")
+        persona.setWordWrap(True)
+        layout.addWidget(persona)
+
+        price = QLabel(plan.annual_price_note or plan.monthly_price_note)
+        price.setStyleSheet("font-size: 11px; color: #666;")
+        layout.addWidget(price)
+
+        feature_intro = QLabel("Features")
+        feature_intro.setStyleSheet("font-size: 10px; font-weight: 600; margin-top: 4px;")
+        layout.addWidget(feature_intro)
+        for feature in plan.features:
+            row = QLabel(f"• {feature}")
+            row.setStyleSheet("font-size: 10px; margin-left: 8px; color: #444;")
+            row.setWordWrap(True)
+            layout.addWidget(row)
+
+        if plan.use_cases:
+            summary = QLabel("Workflow examples:")
+            summary.setStyleSheet("font-size: 10px; font-weight: 600; margin-top: 4px;")
+            layout.addWidget(summary)
+            for case_line in plan.use_cases:
+                case_row = QLabel(f"• {case_line}")
+                case_row.setStyleSheet("font-size: 10px; margin-left: 8px; color: #444;")
+                case_row.setWordWrap(True)
+                layout.addWidget(case_row)
+
+        action_layout = QHBoxLayout()
+        action_layout.addStretch()
+        cta = "Choose Plan"
+        if plan.plan_id == self._default_plan_id:
+            cta = "Buy Recommended"
+        button = _create_button(cta, tile, primary=plan.plan_id == self._default_plan_id, color='blue')
+        button.clicked.connect(lambda checked=False, plan_id=plan.plan_id: self._open_purchase_page(plan_id))
+        action_layout.addWidget(button)
+        layout.addLayout(action_layout)
+        return tile
 
     def _create_step_widget(self, icon_type: str, title: str, description: str) -> QWidget:
         """Create a styled step widget for the quick start guide.
@@ -344,11 +495,10 @@ class OnboardingDialog(QDialog):
                 self.health_status_label.setText("License activated successfully")
                 self.health_status_label.setStyleSheet("font-size: 13px; color: #2e7d32;")
 
-    def _open_purchase_page(self) -> None:
-        """Open the configured primary purchase page in the browser."""
-        from desktop_app.config import get_purchase_url
-
-        QDesktopServices.openUrl(QUrl(get_purchase_url()))
+    def _open_purchase_page(self, plan_id: str | None = None) -> None:
+        """Open a plan-specific checkout page in the browser."""
+        target_plan = self._default_plan_id if plan_id is None else plan_id
+        QDesktopServices.openUrl(QUrl(get_purchase_url(target_plan)))
 
     def _open_document(self, doc_path: str) -> None:
         """Open documentation file (delegates to parent window if available)."""

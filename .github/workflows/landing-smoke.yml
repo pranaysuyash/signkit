@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure expected landing files exist
+      - name: Ensure canonical landing and retained review files exist
         run: |
           test -f index.html
           test -f root.html
@@ -21,6 +21,13 @@ jobs:
           test -f test-variants.html
           test -f robots.txt
           test -f sitemap.xml
+          test -f _redirects
+          test -f web/live/js/checkout-config.js
+          test -f web/live/js/checkout.js
+      - name: Install landing contract test dependency
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Landing route and provider contract
+        run: python -m pytest -q tests/test_landing_surface_contract.py
       - name: Local static server smoke test
         run: |
           chmod +x scripts/test-local-landing.sh

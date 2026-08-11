@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A parallel SignKit landing exploration built around a keyboard-operable document preparation journey." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2310182a'/%3E%3Ctext x='32' y='43' text-anchor='middle' fill='%23f8f4ec' font-family='Georgia' font-size='35'%3ES%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>SignKit | Proof, not play</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" id="top">
+      <a class="brand" href="#top"><span class="brand-mark">S</span><span>SignKit</span></a>
+      <nav aria-label="Exhibit navigation">
+        <a href="#operation">The operation</a>
+        <a href="#collection">What stays ready</a>
+        <a href="#boundary">The boundary</a>
+      </nav>
+      <a class="nav-cta" href="#operation">Try the case <span aria-hidden="true">↓</span></a>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">A desktop document preparation tool</p>
+          <h1 id="hero-title">Finish the PDF.<br /><em>Without the runaround.</em></h1>
+          <p class="lede">Prepare a signature image you are authorised to use, clean it up, then place it where the PDF needs it. The core workflow stays on your computer by default.</p>
+          <div class="hero-actions">
+            <a class="button button-dark" href="#operation">Try the interactive case <span aria-hidden="true">↓</span></a>
+            <a class="plain-link" href="#boundary">See the product boundary <span aria-hidden="true">→</span></a>
+          </div>
+          <p class="scope-note"><span aria-hidden="true"></span> Local extraction, cleanup, saved assets, and PDF placement are the current desktop workflow.</p>
+        </div>
+
+        <figure class="hero-case" aria-labelledby="hero-case-caption">
+          <figcaption id="hero-case-caption"><span>One document handoff</span><span>Interactive concept</span></figcaption>
+          <div class="handoff-board" role="img" aria-label="Illustrative diagram showing a signature region moving from a source page to a prepared PDF">
+            <div class="mini-page mini-source" aria-hidden="true">
+              <span class="mini-page-label">Source scan</span>
+              <span class="source-lines line-one"></span><span class="source-lines line-two"></span><span class="source-lines line-three"></span>
+              <span class="mini-selection"><i></i></span>
+              <span class="ink-mark">A. Reed</span>
+            </div>
+            <div class="handoff-arrow" aria-hidden="true"><span>select</span><b>→</b><span>place</span></div>
+            <div class="mini-page mini-output" aria-hidden="true">
+              <span class="mini-page-label">Prepared PDF</span>
+              <span class="source-lines line-one"></span><span class="source-lines line-two"></span><span class="source-lines line-three"></span>
+              <span class="output-field">Signature</span>
+              <span class="placed-mark">A. Reed</span>
+            </div>
+          </div>
+          <p>This is a live explanatory prototype, not the production app. It shows the kind of decision-making the product should make visible.</p>
+        </figure>
+      </section>
+
+      <section class="operation" id="operation" aria-labelledby="operation-title">
+        <div class="section-intro">
+          <p class="eyebrow">The operation</p>
+          <h2 id="operation-title">A document handoff you can inspect.</h2>
+          <p>Each move has a human decision. Select the intended ink, inspect the cleanup, then choose exactly where the asset belongs.</p>
+        </div>
+
+        <div class="concept-disclosure" role="note">
+          <span class="disclosure-mark" aria-hidden="true">i</span>
+          <p><strong>Interactive future-web concept.</strong> It does not extract, save, or modify a real document. Keyboard buttons provide the same outcome as the optional pointer gesture.</p>
+        </div>
+
+        <section class="case-workbench" aria-labelledby="case-title">
+          <header class="case-toolbar">
+            <div><span class="status-dot" aria-hidden="true"></span><span id="case-title">Authorised asset case</span></div>
+            <p id="case-state" role="status" aria-live="polite">Step 1 of 3 · inspect the source</p>
+          </header>
+
+          <div class="case-steps" aria-label="Document handoff stages">
+            <span class="is-current" data-case-step="source"><b>01</b> Source</span>
+            <span data-case-step="refine"><b>02</b> Refine</span>
+            <span data-case-step="place"><b>03</b> Place</span>
+            <span data-case-step="ready"><b>04</b> Ready</span>
+          </div>
+
+          <div class="case-grid">
+            <section class="work-pane source-pane" aria-labelledby="source-pane-title">
+              <header><p>Source</p><span>Sample only</span></header>
+              <h3 id="source-pane-title">One intended region.</h3>
+              <div class="document-sheet source-sheet" aria-label="Sample source document with the intended signature region selected">
+                <div class="doc-topline"><span>RECORD / 06</span><span>Page 1 of 1</span></div>
+                <p class="doc-heading">Acknowledgement</p>
+                <span class="document-rule"></span><span class="document-rule short"></span><span class="document-rule"></span><span class="document-rule medium"></span>
+                <div class="selection-box"><span class="selection-label">Selected region</span><span class="signature-ink">A. Reed</span><i class="corner corner-one"></i><i class="corner corner-two"></i><i class="corner corner-three"></i><i class="corner corner-four"></i></div>
+                <p class="sample-label">Fictional sample document</p>
+              </div>
+              <p class="pane-copy">The user confirms the crop. Detection may suggest a region, but it does not decide what is permitted.</p>
+            </section>
+
+            <section class="work-pane refine-pane" aria-labelledby="refine-pane-title">
+              <header><p>Refine</p><span id="cleanup-value">72%</span></header>
+              <h3 id="refine-pane-title">Keep the ink. Lose the noise.</h3>
+              <div class="asset-stage" id="asset-stage" aria-label="Cleaned sample signature asset preview">
+                <span class="asset-grid" aria-hidden="true"></span>
+                <span class="signature-ink refined-signature">A. Reed</span>
+                <span class="asset-caption">Transparent asset preview</span>
+              </div>
+              <label class="range-label" for="cleanup-control"><span>Cleanup level</span><output for="cleanup-control" id="cleanup-output">72%</output></label>
+              <input id="cleanup-control" type="range" min="35" max="95" value="72" />
+              <div class="refine-actions">
+                <button class="button button-light" type="button" id="save-asset">Save as a local asset <span aria-hidden="true">→</span></button>
+                <p id="asset-status" aria-live="polite">Preview only. Save is simulated in this concept.</p>
+              </div>
+            </section>
+
+            <section class="work-pane target-pane" aria-labelledby="target-pane-title">
+              <header><p>Target PDF</p><span>Page 1</span></header>
+              <h3 id="target-pane-title">Place it with context.</h3>
+              <div class="document-sheet target-sheet" id="pdf-target" aria-label="Sample target PDF with an empty signature field">
+                <div class="doc-topline"><span>WORK ORDER</span><span>Page 1 of 2</span></div>
+                <p class="doc-heading">Approval record</p>
+                <span class="document-rule"></span><span class="document-rule medium"></span><span class="document-rule short"></span>
+                <div class="signature-field" id="signature-field"><span>Signature field</span><span class="field-line"></span><span class="placement-guide" aria-hidden="true"></span><span class="placed-asset signature-ink" aria-hidden="true">A. Reed</span></div>
+                <span class="document-rule medium lower-rule"></span>
+              </div>
+              <div class="placement-actions">
+                <button class="button button-dark" type="button" id="place-asset" aria-describedby="place-help">Place in this field <span aria-hidden="true">→</span></button>
+                <p id="place-help">Or drag the prepared asset from the middle panel onto the field.</p>
+              </div>
+            </section>
+          </div>
+
+          <footer class="case-receipt" id="case-receipt" aria-live="polite">
+            <span><b>Source</b> local sample</span><span><b>Asset</b> not saved</span><span><b>PDF</b> not changed</span>
+          </footer>
+        </section>
+      </section>
+
+      <section class="collection" id="collection" aria-labelledby="collection-title">
+        <div class="collection-copy">
+          <p class="eyebrow">What stays ready</p>
+          <h2 id="collection-title">Keep the useful version ready.</h2>
+          <p>When the next form arrives, the clean local asset is ready for precision placement. The current desktop product includes a local Vault and placement/template primitives.</p>
+        </div>
+        <div class="asset-index" aria-label="Illustrative local asset collection">
+          <article class="asset-record active"><span class="record-number">01</span><div><p>Prepared signature</p><small>Local asset · ready for placement</small></div><span class="record-state">Ready</span></article>
+          <article class="asset-record"><span class="record-number">02</span><div><p>Placement template</p><small>Reusable precision for a known PDF</small></div><span class="record-state muted">Current direction</span></article>
+          <article class="asset-record"><span class="record-number">03</span><div><p>Local history</p><small>Keep a record of work carried out here</small></div><span class="record-state muted">Product direction</span></article>
+        </div>
+      </section>
+
+      <section class="boundary" id="boundary" aria-labelledby="boundary-title">
+        <div class="boundary-head">
+          <p class="eyebrow">The boundary is part of the product</p>
+          <h2 id="boundary-title">Clear about what happens now. Clear about what comes later.</h2>
+        </div>
+        <div class="boundary-grid">
+          <article class="boundary-card now"><p>Available today</p><h3>Local preparation</h3><ul><li>Extract and clean a signature image from supported source material.</li><li>Store a local asset and place it precisely in a PDF.</li><li>Keep the core workflow on your computer by default.</li></ul></article>
+          <article class="boundary-card next"><p>In development</p><h3>Repeatable document work</h3><ul><li>Controlled local packet workflows.</li><li>Reusable templates and review-aware steps.</li><li>Only public when the product evidence supports the claim.</li></ul></article>
+          <article class="boundary-card research"><p>Research horizon</p><h3>Connected trust modes</h3><ul><li>Cloud and hybrid execution.</li><li>Certificate-backed or regulated signing.</li><li>Explicit boundaries, not implied upgrades.</li></ul></article>
+        </div>
+        <p class="legal-boundary">SignKit prepares and places signature images on PDFs. Document and jurisdiction requirements vary. This concept does not present image placement as a regulated signing service.</p>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title">
+        <p class="eyebrow">SignKit, as a product people can understand</p>
+        <div><h2 id="closing-title">Less chasing.<br /><em>More finished PDFs.</em></h2><a class="button button-dark" href="#operation">Run the case again <span aria-hidden="true">↑</span></a></div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><a class="brand" href="#top"><span class="brand-mark">S</span><span>SignKit</span></a><p>Parallel landing exploration · proof, not play.</p></footer>
+    <script src="app.js"></script>
+  </body>
+</html>

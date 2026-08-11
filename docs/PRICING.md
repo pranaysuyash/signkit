@@ -73,3 +73,55 @@ Support copy for the comparison band:
 ---
 
 Keep Stripe/Paddle flows aligned with the no-trial approach; see `docs/PRICING_IMPLEMENTATION.md` for checkout and licensing details.
+
+## Addendum (2026-08-02): Launch price and public-claim boundary
+
+The accepted launch decision keeps the Personal offer deliberately simple:
+
+- **$29 one-time launch price** for the Personal licence.
+- **$39 regular Personal price** after the launch offer.
+- No public Team, Business, or Automated Packet Ops price. Recurring packet
+  operations remain an enquiry and pilot path until the workflow contract,
+  deployment boundary, and fulfilment evidence are ready.
+
+The root landing page is the only launch source. Its public claim inventory and
+release state are tracked in `docs/launch_claims/registry.md`. The page must
+describe the job as extract, clean, save, and place signatures on PDFs locally by
+default. Checkout receives purchase and delivery information. A recurring
+workflow enquiry receives only what the visitor chooses to type.
+
+The Dodo product ID is empty in the current checkout configuration, so public
+copy is provider-neutral: secure checkout is available through the configured
+provider, with Gumroad as the current fallback while Dodo is not configured.
+This wording does not claim that Dodo activation, payment verification, or
+licence fulfilment has been completed.
+
+The 30-day money-back policy is supported by `legal/TERMS_OF_SERVICE.md` and
+`legal/EULA.md`. Landing copy may state the policy and direct the buyer to the
+provider used for purchase or to support with the purchase email and order
+reference. It must not strengthen the policy beyond those documents.
+
+### External pricing exploration (context only, date-sensitive)
+
+The 2026-08-02 exploration reviewed official pricing pages for context. These
+references are not a superiority, savings, or outcome guarantee and should not
+be turned into public comparison copy without a fresh review:
+
+- [Adobe Acrobat plans and pricing](https://www.adobe.com/acrobat/pricing.html)
+  presents subscription options for Acrobat Pro.
+- [DocuSign eSignature plans and pricing](https://ecom.docusign.com/en-api-US/plans-and-pricing/esignature)
+  presents a Personal subscription with envelope-based allowances.
+- [Smallpdf pricing and plans](https://smallpdf.com/pricing) presents free,
+  subscription, team, and business tiers.
+
+These pages are date-sensitive third-party references. Re-check them before any
+future pricing comparison, and preserve the local workflow value proposition
+without implying that a one-time Personal purchase is cheaper or better for
+every visitor.
+
+The sections above this addendum are retained historical pricing exploration,
+not current public launch copy. In particular, do not reuse their “lifetime
+updates,” “runs offline,” “no cloud uploads,” competitor price figures, or
+Stripe/Paddle checkout language without a fresh evidence review. The current
+public source is the root landing page, its claim registry, and the Dodo/Gumroad
+configuration described here.

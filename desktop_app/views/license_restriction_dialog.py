@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from desktop_app.license.storage import OperationType
-from desktop_app.config import get_purchase_url
+from desktop_app.config import get_pricing_offer_id, get_purchase_url
 from desktop_app.views.license_dialog import LicenseDialog
 from desktop_app.widgets.modern_mac_button import ModernMacButton
 
@@ -28,6 +28,11 @@ RESTRICTION_MESSAGES = {
         "title": "PDF Operations Require License", 
         "message": "PDF signing and saving requires a license. You can still view PDFs and preview signature placement in trial mode.",
         "details": "Paste signatures to PDFs and save signed documents."
+    },
+    OperationType.WORKFLOW_AUTOMATION: {
+        "title": "Automated Packet Ops Requires an Add-on",
+        "message": "Running local folder-based packet automation requires the Automated Packet Ops add-on. You can still inspect jobs, pause processing, cancel, and quarantine safely.",
+        "details": "Scan approved folders, run authorized jobs, and retry packet execution with review controls."
     }
 }
 
@@ -66,7 +71,13 @@ def _create_button(
 class LicenseRestrictionDialog(QDialog):
     """Dialog shown when operations are restricted due to licensing."""
     
-    def __init__(self, operation_type: OperationType, parent=None):
+    def __init__(
+        self,
+        operation_type: OperationType,
+        parent=None,
+        default_plan_id: str | None = None,
+        use_parent_default_plan: bool = True,
+    ):
         """
         Args:
             operation_type: The type of operation that was restricted
@@ -74,6 +85,8 @@ class LicenseRestrictionDialog(QDialog):
         """
         super().__init__(parent)
         self.operation_type = operation_type
+        self._default_plan_id = get_pricing_offer_id(default_plan_id)
+        self._use_parent_default_plan = use_parent_default_plan
         self.license_activated = False
         
         self._setup_ui()
@@ -176,7 +189,13 @@ class LicenseRestrictionDialog(QDialog):
     def on_buy_license(self) -> None:
         """Open purchase URL in browser."""
         try:
-            webbrowser.open(get_purchase_url())
+            target_plan = self._default_plan_id
+            parent = self.parent()
+            if self._use_parent_default_plan and parent is not None and hasattr(parent, "get_default_purchase_plan_id"):
+                get_plan = getattr(parent, "get_default_purchase_plan_id")
+                if callable(get_plan):
+                    target_plan = get_plan()
+            webbrowser.open(get_purchase_url(target_plan))
         except Exception:
             # If browser opening fails, just continue
             pass
@@ -194,7 +213,13 @@ class LicenseRestrictionDialog(QDialog):
         return self.license_activated
 
 
-def show_restriction_dialog(operation_type: OperationType, parent=None) -> bool:
+def show_restriction_dialog(
+    operation_type: OperationType,
+    parent=None,
+    *,
+    default_plan_id: str | None = None,
+    use_parent_default_plan: bool = True,
+) -> bool:
     """
     Show restriction dialog for the given operation type.
     
@@ -206,7 +231,12 @@ def show_restriction_dialog(operation_type: OperationType, parent=None) -> bool:
         True if user activated a license and operation should be retried,
         False if operation should remain blocked
     """
-    dialog = LicenseRestrictionDialog(operation_type, parent)
+    dialog = LicenseRestrictionDialog(
+        operation_type,
+        parent,
+        default_plan_id=default_plan_id,
+        use_parent_default_plan=use_parent_default_plan,
+    )
     result = dialog.exec()
     
     # Return True only if dialog was accepted AND license was activated

@@ -1,5 +1,13 @@
 # Landing Page Deployment Guide
 
+> **Superseded addendum (2026-08-02):** This historical guide describes the
+> former multi-variant/A-B deployment and must not be used as current launch
+> guidance. The canonical contract is in
+> [`docs/LANDING_DEPLOYMENT_PROCESS.md`](LANDING_DEPLOYMENT_PROCESS.md) and
+> [`docs/landing/CLOUDFLARE_DEPLOYMENT.md`](landing/CLOUDFLARE_DEPLOYMENT.md).
+> `/` is the only public acquisition route; retained HTML artifacts redirect
+> to `/`; run the route/provider smoke checks before and after publishing.
+
 ## Overview
 The SignKit landing page is deployed on Cloudflare Pages at **signkit.work** from the repository's `main` branch.
 

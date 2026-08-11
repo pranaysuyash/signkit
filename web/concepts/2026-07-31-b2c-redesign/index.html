@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101522" />
+    <meta name="description" content="Approval prototype for a SignKit B2C landing-page redesign." />
+    <title>SignKit · Make the mark yours</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Onest:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="cursor-ink" aria-hidden="true"></div>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="SignKit home">
+        <span class="brand-mark" aria-hidden="true">S</span><span>SignKit</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#how-it-works">How it works</a>
+        <a href="#ways">Ways of working</a>
+        <a href="#local">Why local</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a class="header-cta" href="#pricing">See the offer <span aria-hidden="true">↗</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-nav">Menu</button>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+        <a href="#how-it-works">How it works</a><a href="#ways">Ways of working</a><a href="#local">Why local</a><a href="#pricing">Pricing</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy reveal">
+          <p class="kicker"><span class="live-dot" aria-hidden="true"></span>Signature tools, finally personal</p>
+          <h1 id="hero-title">Make the mark<br /><em>yours.</em></h1>
+          <p class="lede">Pull a signature out of the document it is trapped in. Clean it. Keep it. Place it on the next PDF, without sending your files anywhere.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#how-it-works">See it happen <span aria-hidden="true">↓</span></a>
+            <button class="text-button" type="button" data-demo-trigger aria-controls="hero-transform">Try the transformation <span aria-hidden="true">→</span></button>
+          </div>
+          <p class="quiet-proof">Local processing · One-time purchase · 30-day refund</p>
+        </div>
+
+        <div class="hero-stage reveal" id="hero-transform" data-stage aria-label="Interactive signature transformation demo">
+          <p class="stage-label">Move the line</p>
+          <div class="paper-stack" aria-hidden="true">
+            <article class="paper paper-back"><span class="paper-line"></span><span class="paper-line short"></span><span class="paper-line"></span></article>
+            <article class="paper paper-source"><span class="source-meta">S. MORGAN / CONSENT</span><span class="source-rule"></span><svg viewBox="0 0 240 80" class="source-signature"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg><span class="source-stamp">SCANNED COPY</span></article>
+            <article class="paper paper-target"><span class="target-meta">SIGNATURE FIELD</span><span class="target-rule"></span><span class="target-caption">The clean mark lands here.</span><svg viewBox="0 0 240 80" class="clean-signature"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg></article>
+          </div>
+          <div class="transform-control">
+            <label for="transform-range"><span>Trapped</span><span>Placed</span></label>
+            <input id="transform-range" data-transform type="range" min="0" max="100" value="18" aria-describedby="transform-status" />
+            <p id="transform-status" class="sr-only" aria-live="polite">Signature is in the source document.</p>
+          </div>
+          <div class="stage-key"><span class="key-source">01</span> Select the mark <span class="key-target">02</span> Place it on the PDF</div>
+        </div>
+      </section>
+
+      <section class="manifesto" aria-label="Product promise">
+        <p>Your signature is not a disposable upload.<br />It is part of your work.</p>
+        <div class="manifesto-note">SignKit makes that work feel <span>calm, exact, and yours.</span></div>
+      </section>
+
+      <section class="workflow" id="how-it-works" aria-labelledby="workflow-title">
+        <div class="section-intro reveal"><p class="kicker">A short, satisfying loop</p><h2 id="workflow-title">From paper problem<br />to a <em>ready PDF.</em></h2></div>
+        <div class="workflow-track">
+          <article class="workflow-step workflow-step-source reveal">
+            <div class="step-number">01</div><p class="step-eyebrow">Find</p><h3>A signature, stuck in a scan.</h3>
+            <div class="scan-preview" aria-hidden="true"><span>Scan_142.pdf</span><div class="scan-lines"></div><div class="scan-box"><i></i></div></div>
+          </article>
+          <div class="flow-line" aria-hidden="true"><svg viewBox="0 0 180 40"><path d="M0 20C55 20 65 4 105 16s47 8 75 8"/></svg></div>
+          <article class="workflow-step workflow-step-clean reveal">
+            <div class="step-number">02</div><p class="step-eyebrow">Refine</p><h3>Turn noise into a clean, reusable mark.</h3>
+            <div class="clean-preview" aria-hidden="true"><span class="selection-handle one"></span><span class="selection-handle two"></span><svg viewBox="0 0 240 80"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg></div>
+          </article>
+          <article class="workflow-step workflow-step-place reveal">
+            <div class="step-number">03</div><p class="step-eyebrow">Place</p><h3>Drop it where the document asks for it.</h3>
+            <div class="placed-preview" aria-hidden="true"><div class="pdf-lines"></div><div class="pdf-sign"><svg viewBox="0 0 240 80"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg></div></div>
+          </article>
+        </div>
+        <p class="workflow-outro reveal">No browser tabs. No re-uploading the same mark. No subscription sitting between you and a signed document.</p>
+      </section>
+
+      <section class="feature-atlas" id="ways" aria-labelledby="ways-title">
+        <div class="atlas-intro reveal"><p class="kicker">One tool. Different kinds of work.</p><h2 id="ways-title">SignKit changes its posture<br />when <em>your work does.</em></h2><p>A one-off form deserves a tactile, fast path. A precise PDF asks for a quieter workbench. Recurring packets need visible control, not a pretend cloud dashboard.</p></div>
+        <div class="atlas-tabs" role="tablist" aria-label="SignKit ways of working">
+          <button id="tab-mark" class="atlas-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="panel-mark" data-feature-tab="mark"><span>01</span> Make a mark</button>
+          <button id="tab-pdf" class="atlas-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-pdf" data-feature-tab="pdf"><span>02</span> Work the PDF</button>
+          <button id="tab-packets" class="atlas-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-packets" data-feature-tab="packets"><span>03</span> Run a packet</button>
+        </div>
+        <div class="atlas-panels">
+          <article class="feature-panel feature-panel-mark is-active" id="panel-mark" role="tabpanel" aria-labelledby="tab-mark" data-feature-panel="mark">
+            <div class="panel-copy"><p class="panel-status">Personal desktop workflow · available</p><h3>A signature should feel<br /><em>like yours again.</em></h3><p>Extract a handwritten mark from a scan, refine it, store it locally, and bring it back when the next form appears.</p><ul><li>Signature extraction and cleanup</li><li>Local Vault for saved marks</li><li>Place on the next PDF</li></ul></div>
+            <div class="mark-scene" aria-hidden="true"><div class="mark-sheet mark-sheet-back"></div><div class="mark-sheet mark-sheet-front"><span>RECOVERED MARK</span><svg viewBox="0 0 240 80"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg><b>LOCAL</b></div></div>
+          </article>
+          <article class="feature-panel feature-panel-pdf" id="panel-pdf" role="tabpanel" aria-labelledby="tab-pdf" data-feature-panel="pdf" hidden>
+            <div class="panel-copy"><p class="panel-status">PDF workbench · available</p><h3>When precision matters,<br /><em>get out of the way.</em></h3><p>Move from a visual find to a deliberate placement. Reusable templates and field-aware placement turn repeated PDF work into a calmer desktop task.</p><ul><li>PDF viewing and signature placement</li><li>Template-backed repeat placement</li><li>Field anchors when the document supports them</li></ul></div>
+            <div class="pdf-workbench" aria-hidden="true"><div class="workbench-bar"><i></i><i></i><i></i><span>Agreement_v4.pdf</span></div><div class="workbench-body"><div class="workbench-sidebar"><b>PAGE 1</b><b>FIELDS</b><b>ASSETS</b></div><div class="workbench-page"><span class="page-heading">CONSULTING AGREEMENT</span><span class="page-copy"></span><span class="page-copy short"></span><span class="placement-guide">SIGN HERE</span><svg viewBox="0 0 240 80"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg></div></div></div>
+          </article>
+          <article class="feature-panel feature-panel-packets" id="panel-packets" role="tabpanel" aria-labelledby="tab-packets" data-feature-panel="packets" hidden>
+            <div class="panel-copy"><p class="panel-status">Controlled packet operations · in development</p><h3>Repeatable work needs<br /><em>a visible route.</em></h3><p>For recurring local document families, a controlled recipe can define folders, approvals, review paths, retry, and quarantine. This is an emerging product workflow, not a public plan yet.</p><ul><li>Approved local recipes and scoped grants</li><li>Input, output, and review folders</li><li>Review, retry, and quarantine states</li></ul></div>
+            <div class="packet-route" aria-hidden="true"><div class="route-header"><span>LOCAL PACKET ROUTE</span><b>REVIEW REQUIRED</b></div><div class="route-map"><div class="route-node input"><i>IN</i><span>Approved<br />folder</span></div><div class="route-path path-one"></div><div class="route-node recipe"><i>R</i><span>Recipe<br />match</span></div><div class="route-path path-two"></div><div class="route-node review"><i>?</i><span>Review<br />lane</span></div><div class="route-path path-three"></div><div class="route-node output"><i>OK</i><span>Output<br />receipt</span></div><div class="route-exception"><b>RETRY</b><b>QUARANTINE</b></div></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="local" id="local" aria-labelledby="local-title">
+        <div class="local-visual reveal" aria-hidden="true"><div class="local-ring ring-one"></div><div class="local-ring ring-two"></div><div class="local-core"><span>ON<br />YOUR<br />MAC</span></div><span class="orbit orbit-one">scan</span><span class="orbit orbit-two">vault</span><span class="orbit orbit-three">pdf</span></div>
+        <div class="local-copy reveal"><p class="kicker">The good kind of private</p><h2 id="local-title">Your documents stay <em>in the room.</em></h2><p>SignKit handles signature extraction and PDF placement locally by default. That means your sensitive documents do not need to become somebody else’s upload queue.</p><dl><div><dt>Local first</dt><dd>Your source documents stay on your device.</dd></div><div><dt>Vault ready</dt><dd>Keep cleaned marks for the next document.</dd></div><div><dt>Own the tool</dt><dd>A simple one-time purchase, not another monthly bill.</dd></div></dl></div>
+      </section>
+
+      <section class="vault" aria-labelledby="vault-title">
+        <div class="vault-header reveal"><p class="kicker">Made for the second document, too</p><h2 id="vault-title">A tiny library for<br /><em>the marks you use.</em></h2><p>Save the clean version once. Reach for it whenever the next form appears.</p></div>
+        <div class="vault-shelf reveal" data-vault aria-label="Illustrative signature vault">
+          <button class="vault-card selected" type="button" data-mark="Morgan"><span class="vault-card-top">S</span><strong>Morgan</strong><svg viewBox="0 0 240 80"><path d="M6 52c19-46 24 15 41-27 7-17-9-10-3 6 9 22 25-20 31-14 5 5-7 16 3 17 13 1 14-27 20-25 4 1-9 23 0 25 12 3 20-15 30-13 6 1-4 14 6 15 14 0 21-20 29-17 7 3-1 13 8 15 15 3 24-15 34-13 10 1 2 17 18 14 14-2 19-14 29-19"/></svg></button>
+          <button class="vault-card" type="button" data-mark="Initials"><span class="vault-card-top">JM</span><strong>Initials</strong><svg viewBox="0 0 240 80"><path d="M22 20v34c0 10 14 11 18 0l16-39m-14 17c20 0 26 22 37 19 11-3 13-24 25-21 8 1-3 21 8 21 14 0 17-20 31-18 10 2-1 17 10 18 12 1 20-13 37-13"/></svg></button>
+          <button class="vault-card" type="button" data-mark="Approved"><span class="vault-card-top">A</span><strong>Approved</strong><svg viewBox="0 0 240 80"><path d="M10 46c13-35 18 3 31-21 6-12-6-8-1 6 7 17 21-16 29-9 6 6-6 17 6 17 12 0 14-19 23-17 5 1-4 15 6 16 13 1 20-14 30-12 9 1 3 16 15 13 13-3 17-13 29-14 10-1 10 10 23 7 11-3 14-13 29-15"/></svg></button>
+          <button class="vault-add" type="button" aria-label="Add a signature to the illustrative vault">+</button>
+        </div>
+        <p class="vault-status" aria-live="polite">Morgan is selected in this illustrative Vault.</p>
+      </section>
+
+      <section class="horizons" aria-labelledby="horizons-title">
+        <div class="horizons-title reveal"><p class="kicker">A clear line between product and possibility</p><h2 id="horizons-title">Built for the work<br />in front of you.<br /><em>Designed to grow carefully.</em></h2></div>
+        <div class="horizon-list reveal">
+          <article class="horizon horizon-now"><p>Now</p><h3>Personal local signing</h3><span>Extract, clean, store, and place a signature on PDFs on your desktop.</span></article>
+          <article class="horizon horizon-building"><p>In development</p><h3>Controlled packet operations</h3><span>Local recipes, grants, folder routes, review, retry, quarantine, and receipts for known document families.</span></article>
+          <article class="horizon horizon-research"><p>Research horizon</p><h3>Higher-trust document programs</h3><span>Certificate-backed or regulated signing is a separate security and compliance program, not a promise hidden in today’s tool.</span></article>
+          <article class="horizon horizon-later"><p>Later, with proof</p><h3>Hybrid workspaces and adapters</h3><span>Explicit sync, selected integrations, and team workflows only after a clear data boundary, permission model, and recovery path exist.</span></article>
+        </div>
+        <p class="horizon-note">The future is shown here to make the product direction legible, not to sell unfinished capability.</p>
+      </section>
+
+      <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+        <div class="pricing-top reveal"><p class="kicker">A tool you keep</p><h2 id="pricing-title">Buy it once.<br /><em>Keep your flow.</em></h2></div>
+        <div class="price-object reveal"><div class="price-object-main"><span class="offer-label">Personal license · available now</span><div class="price-row"><span class="old-price">$39</span><strong>$29</strong></div><p>Launch offer for the desktop workflow.</p><a class="button button-light" href="#purchase-note">Preview the purchase path <span aria-hidden="true">↗</span></a></div><div class="price-object-side"><p>Included today</p><ul><li>Signature extraction and cleanup</li><li>Local signature Vault</li><li>PDF placement workflow</li><li>Lifetime desktop updates</li></ul><span>Controlled packet operations and connected workspaces are not included offers yet.</span></div></div>
+        <p class="purchase-note" id="purchase-note">Approval prototype: the live checkout is intentionally not wired here while the production Dodo product ID remains unconfigured.</p>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title"><p class="kicker">Less ritual. More ready.</p><h2 id="closing-title">The document is waiting.<br /><em>Your mark is ready.</em></h2><a class="button button-primary" href="#top">Back to the beginning <span aria-hidden="true">↑</span></a></section>
+    </main>
+    <footer><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">S</span><span>SignKit</span></a><p>Approval concept · July 2026 · Not a production checkout</p><a href="explorations.html">View three alternative directions</a></footer>
+    <script src="app.js"></script>
+  </body>
+</html>

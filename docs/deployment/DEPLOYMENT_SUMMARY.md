@@ -1,5 +1,12 @@
 # SignKit Landing Page - Deployment Summary
 
+> **Superseded addendum (2026-08-02):** This summary records the former
+> multi-variant deployment and is not a current readiness claim. The current
+> source of truth is the canonical-root deployment process and claim registry:
+> [`docs/LANDING_DEPLOYMENT_PROCESS.md`](../LANDING_DEPLOYMENT_PROCESS.md),
+> [`docs/launch_claims/registry.md`](../launch_claims/registry.md), and the
+> route/provider contract test. Re-run production smoke after every publish.
+
 ## ✅ What's Been Completed
 
 ### 1. Landing Page Variants Created

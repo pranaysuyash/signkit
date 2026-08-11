@@ -32,6 +32,7 @@ CAN_BUILD_MACOS_ARM=false
 CAN_BUILD_MACOS_INTEL=false
 CAN_BUILD_WINDOWS=false
 CAN_BUILD_LINUX=false
+BUILD_MACOS_PREMIUM=${BUILD_MACOS_PREMIUM:-true}
 
 case "$OS" in
     Darwin)
@@ -165,17 +166,17 @@ if [ "$CAN_BUILD_MACOS_ARM" = true ] && ([ "$BUILD_TARGET" = "native" ] || [ "$B
     echo "-------------------------------------------------------"
     BUILD_COUNT=$((BUILD_COUNT + 1))
     
-    if python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_macOS.spec; then
-        if [ -d "dist/SignatureExtractor.app" ]; then
-            mv dist/SignatureExtractor.app dist/SignatureExtractor_ARM64.app
-            APP_SIZE=$(du -sh dist/SignatureExtractor_ARM64.app | cut -f1)
+    if python build-tools/build.py --build-platform darwin --profile standard --spec build-tools/SignatureExtractor_macOS.spec; then
+        if [ -d "dist/SignKit.app" ]; then
+            mv dist/SignKit.app dist/SignKit_ARM64.app
+            APP_SIZE=$(du -sh dist/SignKit_ARM64.app | cut -f1)
             echo -e "${GREEN}✓ macOS ARM64 build completed ($APP_SIZE)${NC}"
             
             # Create DMG
             echo "Creating DMG..."
             hdiutil create \
                 -volname "SignKit (Apple Silicon)" \
-                -srcfolder dist/SignatureExtractor_ARM64.app \
+                -srcfolder dist/SignKit_ARM64.app \
                 -ov \
                 -format UDZO \
                 dist/SignKit_macOS_ARM64.dmg 2>/dev/null
@@ -199,16 +200,17 @@ if [ "$CAN_BUILD_MACOS_INTEL" = true ] && ([ "$BUILD_TARGET" = "macos" ] || [ "$
     echo "-------------------------------------------------------"
     BUILD_COUNT=$((BUILD_COUNT + 1))
     
-    if python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_Intel.spec; then
-        if [ -d "dist/SignatureExtractor_Intel.app" ]; then
-            APP_SIZE=$(du -sh dist/SignatureExtractor_Intel.app | cut -f1)
+    if python build-tools/build.py --build-platform darwin --profile standard --spec build-tools/SignatureExtractor_Intel.spec; then
+        if [ -d "dist/SignKit.app" ]; then
+            mv dist/SignKit.app dist/SignKit_Intel.app
+            APP_SIZE=$(du -sh dist/SignKit_Intel.app | cut -f1)
             echo -e "${GREEN}✓ macOS Intel build completed ($APP_SIZE)${NC}"
             
             # Create DMG
             echo "Creating DMG..."
             hdiutil create \
                 -volname "SignKit (Intel)" \
-                -srcfolder dist/SignatureExtractor_Intel.app \
+                -srcfolder dist/SignKit_Intel.app \
                 -ov \
                 -format UDZO \
                 dist/SignKit_macOS_Intel.dmg 2>/dev/null
@@ -225,6 +227,44 @@ if [ "$CAN_BUILD_MACOS_INTEL" = true ] && ([ "$BUILD_TARGET" = "macos" ] || [ "$
     echo ""
 fi
 
+# Build macOS Premium ARM64 (SignKitPremium)
+if [ "$CAN_BUILD_MACOS_ARM" = true ] && [ "$BUILD_MACOS_PREMIUM" = true ] && ([ "$BUILD_TARGET" = "native" ] || [ "$BUILD_TARGET" = "macos" ] || [ "$BUILD_TARGET" = "all" ]); then
+    if [ "$ARCH" = "arm64" ]; then
+        echo "-------------------------------------------------------"
+        echo "  Building: macOS Premium (Apple Silicon)"
+        echo "-------------------------------------------------------"
+        BUILD_COUNT=$((BUILD_COUNT + 1))
+        
+        if python build-tools/build.py --build-platform darwin --profile mac-premium --spec build-tools/SignatureExtractor_macOS_Premium.spec; then
+            if [ -d "dist/SignKitPremium.app" ]; then
+                mv dist/SignKitPremium.app dist/SignKitPremium_ARM64.app
+                APP_SIZE=$(du -sh dist/SignKitPremium_ARM64.app | cut -f1)
+                echo -e "${GREEN}✓ macOS Premium ARM64 build completed ($APP_SIZE)${NC}"
+                
+                # Create Premium DMG
+                echo "Creating Premium DMG..."
+                hdiutil create \
+                    -volname "SignKit Premium (Apple Silicon)" \
+                    -srcfolder dist/SignKitPremium_ARM64.app \
+                    -ov \
+                    -format UDZO \
+                    dist/SignKit_Premium_macOS_ARM64.dmg 2>/dev/null
+                
+                DMG_SIZE=$(du -sh dist/SignKit_Premium_macOS_ARM64.dmg | cut -f1)
+                echo -e "${GREEN}✓ Premium DMG created: SignKit_Premium_macOS_ARM64.dmg ($DMG_SIZE)${NC}"
+                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            else
+                echo -e "${RED}✗ macOS Premium ARM64 build failed${NC}"
+            fi
+        else
+            echo -e "${RED}✗ macOS Premium ARM64 build failed${NC}"
+        fi
+        echo ""
+    else
+        echo -e "${YELLOW}⚠ Premium ARM64 build skipped (requires native arm64 host)${NC}"
+    fi
+fi
+
 # Build Windows
 if [ "$CAN_BUILD_WINDOWS" = true ] && ([ "$BUILD_TARGET" = "native" ] || [ "$BUILD_TARGET" = "windows" ] || [ "$BUILD_TARGET" = "all" ]); then
     echo "-------------------------------------------------------"
@@ -232,9 +272,9 @@ if [ "$CAN_BUILD_WINDOWS" = true ] && ([ "$BUILD_TARGET" = "native" ] || [ "$BUI
     echo "-------------------------------------------------------"
     BUILD_COUNT=$((BUILD_COUNT + 1))
     
-    if python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_Windows.spec; then
-        if [ -f "dist/SignatureExtractor.exe" ]; then
-            mv dist/SignatureExtractor.exe dist/SignKit_Windows.exe
+    if python build-tools/build.py --build-platform win64 --profile standard --spec build-tools/SignatureExtractor_Windows.spec; then
+        if [ -f "dist/SignKit.exe" ]; then
+            mv dist/SignKit.exe dist/SignKit_Windows.exe
             EXE_SIZE=$(du -sh dist/SignKit_Windows.exe | cut -f1)
             echo -e "${GREEN}✓ Windows build completed ($EXE_SIZE)${NC}"
             
@@ -262,7 +302,7 @@ if [ "$CAN_BUILD_LINUX" = true ] && ([ "$BUILD_TARGET" = "native" ] || [ "$BUILD
     echo "-------------------------------------------------------"
     BUILD_COUNT=$((BUILD_COUNT + 1))
     
-    if python -m PyInstaller --clean --noconfirm build-tools/SignatureExtractor_Linux.spec; then
+    if python build-tools/build.py --build-platform linux --profile standard --spec build-tools/SignatureExtractor_Linux.spec; then
         if [ -f "dist/SignatureExtractor" ]; then
             mv dist/SignatureExtractor dist/SignKit_Linux
             chmod +x dist/SignKit_Linux
@@ -331,4 +371,3 @@ echo "2. Upload to Gumroad product page"
 echo "3. Create LICENSE_INSTRUCTIONS.txt"
 echo "4. Test purchase and download flow"
 echo ""
-

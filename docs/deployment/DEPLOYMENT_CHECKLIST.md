@@ -1,5 +1,12 @@
 # SignKit Landing Page - Deployment Checklist
 
+> **Superseded addendum (2026-08-02):** The checklist below is a historical
+> A/B-variant snapshot. Use
+> [`docs/LANDING_DEPLOYMENT_PROCESS.md`](../LANDING_DEPLOYMENT_PROCESS.md),
+> [`docs/landing/CLOUDFLARE_DEPLOYMENT.md`](../landing/CLOUDFLARE_DEPLOYMENT.md),
+> and `tests/test_landing_surface_contract.py` for the current canonical-root,
+> redirect, and checkout-provider contract.
+
 ## ✅ Pre-Deployment Verification
 
 ### Files Ready

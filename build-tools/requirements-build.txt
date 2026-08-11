@@ -1,4 +1,4 @@
-# Build-time requirements for packaging Signature Extractor
+# Build-time requirements for packaging SignKit
 
 # PyInstaller for creating distributable packages (Python 3.13 requires 6.10+)
 pyinstaller>=6.14.0,<7.0.0

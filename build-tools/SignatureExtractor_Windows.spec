@@ -25,6 +25,7 @@ datas_list = [
 
     # Include license dialog assets if they exist
     (str(SRC_DIR / "desktop_app" / "resources"), "desktop_app/resources") if (SRC_DIR / "desktop_app" / "resources").exists() else None,
+    (str(SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg"), "desktop_app/resources") if (SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg").exists() else None,
 
     # Include app assets (icons)
     (str(SRC_DIR / "assets" / "files"), "assets/files") if (SRC_DIR / "assets" / "files").exists() else None,
@@ -128,7 +129,6 @@ a = Analysis(
         "desktop_app.views.main_window_parts",
         "desktop_app.views.main_window_parts.extraction",
         "desktop_app.views.main_window_parts.pdf",
-        "desktop_app.views.main_window_parts.library",
         "desktop_app.views.login_dialog",
         "desktop_app.views.license_dialog",
         "desktop_app.views.license_restriction_dialog",

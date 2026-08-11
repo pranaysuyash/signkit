@@ -1,5 +1,87 @@
 # SignKit Landing Page - Cloudflare Pages Deployment Guide
 
+## Current production contract (2026-08-02)
+
+Cloudflare Pages deploys the repository root (`.`), where `index.html` is the
+only canonical public landing page. The root route `/` remains HTTP 200. Do not
+publish a legacy variant folder, enable traffic splitting, or treat historical
+variant files as another public route family.
+
+`_redirects` permanently canonicalizes legacy review paths to `/` with 301:
+
+| Review file | Redirected public paths |
+| --- | --- |
+| `root.html` | `/root`, `/root/`, `/root.html` |
+| `buy.html` | `/buy`, `/buy/`, `/buy.html` |
+| `purchase.html` | `/purchase`, `/purchase/`, `/purchase.html` |
+| `gum.html` | `/gum`, `/gum/`, `/gum.html` |
+| `test-variants.html` | `/test-variants`, `/test-variants/`, `/test-variants.html` |
+
+Alternative entrypoint files are review artifacts as well. Redirect their
+direct document paths to `/`: `/web/live/`, `/web/live/index.html`,
+`/web/new_landing_page/`, `/web/new_landing_page/index.html`,
+`/web/cloud_workspace/`, and `/web/cloud_workspace/index.html`. Keep supporting
+JavaScript, CSS, and image assets available where the retained artifacts need
+them.
+
+Wildcard redirects also cover retained HTML under `deploy_dist/`, `docs/`,
+`web/archives/`, `web/backups/`, and `web/concepts/`. The route contract test
+inventories those project HTML files, excluding virtual environments and the
+canonical `index.html`/`404.html`, to prevent a new artifact from becoming an
+unreviewed public claim surface.
+
+Keep those files in place for historical review. Do not delete or move them as
+part of a deployment change.
+
+### Checkout provider contract
+
+`window.SignKitCheckoutConfig` in `web/live/js/checkout-config.js` is the only
+public checkout configuration. A valid Dodo ID matches `pdt_` followed by
+alphanumeric characters. If the ID is absent or malformed, checkout.js disables
+Dodo controls and marks Gumroad as the actionable primary provider. If the ID is
+valid, Dodo is actionable primary and Gumroad is an explicit fallback. No public
+copy or control may imply Dodo is active while that ID is empty or invalid.
+
+### Required checks
+
+Run before publishing:
+
+```bash
+./.venv/bin/pytest -q tests/test_landing_surface_contract.py
+bash scripts/test-local-landing.sh
+bash -n scripts/test-local-landing.sh scripts/test-deployment.sh
+```
+
+Run after a main production deployment:
+
+```bash
+bash scripts/test-deployment.sh https://signkit.work
+```
+
+The local and production smoke tests verify the static route and provider-state
+contract without credentials. They do not authorize payments.
+
+### Tier 3 payment, delivery, activation, retry, and refund release gate
+
+Before enabling a Dodo product ID in production, use the exact deployed page and
+a controlled payment account to verify: payment completion, receipt, download,
+desktop licence activation, cancelled and provider-error behavior, duplicate or
+retry behavior without duplicate entitlement, Gumroad fallback, refund execution,
+and the final entitlement state after refund. Capture transaction references and
+operator-visible delivery/activation evidence in the release handoff. This gate is
+open until an owner records a successful run; static tests are Tier 2 evidence,
+not payment integration proof.
+
+### Anything else?
+
+No. The legacy pages remain review artifacts, and the redirect manifest prevents
+them from silently returning as effective public routes.
+
+## Historical A/B variant guide (superseded 2026-08-02)
+
+The material below is retained as a historical record only. Do not follow it for
+current production routing or checkout configuration.
+
 ## Overview
 
 This landing page is set up for deployment to Cloudflare Pages with A/B testing for 4 variants:

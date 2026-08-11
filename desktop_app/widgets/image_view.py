@@ -17,8 +17,10 @@ class ImageView(QGraphicsView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.scene = QGraphicsScene(self)
-        self.setScene(self.scene)
+        # Keep the scene private so QGraphicsView.scene() remains callable.
+        # Several callers use the inherited method to clear the result pane.
+        self._scene = QGraphicsScene(self)
+        self.setScene(self._scene)
 
         self.pixmap_item: Optional[QGraphicsPixmapItem] = None
         self.selection_rect_item = None
@@ -80,8 +82,8 @@ class ImageView(QGraphicsView):
         self._set_pixmap(pixmap)
 
     def _set_pixmap(self, pixmap: QPixmap):
-        self.scene.clear()
-        self.pixmap_item = self.scene.addPixmap(pixmap)
+        self._scene.clear()
+        self.pixmap_item = self._scene.addPixmap(pixmap)
         self.setSceneRect(self.pixmap_item.boundingRect())
         self.fitInView(self.pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
         self.selection_rect_item = None
@@ -89,14 +91,14 @@ class ImageView(QGraphicsView):
         self.zoomChanged.emit(self._zoom_level)
 
     def clear_image(self):
-        self.scene.clear()
+        self._scene.clear()
         self.pixmap_item = None
         self.selection_rect_item = None
 
     def clear_selection(self):
         """Remove the selection rectangle."""
         if self.selection_rect_item:
-            self.scene.removeItem(self.selection_rect_item)
+            self._scene.removeItem(self.selection_rect_item)
             self.selection_rect_item = None
         self._selection_start = QPointF()
         self._selection_end = QPointF()
@@ -349,7 +351,7 @@ class ImageView(QGraphicsView):
             return
 
         if not self.selection_rect_item:
-            self.selection_rect_item = self.scene.addRect(
+            self.selection_rect_item = self._scene.addRect(
                 QRectF(), QPen(QColor("#00ff00"), 2), QColor(0, 255, 0, 50)
             )
             self.selection_rect_item.setZValue(10)

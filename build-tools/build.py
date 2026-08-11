@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Build script for packaging Signature Extractor using PyInstaller.
+Build script for packaging SignKit using PyInstaller.
 
 This script provides a convenient interface for building the application
 for different platforms and configurations.
 """
+
+from __future__ import annotations
 
 import argparse
 import os
@@ -12,7 +14,39 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
+
+STANDARD_PROFILE_SPEC_BY_PLATFORM = {
+    "darwin": "build-tools/SignatureExtractor_macOS.spec",
+    "linux": "build-tools/SignatureExtractor_Linux.spec",
+    "win32": "build-tools/SignatureExtractor_Windows.spec",
+    "win64": "build-tools/SignatureExtractor_Windows.spec",
+}
+
+PLATFORM_DARWIN = "darwin"
+PLATFORM_WINDOWS = "win32"
+PLATFORM_LINUX = "linux"
+
+PREMIUM_PROFILE_SPEC_BY_PLATFORM = {
+    "darwin": "build-tools/SignatureExtractor_macOS_Premium.spec",
+}
+
+_DEFAULT_MAIN_ENTRYPOINTS = {
+    "standard": "desktop_app/main.py",
+    "mac-premium": "desktop_app/main_macos_premium.py",
+}
+
+
+def detect_platform_for_build() -> str:
+    """Normalize the target platform key used for build routing."""
+
+    if sys.platform.startswith("linux"):
+        return PLATFORM_LINUX
+    if sys.platform == "darwin":
+        return PLATFORM_DARWIN
+    if sys.platform.startswith("win"):
+        return PLATFORM_WINDOWS
+    return sys.platform
 
 
 def run_command(cmd: List[str], cwd: str = None) -> int:
@@ -25,28 +59,59 @@ def run_command(cmd: List[str], cwd: str = None) -> int:
     return result.returncode
 
 
-def check_dependencies():
-    """Check if required dependencies are available."""
+def resolve_spec_file(profile_name: str, platform_hint: Optional[str] = None) -> Path:
+    """Resolve the preferred spec file for a profile + platform combination."""
+
+    target_platform = platform_hint or detect_platform_for_build()
+    if profile_name == "mac-premium" and target_platform != PLATFORM_DARWIN:
+        raise ValueError("Profile 'mac-premium' is only supported on darwin targets.")
+    if profile_name == "mac-premium":
+        return Path(PREMIUM_PROFILE_SPEC_BY_PLATFORM[target_platform])
+    if target_platform == PLATFORM_DARWIN:
+        return Path(STANDARD_PROFILE_SPEC_BY_PLATFORM[PLATFORM_DARWIN])
+    if target_platform in STANDARD_PROFILE_SPEC_BY_PLATFORM:
+        return Path(STANDARD_PROFILE_SPEC_BY_PLATFORM[target_platform])
+    return Path("signature_extractor.spec")
+
+
+def resolve_entrypoint(profile_name: str) -> Path:
+    """Resolve the expected launch entrypoint for a profile."""
+
+    if profile_name not in _DEFAULT_MAIN_ENTRYPOINTS:
+        raise ValueError(f"Unknown launch profile for entrypoint resolution: {profile_name}")
+    return Path(_DEFAULT_MAIN_ENTRYPOINTS[profile_name])
+
+
+def check_dependencies(profile_name: str = "standard", platform: Optional[str] = None) -> bool:
+    """Check if required build dependencies are available."""
     print("Checking dependencies...")
 
     try:
         import PyInstaller
+
         print(f"✓ PyInstaller found: {PyInstaller.__version__}")
     except ImportError:
         print("❌ PyInstaller not found. Install with: pip install pyinstaller")
         return False
 
-    # Check if main script exists
-    main_script = Path("desktop_app/main.py")
+    # Check if launch script exists
+    main_script = resolve_entrypoint(profile_name=profile_name)
     if not main_script.exists():
         print(f"❌ Main script not found: {main_script}")
         return False
     print(f"✓ Main script found: {main_script}")
 
+    # Check selected/default spec exists
+    default_spec = resolve_spec_file(profile_name, platform)
+    if default_spec.exists():
+        print(f"✓ Spec found: {default_spec}")
+    else:
+        print(f"⚠️  Recommended spec not found: {default_spec} (using fallback mode)")
+
     return True
 
 
-def clean_build_dirs():
+def clean_build_dirs() -> None:
     """Clean previous build directories."""
     dirs_to_clean = ["build", "dist", "__pycache__"]
     for dir_name in dirs_to_clean:
@@ -55,7 +120,10 @@ def clean_build_dirs():
             shutil.rmtree(dir_name)
 
     # Clean Python cache files
+    protected_env_dirs = {".venv", "venv", ".git", "node_modules"}
     for cache_dir in Path(".").rglob("__pycache__"):
+        if protected_env_dirs.intersection(cache_dir.parts):
+            continue
         print(f"Cleaning cache: {cache_dir}")
         shutil.rmtree(cache_dir)
 
@@ -65,7 +133,9 @@ def build_application(
     debug: bool = False,
     windowed: bool = True,
     clean: bool = True,
-    spec_file: str = None
+    spec_file: Optional[str] = None,
+    profile: str = "standard",
+    platform: Optional[str] = None,
 ) -> int:
     """Build the application using PyInstaller."""
 
@@ -73,24 +143,33 @@ def build_application(
         clean_build_dirs()
 
     # Prepare PyInstaller command
-    cmd = ["python", "-m", "PyInstaller"]
+    # Build with the interpreter running this script. Calling a bare
+    # `python` can silently switch to a stale system or legacy virtualenv.
+    cmd = [sys.executable, "-m", "PyInstaller"]
 
-    # Use spec file if provided, otherwise create command from options
+    # Use spec file if provided, otherwise select standard spec by platform and profile
     if spec_file and Path(spec_file).exists():
         cmd.append(spec_file)
     else:
-        spec_file = "signature_extractor.spec"
-        if Path(spec_file).exists():
-            cmd.append(spec_file)
+        selected_spec = resolve_spec_file(profile, platform)
+        if selected_spec.exists():
+            cmd.append(str(selected_spec))
         else:
             # Build without spec file
-            cmd.extend([
-                "desktop_app/main.py",
-                "--name", "SignatureExtractor",
-                "--add-data", ".env.example:.",
-                "--add-data", "docs:docs",
-                "--add-data", "backend:backend",
-            ])
+            default_entry = resolve_entrypoint(profile)
+            cmd.extend(
+                [
+                    str(default_entry),
+                    "--name",
+                    "SignKit",
+                    "--add-data",
+                    ".env.example:.",
+                    "--add-data",
+                    "docs:docs",
+                    "--add-data",
+                    "backend:backend",
+                ]
+            )
 
             if one_file:
                 cmd.append("--onefile")
@@ -99,7 +178,8 @@ def build_application(
 
             if debug:
                 cmd.append("--debug")
-                cmd.append("--log-level", "DEBUG")
+                cmd.append("--log-level")
+                cmd.append("DEBUG")
 
             if windowed:
                 cmd.append("--windowed")  # --noconsole
@@ -136,24 +216,24 @@ def build_application(
     return result.returncode
 
 
-def create_installer_scripts():
+def create_installer_scripts() -> None:
     """Create platform-specific installer scripts."""
     print("Creating installer scripts...")
 
     # macOS script
     macos_script = """#!/bin/bash
-# macOS Installation Script for Signature Extractor
+# macOS Installation Script for SignKit
 
 set -e
 
-APP_NAME="SignatureExtractor"
+APP_NAME="SignKit"
 APP_DIR="/Applications/$APP_NAME.app"
 
-echo "Installing Signature Extractor..."
+echo "Installing SignKit..."
 
 # Check if app is running
 if pgrep -f "$APP_NAME" > /dev/null; then
-    echo "Please quit Signature Extractor before installing."
+    echo "Please quit SignKit before installing."
     exit 1
 fi
 
@@ -178,7 +258,7 @@ sudo chown -R root:admin "$APP_DIR"
 sudo chmod -R 755 "$APP_DIR"
 
 echo "Installation complete!"
-echo "You can now launch Signature Extractor from your Applications folder."
+echo "You can now launch SignKit from your Applications folder."
 """
 
     with open("install_macos.sh", "w") as f:
@@ -188,17 +268,17 @@ echo "You can now launch Signature Extractor from your Applications folder."
 
     # Windows script
     windows_script = """@echo off
-REM Windows Installation Script for Signature Extractor
+REM Windows Installation Script for SignKit
 
-set APP_NAME=SignatureExtractor
+set APP_NAME=SignKit
 set INSTALL_DIR=%ProgramFiles%\\%APP_NAME%
 
-echo Installing Signature Extractor...
+echo Installing SignKit...
 
 REM Check if app is running
 tasklist /FI "IMAGENAME eq %APP_NAME%.exe" 2>NUL | find /I "%APP_NAME%.exe" >NUL
 if %ERRORLEVEL% == 0 (
-    echo Please quit Signature Extractor before installing.
+    echo Please quit SignKit before installing.
     pause
     exit /b 1
 )
@@ -211,18 +291,18 @@ if not exist "%INSTALL_DIR%" (
 
 REM Copy application files
 echo Copying application files...
-xcopy "dist\\%APP_NAME%\*" "%INSTALL_DIR%\\" /E /Y
+xcopy "dist\\%APP_NAME%\\*" "%INSTALL_DIR%\\" /E /Y
 
 REM Create desktop shortcut
 echo Creating desktop shortcut...
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%USERPROFILE%\\Desktop\\Signature Extractor.lnk');$s.TargetPath='%INSTALL_DIR%\\%APP_NAME%.exe';$s.Save()"
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%USERPROFILE%\\Desktop\\SignKit.lnk');$s.TargetPath='%INSTALL_DIR%\\%APP_NAME%.exe';$s.Save()"
 
 REM Create Start Menu shortcut
 echo Creating Start Menu shortcut...
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Signature Extractor.lnk');$s.TargetPath='%INSTALL_DIR%\\%APP_NAME%.exe';$s.Save()"
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\SignKit.lnk');$s.TargetPath='%INSTALL_DIR%\\%APP_NAME%.exe';$s.Save()"
 
 echo Installation complete!
-echo You can now launch Signature Extractor from your desktop or Start Menu.
+echo You can now launch SignKit from your desktop or Start Menu.
 pause
 """
 
@@ -231,10 +311,25 @@ pause
     print("✓ Created install_windows.bat")
 
 
-def main():
+def describe_build_targets() -> str:
+    """Return a compact profile/platform description."""
+
+    return ", ".join(
+        sorted(
+            f"{profile}:{platform}->{spec}"
+            for profile, spec_by_platform in {
+                "standard": STANDARD_PROFILE_SPEC_BY_PLATFORM,
+                "mac-premium": PREMIUM_PROFILE_SPEC_BY_PLATFORM,
+            }.items()
+            for platform, spec in spec_by_platform.items()
+        )
+    )
+
+
+def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Build Signature Extractor application",
+        description="Build SignKit application",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -244,36 +339,55 @@ Examples:
   python build.py --console          # Build with console window
   python build.py --clean-only       # Only clean build directories
   python build.py --create-scripts   # Create installer scripts
-        """
+        """,
     )
 
-    parser.add_argument("--one-file", action="store_true",
-                       help="Build as single executable file")
-    parser.add_argument("--debug", action="store_true",
-                       help="Build with debug information")
-    parser.add_argument("--console", action="store_true",
-                       help="Build with console window (no GUI)")
-    parser.add_argument("--clean", action="store_true", default=True,
-                       help="Clean build directories before building")
-    parser.add_argument("--no-clean", dest="clean", action="store_false",
-                       help="Don't clean build directories before building")
-    parser.add_argument("--clean-only", action="store_true",
-                       help="Only clean build directories, don't build")
-    parser.add_argument("--spec", type=str, default="signature_extractor.spec",
-                       help="Use specific spec file")
-    parser.add_argument("--create-scripts", action="store_true",
-                       help="Create installer scripts")
-    parser.add_argument("--no-deps-check", action="store_true",
-                       help="Skip dependency checking")
+    parser.add_argument("--one-file", action="store_true", help="Build as single executable file")
+    parser.add_argument("--debug", action="store_true", help="Build with debug information")
+    parser.add_argument("--console", action="store_true", help="Build with console window (no GUI)")
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        default=True,
+        help="Clean build directories before building",
+    )
+    parser.add_argument("--no-clean", dest="clean", action="store_false", help="Don't clean build directories before building")
+    parser.add_argument("--clean-only", action="store_true", help="Only clean build directories, don't build")
+    parser.add_argument(
+        "--spec",
+        type=str,
+        default="",
+        help="Use a specific spec file (overrides profile/platform defaults)",
+    )
+    parser.add_argument(
+        "--profile",
+        choices=["standard", "mac-premium"],
+        default="standard",
+        help="Select launch profile: standard (all platforms) or mac-premium (mac only)",
+    )
+    parser.add_argument("--build-platform", choices=["darwin", "linux", "win32", "win64"], default=None, help="Override platform for defaults")
+    parser.add_argument("--create-scripts", action="store_true", help="Create installer scripts")
+    parser.add_argument("--no-deps-check", action="store_true", help="Skip dependency checking")
+    parser.add_argument("--show-targets", action="store_true", help="Show supported profile/platform mapping and exit")
 
     args = parser.parse_args()
 
-    print("Signature Extractor Build Script")
+    print("SignKit Build Script")
     print("=" * 40)
+
+    if args.show_targets:
+        print("Target map:", describe_build_targets())
+        print("Known profiles: standard, mac-premium")
+        return
+
+    resolved_platform = args.build_platform or detect_platform_for_build()
+    if args.profile == "mac-premium" and resolved_platform != "darwin":
+        print("❌ --profile mac-premium is only supported on Darwin targets.")
+        sys.exit(1)
 
     # Check dependencies
     if not args.no_deps_check:
-        if not check_dependencies():
+        if not check_dependencies(profile_name=args.profile, platform=resolved_platform):
             sys.exit(1)
 
     # Handle clean-only
@@ -293,7 +407,9 @@ Examples:
             debug=args.debug,
             windowed=not args.console,
             clean=args.clean,
-            spec_file=args.spec
+            spec_file=args.spec,
+            profile=args.profile,
+            platform=resolved_platform,
         )
 
         if return_code != 0:
