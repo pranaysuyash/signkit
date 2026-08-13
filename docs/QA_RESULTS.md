@@ -23,7 +23,7 @@ Scope: local reproducible matrix only unless stated otherwise
 | QA-21 | PASS | Tier 2 local suite, S2 for shutdown regression | After expanding `pytest.ini` to collect all first-party suites, the canonical root command collected 487 tests and passed `484 passed, 4 skipped`. The native-form module reports an explicit missing-optional-PyMuPDF skip. The destructor logging test failed under a deliberate reversion and passed after the fix. |
 | QA-22 | PASS | Tier 2 local suite, S1 | `backend/tests/test_config_and_path_security.py backend/tests/test_extraction_router.py` passed `13 passed` with an isolated SQLite URL. The recovered security group removes hardcoded credential defaults, fails closed for incomplete production configuration, preserves local SQLite, and asserts POSIX owner-only data/sidecar permissions. |
 | QA-23 | PASS | Tier 2 local suite, S1 | Signed entitlement receipt, receipt-owned plan/add-on grants, key-only fail-closed behavior, explicit test-mode isolation, replay, tamper, expiry, and second-entitlement conflict tests passed `15` focused checks. This is local code evidence only. |
-| QA-24 | PASS | Tier 4 local Qt contract, S1 | `tests/test_signature_candidate_dialog.py tests/test_color_signature_candidate.py` plus the auto-detect integration subset passed `8` checks. The UI exposes ranked candidates with clipped previews and requires explicit confirmation; the score remains labeled as non-probabilistic. |
+| QA-24 | PASS | Tier 2 local offscreen-Qt contract, S1 | `tests/test_signature_candidate_dialog.py tests/test_color_signature_candidate.py` plus the auto-detect integration subset passed `8` checks. The UI exposes ranked candidates with clipped previews and requires explicit confirmation; the score remains labeled as non-probabilistic. This is not real-GUI, device, or assistive-technology observation. |
 
 Additional touched-flow checks:
 
@@ -133,9 +133,10 @@ for a configured provider, controlled purchase, and revocation/support flow.
 
 ## Addendum (2026-08-13): candidate confirmation slice
 
-QA-24 closes the local operator-safety portion of auto-detection. The existing
+QA-24 closes the local code-contract portion of auto-detection. The existing
 multi-candidate engine output now has a human confirmation dialog with bounded
 previews, cancel behavior that preserves the manual selection, and explicit
 copy that the ranking score is not a probability. It does not establish
-accuracy, recall, or generalization. Those remain gated by a permissioned
-labeled corpus and an evaluation harness.
+real-GUI interaction, accessibility technology behavior, accuracy, recall, or
+generalization. Those remain gated by a real-GUI check, a permissioned labeled
+corpus, and an evaluation harness.

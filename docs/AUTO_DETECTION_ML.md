@@ -522,5 +522,7 @@ tensorboard - monitoring
    kill-switch requirement).
 
 The candidate-picker slice is tracked as `RECON-22` and `QA-24` in the canonical
-PO backlog and QA matrix. The remaining evaluation and ML work must not start
-until its dataset, accuracy bar, and privacy prerequisites are accepted.
+PO backlog and QA matrix. `RECON-23` tracks real-GUI observation, and `RECON-24`
+tracks a permissioned held-out evaluation baseline. The remaining evaluation
+and ML work must not start until its dataset, accuracy bar, and privacy
+prerequisites are accepted.
