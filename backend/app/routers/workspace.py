@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
 from backend.app.models.user import User
 from backend.app.models.workspace import WorkspaceExecution
+from backend.app.runtime import is_local_companion
 from backend.app.schemas.workspace import (
     DocumentInspectionResponse,
     WorkspaceExecutionCreate,
@@ -21,6 +24,7 @@ from backend.app.services.document_inspection import (
     DocumentInspectionError,
     DocumentInspectionTopologyError,
     inspect_local_document,
+    record_inspection_failure,
 )
 from backend.app.services.passport import project_workspace_execution
 from backend.app.services.workspace import (
@@ -36,6 +40,31 @@ from backend.app.utils.dependencies import get_current_user
 
 
 router = APIRouter(tags=["Workspace"])
+local_document_router = APIRouter(tags=["Local companion"])
+
+
+def _event_payload(event) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "id": event.id,
+        "sequence": event.sequence,
+        "event_type": event.event_type,
+        "status_from": event.status_from,
+        "status_to": event.status_to,
+        "idem_key": event.idem_key,
+        "summary": event.summary,
+        "created_at": event.created_at,
+    }
+    if event.result_json and event.event_type in {
+        "document_inspection",
+        "document_inspection_failed",
+    }:
+        try:
+            result = json.loads(event.result_json)
+        except json.JSONDecodeError:
+            result = None
+        if isinstance(result, dict):
+            payload["result"] = result
+    return payload
 
 
 def _as_response(db: Session, execution: WorkspaceExecution) -> WorkspaceExecutionResponse:
@@ -56,7 +85,7 @@ def _as_response(db: Session, execution: WorkspaceExecution) -> WorkspaceExecuti
             "notes": execution.notes,
             "created_at": execution.created_at,
             "updated_at": execution.updated_at,
-            "events": events,
+            "events": [_event_payload(event) for event in events],
             "passport": project_workspace_execution(execution, events).to_payload(),
         }
     )
@@ -118,6 +147,11 @@ def create_workspace_execution(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if payload.topology.value == "local" and not is_local_companion():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Local topology is unavailable on the hosted runtime profile.",
+        )
     try:
         execution = create_execution(db, current_user, payload)
         return _as_response(db, execution)
@@ -155,7 +189,7 @@ def transition_workspace_execution(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
-@router.post(
+@local_document_router.post(
     "/executions/{execution_id}/document-inspections",
     response_model=DocumentInspectionResponse,
 )
@@ -168,22 +202,85 @@ def inspect_execution_document(
     current_user: User = Depends(get_current_user),
 ):
     execution = _get_owned_execution(db, execution_id, current_user)
+    if execution.topology != "local":
+        record_inspection_failure(
+            db,
+            execution,
+            current_user,
+            idem_key=idempotency_key.strip() if idempotency_key else None,
+            page_index=page_index,
+            document_bytes=b"",
+            failure_code="topology_not_local",
+            retryable=False,
+            operator_action="Use a local-companion execution for document inspection.",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Document inspection is available only for local topology executions.",
+        )
     try:
+        document_bytes = file.file.read(MAX_DOCUMENT_BYTES + 1)
         return inspect_local_document(
             db,
             execution,
             current_user,
             filename=file.filename or "",
-            document_bytes=file.file.read(MAX_DOCUMENT_BYTES + 1),
+            document_bytes=document_bytes,
             page_index=page_index,
             idem_key=idempotency_key.strip() if idempotency_key else None,
         )
     except DocumentInspectionConflict as exc:
         db.rollback()
+        record_inspection_failure(
+            db,
+            execution,
+            current_user,
+            idem_key=idempotency_key.strip() if idempotency_key else None,
+            page_index=page_index,
+            document_bytes=document_bytes,
+            failure_code="idempotency_conflict",
+            retryable=False,
+            operator_action="Use a new idempotency key for different document bytes.",
+        )
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except DocumentInspectionTopologyError as exc:
         db.rollback()
+        record_inspection_failure(
+            db,
+            execution,
+            current_user,
+            idem_key=idempotency_key.strip() if idempotency_key else None,
+            page_index=page_index,
+            document_bytes=document_bytes,
+            failure_code="topology_not_local",
+            retryable=False,
+            operator_action="Use a local-companion execution for document inspection.",
+        )
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except DocumentInspectionError as exc:
         db.rollback()
+        message = str(exc).lower()
+        if "worker" in message:
+            failure_code = "worker_failure"
+            retryable = True
+            operator_action = "Retry inspection; escalate if the worker fails again."
+        elif "idempotency" in message:
+            failure_code = "idempotency_invalid"
+            retryable = False
+            operator_action = "Provide a valid idempotency key and retry."
+        else:
+            failure_code = "invalid_document"
+            retryable = False
+            operator_action = "Correct the PDF or page selection before retrying."
+        record_inspection_failure(
+            db,
+            execution,
+            current_user,
+            idem_key=idempotency_key.strip() if idempotency_key else None,
+            page_index=page_index,
+            document_bytes=document_bytes,
+            failure_code=failure_code,
+            retryable=retryable,
+            operator_action=operator_action,
+        )
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc

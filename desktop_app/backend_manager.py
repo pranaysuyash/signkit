@@ -7,8 +7,11 @@ while maintaining offline-first operation for core functionality.
 from __future__ import annotations
 
 import atexit
+import hashlib
+import hmac
 import logging
 import os
+import secrets
 import socket
 import subprocess
 import sys
@@ -37,6 +40,7 @@ class BackendManager:
         self._startup_attempts = 0
         self._max_startup_attempts = 3
         self._server_thread: Optional[Thread] = None
+        self._health_token = secrets.token_urlsafe(32)
         from typing import Any as _Any
         self._server: _Any = None
         
@@ -147,6 +151,8 @@ class BackendManager:
     def _prepare_backend_env(self, env: dict[str, str]) -> dict[str, str]:
         """Prepare backend environment variables for local or production startup."""
         prepared = env.copy()
+        prepared["SIGNKIT_RUNTIME_PROFILE"] = "local_companion"
+        prepared["SIGNKIT_HEALTH_TOKEN"] = self._health_token
         sqlite_fallback = self._local_sqlite_url()
 
         # Preserve explicit production configuration, but make local startup work
@@ -318,9 +324,22 @@ class BackendManager:
             import requests
             
             url = f"http://127.0.0.1:{self.port}/health"
-            response = requests.get(url, timeout=2)
-            
+            response = requests.get(
+                url,
+                headers={"X-SignKit-Health-Token": self._health_token},
+                timeout=2,
+            )
+
             if response.status_code == 200:
+                payload = response.json()
+                expected_proof = hmac.new(
+                    self._health_token.encode("utf-8"),
+                    b"signkit-health-v1:/health",
+                    hashlib.sha256,
+                ).hexdigest()
+                if payload.get("health_proof") != expected_proof:
+                    self._available = False
+                    return False
                 self._available = True
                 return True
             else:
@@ -416,6 +435,8 @@ class BackendManager:
 
             # Prepare a user-writable environment (same as subprocess branch)
             env = self._prepare_backend_env(dict(os.environ))
+            os.environ["SIGNKIT_HEALTH_TOKEN"] = env["SIGNKIT_HEALTH_TOKEN"]
+            os.environ["SIGNKIT_RUNTIME_PROFILE"] = env["SIGNKIT_RUNTIME_PROFILE"]
 
             config = uvicorn.Config(
                 "backend.app.main:app",

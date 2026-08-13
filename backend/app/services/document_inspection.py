@@ -12,14 +12,17 @@ import pikepdf
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from pydantic import ValidationError
 
 from desktop_app.pdf.document_runtime import DocumentRuntimeError, IsolatedDocumentRuntime
 
 from backend.app.models.user import User
 from backend.app.models.workspace import WorkspaceExecution, WorkspaceExecutionEvent
+from backend.app.schemas.workspace import DocumentInspectionCandidate
 
 
 EVENT_TYPE = "document_inspection"
+FAILURE_EVENT_TYPE = "document_inspection_failed"
 MAX_DOCUMENT_BYTES = 25 * 1024 * 1024
 
 
@@ -57,6 +60,72 @@ def _receipt_payload(
 
 def _request_hash(input_sha256: str, page_index: int) -> str:
     return hashlib.sha256(f"{input_sha256}:{page_index}".encode("ascii")).hexdigest()
+
+
+def record_inspection_failure(
+    db: Session,
+    execution: WorkspaceExecution,
+    actor: User,
+    *,
+    idem_key: str | None,
+    page_index: int,
+    document_bytes: bytes,
+    failure_code: str,
+    retryable: bool,
+    operator_action: str,
+) -> None:
+    """Append one sanitized, replay-safe failure receipt to the event ledger."""
+
+    input_sha256 = hashlib.sha256(document_bytes).hexdigest() if document_bytes else None
+    request_hash = _request_hash(input_sha256, page_index) if input_sha256 else None
+    query = db.query(WorkspaceExecutionEvent).filter(
+        WorkspaceExecutionEvent.execution_id == execution.id,
+        WorkspaceExecutionEvent.actor_user_id == actor.id,
+        WorkspaceExecutionEvent.event_type == FAILURE_EVENT_TYPE,
+    )
+    if idem_key:
+        existing = query.filter(WorkspaceExecutionEvent.idem_key == idem_key).first()
+    elif request_hash:
+        existing = query.filter(WorkspaceExecutionEvent.request_hash == request_hash).first()
+    else:
+        existing = None
+    if existing is not None:
+        return
+
+    sequence = (
+        db.query(func.coalesce(func.max(WorkspaceExecutionEvent.sequence), 0))
+        .filter(WorkspaceExecutionEvent.execution_id == execution.id)
+        .scalar()
+    )
+    result_payload: dict[str, object] = {
+        "schema_version": "1",
+        "execution_id": str(execution.id),
+        "event_type": FAILURE_EVENT_TYPE,
+        "outcome": "failed",
+        "failure_code": failure_code,
+        "retryable": retryable,
+        "operator_action": operator_action,
+        "page_index": page_index,
+    }
+    if input_sha256:
+        result_payload["input_sha256"] = input_sha256
+    event = WorkspaceExecutionEvent(
+        execution_id=execution.id,
+        sequence=int(sequence) + 1,
+        actor_user_id=actor.id,
+        event_type=FAILURE_EVENT_TYPE,
+        status_from=execution.status,
+        status_to=execution.status,
+        idem_key=idem_key,
+        request_hash=request_hash,
+        result_json=json.dumps(result_payload, sort_keys=True),
+        summary=f"Local document inspection failed; code={failure_code}; retryable={str(retryable).lower()}",
+    )
+    db.add(event)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
 
 
 def _legacy_receipt_matches(event: WorkspaceExecutionEvent, input_sha256: str) -> bool:
@@ -149,9 +218,15 @@ def inspect_local_document(
         except DocumentRuntimeError as exc:
             raise DocumentInspectionError("Local PDF worker could not inspect the document") from exc
 
-    normalized_candidates = [
-        candidate for candidate in candidates if isinstance(candidate, dict)
-    ]
+    if len(candidates) > 12 or any(not isinstance(candidate, dict) for candidate in candidates):
+        raise DocumentInspectionError("Worker returned an invalid candidate result")
+    try:
+        normalized_candidates = [
+            DocumentInspectionCandidate.model_validate(candidate).model_dump(mode="json")
+            for candidate in candidates
+        ]
+    except ValidationError as exc:
+        raise DocumentInspectionError("Worker returned an invalid candidate result") from exc
     result_payload = {
         "execution_id": str(execution.id),
         "event_type": EVENT_TYPE,

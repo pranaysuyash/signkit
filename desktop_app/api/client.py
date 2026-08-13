@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import mimetypes
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -28,9 +29,16 @@ class ApiClient:
     MAX_UPLOAD_BYTES = 50 * 1024 * 1024
     _HEALTHY_STATUSES = {"ok", "healthy", "up"}
 
-    def __init__(self, base_url: str, session: SessionState) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        session: SessionState,
+        *,
+        allow_remote_document_upload: bool = False,
+    ) -> None:
         self._base_url = self._validate_base_url(base_url)
         self.session = session
+        self.allow_remote_document_upload = allow_remote_document_upload
         self._manual_offline_mode = False
         self._backend_reachable = True
         self._last_health_error: Optional[str] = None
@@ -92,6 +100,11 @@ class ApiClient:
 
     def upload_image(self, filepath: str) -> UploadResponse:
         url = f"{self.base_url}/extraction/upload"
+        if not self._document_upload_is_local() and not self.allow_remote_document_upload:
+            raise ApiValidationError(
+                "Remote document upload is disabled. Enable connected mode explicitly "
+                "before sending document bytes to a non-loopback API."
+            )
         path = Path(filepath)
         if not path.exists():
             raise FileNotFoundError(filepath)
@@ -141,6 +154,16 @@ class ApiClient:
             file_path=str(payload.get("file_path")) if payload.get("file_path") else None,
             payload=payload,
         )
+
+    def _document_upload_is_local(self) -> bool:
+        parsed = urlparse(self.base_url)
+        hostname = (parsed.hostname or "").lower()
+        if hostname == "localhost" or hostname == "ip6-localhost":
+            return True
+        try:
+            return ipaddress.ip_address(hostname).is_loopback
+        except ValueError:
+            return False
 
     def select_region(
         self,

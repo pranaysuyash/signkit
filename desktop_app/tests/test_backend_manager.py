@@ -22,6 +22,8 @@ def test_prepare_backend_env_injects_local_sqlite_and_secret(monkeypatch, tmp_pa
 
     assert prepared["DATABASE_URL"] == f"sqlite:///{tmp_path / 'signature_extractor.db'}"
     assert len(prepared["JWT_SECRET"]) == 64
+    assert prepared["SIGNKIT_RUNTIME_PROFILE"] == "local_companion"
+    assert prepared["SIGNKIT_HEALTH_TOKEN"] == manager._health_token
 
 
 def test_prepare_backend_env_preserves_explicit_database_url(monkeypatch, tmp_path):
@@ -37,3 +39,18 @@ def test_prepare_backend_env_preserves_explicit_database_url(monkeypatch, tmp_pa
 
     assert prepared["DATABASE_URL"] == "postgresql://pranay:pranay@127.0.0.1:5432/signature_extractor"
     assert prepared["JWT_SECRET"] == "x" * 64
+
+
+def test_health_check_rejects_generic_healthy_impostor(monkeypatch):
+    manager = BackendManager(auto_start=False)
+
+    class ImpostorResponse:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {"status": "healthy"}
+
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: ImpostorResponse())
+
+    assert manager.is_available() is False

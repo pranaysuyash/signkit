@@ -16,8 +16,9 @@ import pytest
 
 from backend.app.database import Base, get_db
 from backend.app.models.user import User
-from backend.app.routers.workspace import router as workspace_router
+from backend.app.routers.workspace import local_document_router, router as workspace_router
 from backend.app.utils.dependencies import get_current_user
+from desktop_app.pdf.document_runtime import DocumentRuntimeError, IsolatedDocumentRuntime
 
 
 @contextmanager
@@ -52,6 +53,7 @@ def _seed_owner(session, email="owner@example.com"):
 def _build_client(session, owner):
     app = FastAPI()
     app.include_router(workspace_router, prefix="/workspace")
+    app.include_router(local_document_router, prefix="/workspace")
 
     def _override_db():
         yield session
@@ -342,7 +344,18 @@ def test_local_document_inspection_removes_temporary_source_after_worker(monkeyp
 
     def fake_detect_page(self, pdf_path, page_index):
         worker_paths.append(Path(pdf_path))
-        return [{"page_index": page_index, "confidence": 0.9}]
+        return [{
+            "page_index": page_index,
+            "field_type": "signature_line",
+            "x": 72,
+            "y": 680,
+            "width": 188,
+            "height": 1,
+            "confidence": 0.9,
+            "source": "test",
+            "reason": "synthetic cleanup candidate",
+            "label": "Signature",
+        }]
 
     monkeypatch.setattr(
         "backend.app.services.document_inspection.IsolatedDocumentRuntime.detect_page",
@@ -358,3 +371,93 @@ def test_local_document_inspection_removes_temporary_source_after_worker(monkeyp
     assert response.status_code == 200
     assert worker_paths
     assert not worker_paths[0].exists()
+
+
+def test_document_inspection_receipt_and_failure_are_rehydrated_from_event_ledger(workspace_client):
+    execution_id = _create_execution(workspace_client, topology="local")
+    response = workspace_client.post(
+        f"/workspace/executions/{execution_id}/document-inspections",
+        files={"file": ("packet.pdf", _pdf_payload(), "application/pdf")},
+        data={"page_index": "0"},
+        headers={"Idempotency-Key": "receipt-rehydrate-001"},
+    )
+    assert response.status_code == 200
+
+    malformed = workspace_client.post(
+        f"/workspace/executions/{execution_id}/document-inspections",
+        files={"file": ("packet.pdf", b"not-a-pdf", "application/pdf")},
+        data={"page_index": "0"},
+        headers={"Idempotency-Key": "receipt-failure-001"},
+    )
+    assert malformed.status_code == 422
+
+    execution = workspace_client.get(f"/workspace/executions/{execution_id}")
+    assert execution.status_code == 200
+    events = execution.json()["events"]
+    success = next(event for event in events if event["event_type"] == "document_inspection")
+    failure = next(event for event in events if event["event_type"] == "document_inspection_failed")
+    assert success["result"]["input_sha256"] == response.json()["input_sha256"]
+    assert success["result"]["candidates"]
+    assert failure["result"]["failure_code"] == "invalid_document"
+    assert failure["result"]["retryable"] is False
+    assert "operator_action" in failure["result"]
+
+
+def test_worker_failure_is_recorded_as_retryable_operator_receipt(monkeypatch, workspace_client):
+    execution_id = _create_execution(workspace_client, topology="local")
+
+    def fail_worker(self, pdf_path, page_index):
+        raise DocumentRuntimeError("native worker failure")
+
+    monkeypatch.setattr(IsolatedDocumentRuntime, "detect_page", fail_worker)
+    response = workspace_client.post(
+        f"/workspace/executions/{execution_id}/document-inspections",
+        files={"file": ("packet.pdf", _pdf_payload(), "application/pdf")},
+        data={"page_index": "0"},
+        headers={"Idempotency-Key": "worker-failure-001"},
+    )
+    assert response.status_code == 422
+
+    execution = workspace_client.get(f"/workspace/executions/{execution_id}")
+    failure = next(
+        event
+        for event in execution.json()["events"]
+        if event["event_type"] == "document_inspection_failed"
+    )
+    assert failure["result"]["failure_code"] == "worker_failure"
+    assert failure["result"]["retryable"] is True
+
+
+def test_invalid_worker_candidate_is_rejected_and_recorded(monkeypatch, workspace_client):
+    execution_id = _create_execution(workspace_client, topology="local")
+
+    monkeypatch.setattr(
+        IsolatedDocumentRuntime,
+        "detect_page",
+        lambda self, pdf_path, page_index: [{
+            "page_index": page_index,
+            "field_type": "signature_line",
+            "x": 72,
+            "y": 680,
+            "width": 188,
+            "height": 1,
+            "confidence": 2.0,
+            "source": "test",
+            "reason": "invalid confidence",
+            "label": "Signature",
+        }],
+    )
+    response = workspace_client.post(
+        f"/workspace/executions/{execution_id}/document-inspections",
+        files={"file": ("packet.pdf", _pdf_payload(), "application/pdf")},
+        data={"page_index": "0"},
+        headers={"Idempotency-Key": "candidate-invalid-001"},
+    )
+    assert response.status_code == 422
+    execution = workspace_client.get(f"/workspace/executions/{execution_id}")
+    failure = next(
+        event
+        for event in execution.json()["events"]
+        if event["event_type"] == "document_inspection_failed"
+    )
+    assert failure["result"]["failure_code"] == "worker_failure"

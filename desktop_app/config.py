@@ -239,6 +239,7 @@ def get_purchase_url(plan_id: str | None = None) -> str:
 @dataclass
 class AppConfig:
     api_base_url: str
+    allow_remote_document_upload: bool = False
     debug: bool = False
     log_level: str = "INFO"
     enable_analytics: bool = False
@@ -253,6 +254,7 @@ def load_config() -> AppConfig:
     
     # Load configuration values
     api_base_url = os.getenv("API_BASE_URL", "http://127.0.0.1:8001")
+    allow_remote_document_upload = os.getenv("ALLOW_REMOTE_DOCUMENT_UPLOAD", "false").lower() in ("true", "1", "yes")
     debug = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     enable_analytics = os.getenv("ENABLE_ANALYTICS", "false").lower() in ("true", "1", "yes")
@@ -263,6 +265,7 @@ def load_config() -> AppConfig:
     
     config = AppConfig(
         api_base_url=api_base_url,
+        allow_remote_document_upload=allow_remote_document_upload,
         debug=debug,
         log_level=log_level,
         enable_analytics=enable_analytics,

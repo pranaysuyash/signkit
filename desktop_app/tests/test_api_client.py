@@ -126,6 +126,35 @@ def test_upload_image_returns_typed_response(tmp_path, monkeypatch):
     assert captured["headers"]["Idempotency-Key"].startswith("upload-")
 
 
+def test_upload_image_blocks_remote_document_egress_by_default(tmp_path, monkeypatch):
+    client = ApiClient("https://api.example.com", SessionState())
+    image_path = tmp_path / "sample.png"
+    image_path.write_bytes(b"fake image bytes")
+    monkeypatch.setattr(requests, "post", lambda *args, **kwargs: pytest.fail("remote upload must be blocked"))
+
+    with pytest.raises(ApiValidationError, match="Remote document upload is disabled"):
+        client.upload_image(str(image_path))
+
+
+def test_upload_image_allows_explicit_connected_mode(tmp_path, monkeypatch):
+    client = ApiClient(
+        "https://api.example.com",
+        SessionState(),
+        allow_remote_document_upload=True,
+    )
+    image_path = tmp_path / "sample.png"
+    image_path.write_bytes(b"fake image bytes")
+    monkeypatch.setattr(
+        requests,
+        "post",
+        lambda *args, **kwargs: _FakeResponse(payload={"id": "session-remote", "filename": "sample.png"}),
+    )
+
+    result = client.upload_image(str(image_path))
+
+    assert result.session_id == "session-remote"
+
+
 def test_process_image_validates_selection_before_network():
     client = ApiClient("http://127.0.0.1:8001", SessionState())
 

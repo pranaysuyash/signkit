@@ -1,10 +1,14 @@
 
-from fastapi import FastAPI
+import hashlib
+import hmac
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from backend.app.routers import auth, extraction, workspace
 from backend.app.database import Base, engine
 from backend.app.paths import LOG_DIR, UPLOADS_DIR
+from backend.app.runtime import is_local_companion, runtime_profile
 from backend.app.services.upload_lifecycle import cleanup_expired_uploads
 import os
 import logging
@@ -55,6 +59,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
+RUNTIME_PROFILE = runtime_profile()
+
 # Ensure uploads directory exists in a user-writable location
 os.makedirs(str(UPLOADS_DIR), exist_ok=True)
 logger.info(f"Uploads directory configured at: {UPLOADS_DIR}")
@@ -84,20 +90,42 @@ app.add_middleware(
 
 # Health check endpoint
 @app.get("/health")
-async def health_check():
+async def health_check(request: Request):
     # Report reachability, not the absolute filesystem path — the path adds
     # no diagnostic value here (it's a fixed, config-derived location the
     # operator already knows) and needlessly discloses server-side
     # directory structure in an otherwise-public health check.
-    return {
+    health_token = os.getenv("SIGNKIT_HEALTH_TOKEN")
+    health_proof = None
+    if health_token:
+        provided_token = request.headers.get("X-SignKit-Health-Token", "")
+        if hmac.compare_digest(provided_token, health_token):
+            health_proof = hmac.new(
+                health_token.encode("utf-8"),
+                b"signkit-health-v1:/health",
+                hashlib.sha256,
+            ).hexdigest()
+
+    payload = {
         "status": "healthy",
         "uploads_dir_exists": os.path.exists(str(UPLOADS_DIR)),
     }
+    if health_proof:
+        payload["health_proof"] = health_proof
+    return payload
 
 # Include routers
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(extraction.router, prefix="/extraction", tags=["Extraction"])
 app.include_router(workspace.router, prefix="/workspace", tags=["Workspace"])
+if is_local_companion():
+    app.include_router(
+        workspace.local_document_router,
+        prefix="/workspace",
+        tags=["Local companion"],
+    )
+else:
+    logger.info("Local document inspection route is not registered for hosted profile")
 
 # Browser-native product surface. It shares the protected /workspace API but is
 # deliberately separate from the historical landing-site assets.

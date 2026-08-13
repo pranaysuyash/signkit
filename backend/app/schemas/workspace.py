@@ -87,6 +87,7 @@ class WorkspaceExecutionEventResponse(BaseModel):
     status_to: str
     idem_key: str | None = None
     summary: str
+    result: dict[str, object] | None = None
     created_at: datetime
 
 
@@ -156,5 +157,18 @@ class DocumentInspectionResponse(BaseModel):
     receipt_id: UUID
     page_index: int
     pages_processed: int
-    candidates: list[dict[str, object]] = Field(default_factory=list)
+    candidates: list["DocumentInspectionCandidate"] = Field(default_factory=list)
     replayed: bool = False
+
+
+class DocumentInspectionCandidate(BaseModel):
+    page_index: int = Field(..., ge=0, le=100_000)
+    field_type: str = Field(..., min_length=1, max_length=80)
+    x: float = Field(..., ge=0, le=10_000_000)
+    y: float = Field(..., ge=0, le=10_000_000)
+    width: float = Field(..., ge=0, le=10_000_000)
+    height: float = Field(..., ge=0, le=10_000_000)
+    confidence: float = Field(..., ge=0, le=1)
+    source: str = Field(..., min_length=1, max_length=80)
+    reason: str = Field(..., min_length=1, max_length=512)
+    label: str = Field(default="", max_length=160)

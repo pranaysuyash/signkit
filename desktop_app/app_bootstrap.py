@@ -88,7 +88,11 @@ def run_with_profile(profile: LaunchProfile) -> int:
 
     cfg = load_config()
     session = SessionState()
-    client = ApiClient(cfg.api_base_url, session)
+    client = ApiClient(
+        cfg.api_base_url,
+        session,
+        allow_remote_document_upload=cfg.allow_remote_document_upload,
+    )
     backend_manager: Final = BackendManager(port=8001, auto_start=True)
 
     def _start_backend() -> None:
@@ -96,7 +100,7 @@ def run_with_profile(profile: LaunchProfile) -> int:
             if backend_manager.start():
                 # Point client to the dynamically selected backend port
                 client.update_base_url(f"http://127.0.0.1:{backend_manager.port}")
-                print(f"Backend started successfully at {client.base_url} - cloud features enabled")
+                print(f"Backend started successfully at {client.base_url} - local companion available")
             else:
                 print("Backend not available - running in offline mode")
         except Exception as error:
