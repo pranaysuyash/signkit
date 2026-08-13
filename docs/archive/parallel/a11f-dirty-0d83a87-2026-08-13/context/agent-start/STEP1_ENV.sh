@@ -1,0 +1,9 @@
+# Source this file in your shell for this project session.
+export MEMSEARCH_PROVIDER="openai"
+export MEMSEARCH_MODEL="text-embedding-3-small"
+export PM="/Users/pranay/Projects/projects-memory"
+export PROJECT_REL="Data_Science/computer_vision/proj6/signature-extractor-app"
+export AGENT_MOTTO_SOURCE="/Users/pranay/Downloads/motto_v5.md"  # portable setups override to project motto_v5.md
+export PROJECT_MOTTO_FILE="/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/motto_v5.md"
+export AGENT_SESSION_CONTEXT="/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/docs/context/agent-start/SESSION_CONTEXT.md"
+export AGENT_KICKOFF_PROMPT="/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/docs/context/agent-start/AGENT_KICKOFF_PROMPT.txt"

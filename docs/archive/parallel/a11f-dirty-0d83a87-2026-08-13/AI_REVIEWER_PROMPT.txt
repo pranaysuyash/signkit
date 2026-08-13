@@ -1,0 +1,252 @@
+COPY THIS ENTIRE PROMPT AND PASTE IT INTO CLAUDE/GPT-4 ALONG WITH YOUR CODEBASE FILES
+========================================================================================
+
+You are conducting a comprehensive pre-launch review of SignKit, a desktop application for signature extraction launching on Black Friday (November 28, 2025 - 15 days away).
+
+CONTEXT:
+- Product: Desktop app for extracting signatures from documents
+- Price: $29 (launch) → $39 (regular)
+- Target: Legal professionals, real estate agents, business owners
+- USP: Privacy-first (100% local processing), one-time payment
+- Launch: Black Friday 2025 via Gumroad
+- Platform: macOS (ARM64 + Intel), Windows, Linux planned
+
+YOUR MISSION:
+Conduct a deep-dive review covering UX, UI, features, technical quality, business strategy, legal compliance, and launch readiness. Identify critical issues, quick wins, and provide actionable recommendations.
+
+REVIEW THESE ASPECTS:
+
+1. USER EXPERIENCE (UX)
+   - First-time user onboarding flow
+   - Core workflows (extract, sign, export)
+   - Error handling and user guidance
+   - Trial-to-paid conversion funnel
+   - Friction points and confusion areas
+
+2. USER INTERFACE (UI)
+   - Visual design and consistency
+   - Layout and information architecture
+   - Interactive elements and feedback
+   - Responsive behavior and accessibility
+   - Professional polish and attention to detail
+
+3. FEATURE COMPLETENESS
+   - Core features (extraction, PDF signing, library)
+   - Edge cases and error handling
+   - Performance and responsiveness
+   - Missing or half-implemented features
+   - Feature parity with competitors
+
+4. TECHNICAL QUALITY
+   - Code organization and architecture
+   - Security vulnerabilities
+   - Testing coverage
+   - Platform compatibility
+   - Technical debt and maintainability
+
+5. BUSINESS & MONETIZATION
+   - Pricing strategy ($29 launch, $39 regular)
+   - Value proposition clarity
+   - Purchase flow and friction
+   - Gumroad integration
+   - Refund policy and support plan
+
+6. MARKETING & POSITIONING
+   - Landing page effectiveness
+   - Target audience definition
+   - Competitive differentiation
+   - Black Friday strategy
+   - Marketing channel coverage
+
+7. LEGAL & COMPLIANCE
+   - Privacy policy accuracy
+   - GDPR/CCPA compliance
+   - Terms of service fairness
+   - Security and data protection
+   - Refund policy clarity
+
+8. DOCUMENTATION
+   - User documentation completeness
+   - Quick start guide effectiveness
+   - FAQ coverage
+   - Technical documentation
+   - Troubleshooting guides
+
+9. LAUNCH READINESS
+   - 15-day timeline feasibility
+   - Critical path analysis
+   - Risk assessment
+   - Support readiness
+   - Post-launch planning
+
+10. COMPETITIVE ANALYSIS
+    - vs Adobe Acrobat ($240/year)
+    - vs DocuSign ($120/year)
+    - vs free alternatives (Photoshop, GIMP)
+    - Privacy-first positioning
+    - Pricing competitiveness
+
+FOR EACH SECTION, PROVIDE:
+
+1. Overall Assessment: (Excellent / Good / Needs Improvement / Critical Issues)
+
+2. Key Findings: (3-5 most important observations)
+
+3. Critical Issues: (MUST fix before launch, ranked by severity)
+
+4. Recommendations: (Specific, actionable improvements)
+
+5. Quick Wins: (Easy improvements, 1-2 days, high impact)
+
+6. Launch Blockers: (Issues preventing successful launch)
+
+7. Post-Launch: (Can be addressed after launch, v1.1 roadmap)
+
+SPECIFIC QUESTIONS TO ANSWER:
+
+UX/UI:
+- Can a non-technical user extract their first signature in under 2 minutes?
+- Is the license activation process clear and friction-free?
+- Are error messages helpful and actionable?
+- What would cause a user to abandon the app in the first 5 minutes?
+- What visual elements feel amateurish or unpolished?
+
+Technical:
+- Are there security vulnerabilities?
+- What's the test coverage? What's missing?
+- How does it handle edge cases (corrupted files, network issues)?
+- Does performance degrade over time?
+- What technical debt needs addressing?
+
+Business:
+- Is $29-39 the right price point?
+- Does the product deliver $29-39 of value?
+- Is the purchase process smooth and trustworthy?
+- What would cause purchase abandonment?
+- Is the Black Friday strategy sound?
+
+Launch:
+- Is 15 days enough time to launch?
+- What tasks are most critical?
+- What could delay the launch?
+- What launch risks exist?
+- Should we launch on Black Friday or delay?
+
+FINAL SUMMARY REQUIRED:
+
+1. Launch Readiness Score: X/10 (with reasoning)
+
+2. Recommended Launch Date: [Date] with justification
+
+3. Top 5 Priorities: Before launch (ranked)
+
+4. Top 5 Risks: With mitigation strategies
+
+5. Overall Recommendation: 
+   - LAUNCH on Black Friday
+   - DELAY to [date]
+   - MAJOR CHANGES NEEDED
+
+6. Confidence Level: X% (how confident in success)
+
+OUTPUT FORMAT:
+
+Use clear headings, bullet points, and specific examples. Be:
+- Honest (don't sugarcoat issues)
+- Constructive (suggest solutions, not just problems)
+- Thorough (test edge cases, think like a customer)
+- Realistic (consider the 15-day timeline)
+- Actionable (provide specific next steps)
+
+SCORING RUBRIC (0-10):
+
+10 - Perfect: Ready to launch immediately
+9 - Excellent: Minor polish needed
+8 - Very Good: Few small issues, 1-2 days work
+7 - Good: Some issues, 3-5 days work
+6 - Acceptable: Multiple issues, 1 week work
+5 - Needs Work: Significant issues, 2 weeks work
+4 - Major Issues: Critical problems, 1 month work
+3 - Serious Problems: Fundamental issues, 2+ months
+2 - Not Ready: Major rework required
+1 - Start Over: Fundamental flaws
+
+FILES TO REVIEW:
+
+Core Application:
+- desktop_app/views/main_window_parts/extraction.py
+- desktop_app/views/main_window_parts/pdf.py
+- desktop_app/views/license_restriction_dialog.py
+- desktop_app/license/storage.py
+- desktop_app/processing/extractor.py
+
+Documentation:
+- docs/PURCHASE_POLICY.md
+- docs/PRIVACY_POLICY.md
+- docs/TERMS_OF_SERVICE.md
+- docs/GUMROAD_COMPLETE_GUIDE.md
+- docs/BLACK_FRIDAY_STRATEGY.md
+- docs/PACKAGING_AND_VERSIONING_STRATEGY.md
+- docs/LAUNCH_EXECUTIVE_SUMMARY.md
+
+Landing Page:
+- web/live/index.html
+- web/live/README.md
+
+Specs & Planning:
+- .kiro/specs/SIGNKIT_LAUNCH_FINAL.md
+- .kiro/specs/LAUNCH_READINESS.md
+- .kiro/specs/pre-launch-review/requirements.md
+- .kiro/specs/pre-launch-review/tasks.md
+
+Build & Distribution:
+- build-tools/SignatureExtractor_macOS.spec
+- QUICK_START.md
+- DISTRIBUTION_STRATEGY.md
+
+CURRENT STATUS (as of Nov 13, 2025):
+
+✅ COMPLETE:
+- Core application fully functional
+- PyInstaller packaging configured
+- Multi-platform builds (macOS ARM64 + Intel)
+- GitHub Actions CI/CD pipeline
+- License system implemented
+- Complete documentation (5000+ lines)
+- Legal documents (Privacy, Terms, EULA)
+- Landing page designed
+- Black Friday strategy defined
+- Affinity-style versioning strategy
+
+❌ MISSING:
+- Professional screenshots (4-6 hours)
+- Demo video recording (4-6 hours)
+- Gumroad account setup (2-3 hours)
+- Landing page screenshot updates (2 hours)
+
+TOTAL TIME NEEDED: 12-17 hours (2-3 focused days)
+
+CONSTRAINTS:
+- 15 days until Black Friday launch
+- Solo developer (limited resources)
+- macOS-only launch acceptable (Windows/Linux can follow)
+- Budget: $500 for marketing/ads if needed
+
+GOALS:
+- Launch successfully on Black Friday
+- Generate $5,000-10,000 in 4 days
+- Build foundation for long-term success
+- Achieve 90%+ customer satisfaction
+
+BEGIN YOUR COMPREHENSIVE REVIEW NOW.
+
+Be thorough, critical, and constructive. The goal is to ensure a successful Black Friday launch in 15 days.
+
+Focus on:
+1. Launch blockers (must fix)
+2. Quick wins (easy, high impact)
+3. Post-launch improvements (v1.1)
+4. Risk mitigation strategies
+5. Realistic timeline assessment
+
+Your review will determine whether we launch on Black Friday or delay. Make it count!

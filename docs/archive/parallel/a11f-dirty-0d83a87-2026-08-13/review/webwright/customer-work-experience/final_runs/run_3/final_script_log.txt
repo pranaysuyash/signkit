@@ -1,0 +1,5 @@
+step 1 action: opened customer-facing concept; title and public-language guard passed; hero screenshot saved
+step 2 action: selected current completed-PDF workflow state; selected tab, accessible image label, caption, and screenshot verified
+step 3 action: verified no browser console or page errors after interaction
+
+FINAL_RESPONSE: Customer-facing concept opened, visual evidence captured, PDF workflow interaction verified, and no console errors observed.

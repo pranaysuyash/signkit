@@ -139,3 +139,27 @@ Suggested new task format:
 - `L0-11` remains open: the context refresh was attempted on 2026-08-13, produced no output within the interactive wait window, and was interrupted. No conclusion about the root cause is asserted; reproduce with bounded diagnostics before changing agent-start.
 - `L0-09`: Local closure advanced this pass. `tools/run_extraction_hosted_smoke.py` passed against a temporary SQLite database after applying every migration through `e42b7f8c91aa`; live target deployment remains open.
 - `L0-10`: Closed this pass. Repaired pip with `ensurepip`, installed declared `alembic==1.16.4`, regenerated the pytest launcher for Python 3.13, and confirmed the backend preflight passes.
+
+## Addendum (2026-08-13): local-main reconciliation checkpoint
+
+This addendum supersedes stale completion language only where it names the
+current checkout and current evidence. Historical entries above remain intact
+as dated records.
+
+### Reconciliation tasks
+
+| ID | Type | Workstream | Status | Priority | Current evidence | Closure criteria |
+| --- | --- | --- | --- | --- | --- | --- |
+| RECON-01 | implicit | parallel-work integrity | done | P0 | Preservation refs and both dirty documentation trees are recorded in `docs/archive/WORKTREE_PRESERVATION_INDEX_2026-08-13.md` and `docs/archive/parallel/`. | Keep archive refs and snapshots recoverable until the user approves cleanup. |
+| RECON-02 | implicit | runtime topology | done | P0 | `b631e35`; 36 focused tests passed S1; local versus hosted route and upload boundaries are explicit. | Hosted migration, live smoke, rollback, and operator receipt evidence remain separate gates. |
+| RECON-03 | explicit | release evidence | done | P0 | `6d0e54e`; 64 focused tests passed S1, entitlement mutation S2, 5/5 mutation S3, local public-surface smoke Tier 3. | Complete provider, signing, cross-platform launch, remote CI, and hosted deployment proof. |
+| RECON-04 | implicit | research and operator workflow | done | P1 | `5798235`; 39 focused tests passed S1 and 7/7 mutation S3. | Complete browser runtime proof and decide which research candidates, if any, are promoted. |
+| RECON-05 | implicit | documentation continuity | done | P1 | Current reconciliation status is in `docs/RECONCILIATION_STATUS_2026-08-13.md`; primary and a11f full docs are archived. | Keep canonical docs synchronized as remaining gates close. |
+| RECON-06 | implicit | agent-start | open | P1 | Existing issue review documents the missing workspace-memory interpreter and truthful retrieval-refresh gap. | Run bounded full refresh, repair or explicitly report retrieval health, and attach generated context hashes. |
+| RECON-07 | implicit | hosted migration and recovery | open | P0 | Local contract and temporary SQLite smoke exist; no target database or live authenticated recovery receipt is claimed. | Apply target migrations, run authenticated upload/process/export/delete/replay, prove rollback and operator recovery. |
+| RECON-08 | explicit | public claims and deployment | open | P0 | Local root, redirect, asset content-type, and retired-claim probes pass Tier 3; the hosted probe remains a release gate. | Run `scripts/test-deployment.sh https://signkit.work` and `tools/test_deployed_surface.py --base-url https://signkit.work --json` after deployment propagation. |
+| RECON-09 | explicit | provider and packaging | open | P0 | Provider-neutral receipt and release ledger contracts fail closed without real provider or artifact evidence. | Controlled purchase/revocation, support recovery, signed artifacts, launch smoke, rollback artifact, and ready ledger evidence. |
+| RECON-10 | implicit | full validation | open | P1 | Focused suites and mutation gates pass; browser accessibility, device, remote CI, full-suite, and external-corpus evidence remain scoped. | Run each QA row at its required evidence tier and record S2/S3 where release blocking. |
+
+The live reconciliation record is maintained in
+`docs/RECONCILIATION_STATUS_2026-08-13.md`. No remote push has occurred.
