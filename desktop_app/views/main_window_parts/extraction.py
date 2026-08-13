@@ -63,6 +63,7 @@ from desktop_app.widgets.modern_mac_button import ModernMacButton
 from desktop_app.views.export_dialog import ExportDialog
 from desktop_app.views.help_dialog import HelpDialog
 from desktop_app.views.license_dialog import LicenseDialog
+from desktop_app.views.signature_candidate_dialog import SignatureCandidateDialog
 
 if TYPE_CHECKING:
     from PySide6.QtCore import QEvent
@@ -4265,14 +4266,31 @@ class ExtractionTabMixin:
             return
 
         try:
-            region = self.local_extractor.auto_detect_signature(self.session.session_id)
-            if not region:
+            candidates = self.local_extractor.auto_detect_signatures(
+                self.session.session_id,
+                max_candidates=5,
+                min_confidence=0.75,
+            )
+            if not candidates:
                 self.status_bar.showMessage("No signature region detected", 3000)
                 return
 
-            x1, y1, x2, y2 = region
+            source_image = self.src_view.get_image()
+            dialog = SignatureCandidateDialog(candidates, source_image, cast(QWidget, self))
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                self.status_bar.showMessage("Auto-detect canceled; manual selection unchanged", 3000)
+                return
+            selected = dialog.selected_candidate()
+            if selected is None:
+                self.status_bar.showMessage("No candidate selected; manual selection unchanged", 3000)
+                return
+
+            x1, y1, x2, y2 = selected.bbox
             self.src_view.set_selection_from_coords(x1, y1, x2, y2)
-            self.status_bar.showMessage("Signature region auto-detected", 2500)
+            self.status_bar.showMessage(
+                f"Candidate confirmed · {selected.source} · score {selected.confidence:.2f}",
+                3000,
+            )
             self.schedule_preview()
         except Exception as exc:
             LOG.warning("Auto-detect failed: %s", exc)

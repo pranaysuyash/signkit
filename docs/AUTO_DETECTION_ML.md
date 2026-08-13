@@ -4,8 +4,9 @@
 
 Users can either manually draw a rectangle around the signature, or use the shipped
 **Auto-Detect** button, which runs traditional-CV detection
-(`desktop_app/processing/extractor.py`) and auto-applies the best candidate. Manual
-selection remains the fallback and the default for low-confidence documents.
+(`desktop_app/processing/extractor.py`). When candidates meet the local
+threshold, a confirmation dialog previews the ranked choices; manual selection
+remains the fallback and the default for low-confidence documents.
 
 **Problem**: Tedious for batch processing, requires user input for each signature
 
@@ -325,9 +326,10 @@ for entity in result.document.entities:
 
 1. ✅ Add "Auto-Detect" button to UI — **shipped** (`desktop_app/views/main_window_parts/extraction.py`)
 2. ✅ Use contour-based detection (OpenCV only, no new deps) — **shipped** (`desktop_app/processing/extractor.py`)
-3. Show all candidates, let user pick correct one — **NOT implemented**: the UI currently
-   auto-applies the single best candidate. The multi-candidate API exists
-   (`auto_detect_signatures`) but is not surfaced in the UI. See open question below.
+3. Show all candidates, let user pick correct one — **shipped locally**: the UI
+   now surfaces up to five ranked candidates in a bounded confirmation dialog
+   with a clipped preview. The operator must confirm before the selection is
+   applied. The ranking score is still not a calibrated probability.
 4. "Good enough for 60-70% of simple documents" — **unverified**: detection parameters were
    selected on an external corpus development split only, not tuned against a labeled
    signature dataset. No measured accuracy exists yet.
@@ -506,19 +508,19 @@ tensorboard - monitoring
 - ✅ Contour-based detection lives in `desktop_app/processing/extractor.py`
   (blue-ink color path → Otsu envelope → adaptive + contour fallback).
 - ✅ The **Auto-Detect** button is wired in
-  `desktop_app/views/main_window_parts/extraction.py` and auto-applies the best candidate.
+  `desktop_app/views/main_window_parts/extraction.py` and asks the operator to confirm a
+  ranked candidate before applying it.
 
 ### Open questions / possible enhancements (not yet built)
-1. **Candidate picker UI:** The multi-candidate API (`auto_detect_signatures`) exists and is
-   unit-tested, but the UI auto-applies a single box. Should we surface a picker (per the
-   original Phase 1 design), or declare single-best auto-apply intentional?
-2. **Accuracy measurement:** There is no labeled dataset or eval harness, so the "60-70%"
+1. **Accuracy measurement:** There is no labeled dataset or eval harness, so the "60-70%"
    figure is unverified. Building a recall@k / IoU eval is a prerequisite before promoting
    auto-detect as a default.
-3. **ML / cloud phases (2-4):** These remain future-only. No `ultralytics`/`torch`/Document AI
+2. **ML / cloud phases (2-4):** These remain future-only. No `ultralytics`/`torch`/Document AI
    dependencies or weights exist in the repo. They should not start until: (a) a labeled
    dataset of 500+ documents exists, (b) a go/no-go accuracy bar is agreed, and (c) a
    privacy review clears any data-collection path (see Phase 2 consent + anonymization +
    kill-switch requirement).
 
-**Happy to dive deeper into any of the above, or start the candidate-picker / eval work.**
+The candidate-picker slice is tracked as `RECON-22` and `QA-24` in the canonical
+PO backlog and QA matrix. The remaining evaluation and ML work must not start
+until its dataset, accuracy bar, and privacy prerequisites are accepted.

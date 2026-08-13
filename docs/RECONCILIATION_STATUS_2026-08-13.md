@@ -219,7 +219,7 @@ first explicit omitted-suite run exposed three missing-optional-PyMuPDF
 failures and repeated destructor logging errors at interpreter shutdown.
 
 ADR-0149 records the decision and alternatives. The canonical root run now
-collects 485 tests and passes `482 passed, 4 skipped` at S1 after the signed
+collects 487 tests and passes `484 passed, 4 skipped` at S1 after the signed
 entitlement slice. The PyMuPDF
 native-form capability remains an explicit optional skip, and three Qt cases
 remain event-loop-dependent. A deliberate reversion of the destructor fix
