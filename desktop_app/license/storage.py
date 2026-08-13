@@ -5,6 +5,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Iterable, Optional, Tuple
 
+from desktop_app.license.entitlements import EntitlementReceipt
+
 
 APP_DIR_NAME = ".signature_extractor"
 LICENSE_FILE = "license.json"
@@ -151,6 +153,7 @@ class LicenseInfo:
     tier: LicenseTier = LicenseTier.TRIAL
     add_ons: set[LicenseAddon] = field(default_factory=set)
     validated_at: Optional[datetime] = None
+    entitlement: Optional[EntitlementReceipt] = None
 
     @property
     def features(self) -> set[LicenseFeature]:
@@ -165,6 +168,8 @@ class LicenseInfo:
         """Check if license is currently valid."""
         if not self.key:
             return False
+        if self.entitlement is not None:
+            return self.entitlement.is_usable()
         if self.is_test_license:
             return True
         # Keep legacy behavior: minimum key length grants a working license
@@ -194,6 +199,10 @@ def load_license() -> Optional[LicenseInfo]:
         is_test_license = data.get("is_test_license", False)
         tier_value = data.get("tier")
         add_on_values = data.get("add_ons")
+        entitlement_data = data.get("entitlement")
+        entitlement = None
+        if entitlement_data is not None:
+            entitlement = EntitlementReceipt.from_dict(entitlement_data)
         validated_at_str = data.get("validated_at")
         validated_at = None
         if validated_at_str:
@@ -213,7 +222,8 @@ def load_license() -> Optional[LicenseInfo]:
                 is_test_license=is_test_license,
                 tier=_normalize_tier(tier_value) if tier_value else _plan_from_key(key),
                 add_ons=_normalize_add_ons(add_on_values),
-                validated_at=validated_at
+                validated_at=validated_at,
+                entitlement=entitlement,
             )
     except Exception:
         # Ignore malformed file
@@ -226,6 +236,7 @@ def save_license(
     email: Optional[str] = None,
     tier: Optional[str] = None,
     add_ons: Optional[Iterable[LicenseAddon | str]] = None,
+    entitlement: Optional[EntitlementReceipt] = None,
 ) -> None:
     """Persist license info to disk."""
     key = key.strip()
@@ -244,6 +255,8 @@ def save_license(
     }
     if email:
         data["email"] = email.strip()
+    if entitlement is not None:
+        data["entitlement"] = entitlement.to_dict()
     
     with open(_license_path(), "w", encoding="utf-8") as f:
         json.dump(data, f)
@@ -349,6 +362,7 @@ __all__ = [
     'LicenseInfo',
     'LicenseValidator', 
     'OperationType',
+    'EntitlementReceipt',
     'TEST_LICENSE_EMAIL',
     'load_license',
     'save_license',

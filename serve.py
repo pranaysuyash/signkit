@@ -6,6 +6,7 @@ preview behavior matches the deployed ``_redirects`` contract.
 """
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from fnmatch import fnmatch
 import os
 from urllib.parse import urlsplit, urlunsplit
 
@@ -42,12 +43,21 @@ LEGACY_ROUTE_PATHS = frozenset(
         "/web/cloud_workspace/index.html",
     }
 )
+LEGACY_ROUTE_PREFIXES = (
+    "/deploy_dist/",
+    "/web/archives/",
+    "/web/backups/",
+    "/web/concepts/",
+)
+LEGACY_ROUTE_PATTERNS = ("/docs/*.html",)
 
 
 class CanonicalRouteHandler(SimpleHTTPRequestHandler):
     def _redirect_legacy_route(self) -> bool:
         parsed = urlsplit(self.path)
-        if parsed.path not in LEGACY_ROUTE_PATHS:
+        is_html_doc = any(fnmatch(parsed.path, pattern) for pattern in LEGACY_ROUTE_PATTERNS)
+        is_retained_tree = any(parsed.path.startswith(prefix) for prefix in LEGACY_ROUTE_PREFIXES)
+        if parsed.path not in LEGACY_ROUTE_PATHS and not is_html_doc and not is_retained_tree:
             return False
 
         location = urlunsplit(("", "", CANONICAL_ROUTE, parsed.query, ""))

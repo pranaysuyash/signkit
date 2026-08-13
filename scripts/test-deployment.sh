@@ -43,6 +43,22 @@ content_type() {
   curl -sS -I -L "${BASE_URL}${path}" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r' | head -n 1
 }
 
+check_javascript_asset() {
+  local path="$1"
+  local marker="$2"
+  local ct
+  local body
+  ct="$(curl -sS -L -o /dev/null -w '%{content_type}' "${BASE_URL}${path}")"
+  if [[ "$ct" != application/javascript* ]] && [[ "$ct" != text/javascript* ]]; then
+    fail "${BASE_URL}${path} expected JavaScript content-type, got ${ct:-<empty>}"
+  fi
+  body="$(curl -sS -L "${BASE_URL}${path}")"
+  if ! grep -q "$marker" <<<"$body"; then
+    fail "${BASE_URL}${path} is missing canonical marker ${marker}"
+  fi
+  echo "OK JavaScript ${BASE_URL}${path} content-type $ct"
+}
+
 check_robots() {
   local ct
   ct="$(content_type "/robots.txt")"
@@ -65,7 +81,7 @@ check_sitemap() {
 }
 
 check_200 "/"
-check_200 "/index.html"
+check_redirect_to_root "/index.html"
 for variant in root buy purchase gum test-variants; do
   check_redirect_to_root "/${variant}"
   check_redirect_to_root "/${variant}/"
@@ -86,5 +102,7 @@ for route in \
 done
 check_robots
 check_sitemap
+check_javascript_asset "/web/live/js/checkout-config.js" "SignKitCheckoutConfig"
+check_javascript_asset "/web/live/js/checkout.js" "checkout_intent"
 
 echo "All checks passed for ${BASE_URL}"

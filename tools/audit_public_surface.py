@@ -43,11 +43,41 @@ def _server_paths() -> set[str]:
     return set(re.findall(r'"([^"\\]+)"', match.group(1)))
 
 
+def _server_wildcard_paths() -> set[str]:
+    source = SERVER.read_text(encoding="utf-8")
+    prefixes_match = re.search(
+        r"LEGACY_ROUTE_PREFIXES\s*=\s*\((.*?)\n\s*\)",
+        source,
+        re.DOTALL,
+    )
+    patterns_match = re.search(
+        r"LEGACY_ROUTE_PATTERNS\s*=\s*\((.*?)\)",
+        source,
+        re.DOTALL,
+    )
+    prefixes = set()
+    if prefixes_match:
+        prefixes = {f"{value}*" for value in re.findall(r'"([^"\\]+)"', prefixes_match.group(1))}
+    patterns = set()
+    if patterns_match:
+        patterns = set(re.findall(r'"([^"\\]+\*[^"\\]*)"', patterns_match.group(1)))
+    return prefixes | patterns
+
+
 def _redirect_paths() -> set[str]:
     paths: set[str] = set()
     for line in REDIRECTS.read_text(encoding="utf-8").splitlines():
         fields = line.split()
         if len(fields) >= 3 and fields[2] == "301" and "*" not in fields[0]:
+            paths.add(fields[0])
+    return paths
+
+
+def _redirect_wildcard_paths() -> set[str]:
+    paths: set[str] = set()
+    for line in REDIRECTS.read_text(encoding="utf-8").splitlines():
+        fields = line.split()
+        if len(fields) >= 3 and fields[2] == "301" and "*" in fields[0]:
             paths.add(fields[0])
     return paths
 
@@ -86,7 +116,9 @@ def audit() -> dict[str, object]:
     errors: list[str] = []
     warnings: list[str] = []
     server_paths = _server_paths()
+    server_wildcard_paths = _server_wildcard_paths()
     redirect_paths = _redirect_paths()
+    redirect_wildcard_paths = _redirect_wildcard_paths()
     registry_ids = _registry_ids()
     index_ids = _index_ids()
 
@@ -102,6 +134,13 @@ def audit() -> dict[str, object]:
     missing_server_paths = sorted(redirect_paths - server_paths - {"/docs/*.html", "/deploy_dist/*"})
     if missing_server_paths:
         warnings.append(f"redirect-only paths not represented in local server contract: {missing_server_paths}")
+
+    missing_wildcard_paths = sorted(server_wildcard_paths - redirect_wildcard_paths)
+    if missing_wildcard_paths:
+        errors.append(f"wildcard local paths missing from _redirects: {missing_wildcard_paths}")
+    extra_wildcard_paths = sorted(redirect_wildcard_paths - server_wildcard_paths)
+    if extra_wildcard_paths:
+        errors.append(f"wildcard _redirects paths missing from local server contract: {extra_wildcard_paths}")
 
     if index_ids != registry_ids:
         errors.append(
@@ -138,6 +177,8 @@ def audit() -> dict[str, object]:
         "warnings": warnings,
         "server_legacy_path_count": len(server_paths),
         "redirect_legacy_path_count": len(redirect_paths),
+        "server_wildcard_path_count": len(server_wildcard_paths),
+        "redirect_wildcard_path_count": len(redirect_wildcard_paths),
         "claim_count": len(index_ids),
         "historical_docs_with_retired_routes": historical_docs,
     }

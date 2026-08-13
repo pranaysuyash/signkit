@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     """Application configuration loaded from environment variables or .env."""
 
     model_config = SettingsConfigDict(
-        env_file=str((Path(__file__).resolve().parents[1] / ".env")),
+        # The repository root .env is the shared configuration surface for the
+        # desktop app, backend launcher, and local migration commands.
+        env_file=str((Path(__file__).resolve().parents[2] / ".env")),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -25,6 +27,7 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str = "pranay"
     DATABASE_NAME: str = "signature_extractor"
     DATABASE_USERNAME: str = "pranay"
+    DATABASE_URL: str | None = None
 
     # JWT settings
     JWT_SECRET: str
@@ -36,8 +39,10 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str | None = None
 
     @property
-    def DATABASE_URL(self) -> str:
+    def resolved_database_url(self) -> str:
         """Construct a SQLAlchemy-compatible database URL."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return (
             f"postgresql://{self.DATABASE_USERNAME}:{self.DATABASE_PASSWORD}"
             f"@{self.DATABASE_HOSTNAME}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
@@ -47,7 +52,7 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         self._validate_configuration()
         logger.info("Settings initialized successfully")
-        logger.debug("Database URL: %s", self.DATABASE_URL)
+        logger.debug("Database URL: %s", self.resolved_database_url)
         logger.debug("JWT Algorithm: %s", self.JWT_ALGORITHM)
         logger.debug(
             "JWT Expiry: %s minutes", self.JWT_ACCESS_TOKEN_EXPIRE_MINUTES

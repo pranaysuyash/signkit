@@ -9,6 +9,7 @@ collection error is reported as BROKEN, not counted as a kill.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import signal
 import subprocess
@@ -101,11 +102,18 @@ def _install_signal_handlers() -> None:
 
 
 def _run_tests(tests: tuple[str, ...]) -> tuple[str, str]:
+    test_env = os.environ.copy()
+    # Backend mutants import the application settings at collection time. Keep
+    # the sensitivity gate self-contained instead of requiring an ambient
+    # developer .env or a running database.
+    test_env.setdefault("JWT_SECRET", "s3-sensitivity-gate-secret-that-is-at-least-32-bytes")
+    test_env.setdefault("DATABASE_URL", "sqlite:///:memory:")
     process = subprocess.run(
         [sys.executable, "-m", "pytest", "-q", *tests],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        env=test_env,
     )
     output = f"{process.stdout}\n{process.stderr}".strip()
     if process.returncode == 0:

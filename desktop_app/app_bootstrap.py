@@ -100,7 +100,7 @@ def run_with_profile(profile: LaunchProfile) -> int:
             if backend_manager.start():
                 # Point client to the dynamically selected backend port
                 client.update_base_url(f"http://127.0.0.1:{backend_manager.port}")
-                print(f"Backend started successfully at {client.base_url} - local companion available")
+                print(f"Local companion service ready at {client.base_url}")
             else:
                 print("Backend not available - running in offline mode")
         except Exception as error:

@@ -1,6 +1,6 @@
 # SignKit launch-claim registry
 
-Date: 2026-08-02
+Date: 2026-08-13
 Owner: SignKit launch surface
 Canonical public source: `/index.html`
 
@@ -11,7 +11,7 @@ such as `<!-- launch-claim: personal_price -->` to bind each public claim family
 to this table. These comments are non-rendered and are checked by
 `tests/test_launch_claim_registry.py`.
 
-Evidence tiers follow `motto_v4.md`: Tier 1 is static inspection, Tier 2 is a
+Evidence tiers follow `motto_v5.md`: Tier 1 is static inspection, Tier 2 is a
 targeted test, Tier 3 is an integration or end-to-end flow, Tier 4 is runtime or
 manual observation, and Tier 5 is production-like or real-data verification.
 
@@ -59,3 +59,13 @@ the canonical root. After publishing, verify that the deployed
 `web/live/js/checkout-config.js` and `web/live/js/checkout.js` responses are
 JavaScript rather than an HTML fallback; otherwise the checkout provider state
 cannot be considered active evidence.
+
+## Addendum (2026-08-13)
+
+This registry directly governs the canonical root only. The broader claim
+surface inventory is tracked in
+`docs/review/claim_surface_inventory_2026-08-13.md`. Retained HTML, desktop
+copy, legal documents, support/email templates, and release notes must be
+classified before they can be treated as current customer-facing evidence.
+Absolute offline, privacy, ownership, authenticity, or legal-validity wording
+is not approved merely because it appears in a historical file.

@@ -23,11 +23,6 @@ if [ -z "$PYTHON_BIN" ]; then
   fi
 fi
 
-if [ -z "${DATABASE_URL:-}" ]; then
-  echo "DATABASE_URL is not set."
-  echo "Example: export DATABASE_URL='postgresql+psycopg://USER:PASS@localhost:5432/signkit'"
-  exit 1
-fi
-
+BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
 BACKEND_PORT="${BACKEND_PORT:-8001}"
-exec "$PYTHON_BIN" -m uvicorn backend.app.main:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload
+exec "$PYTHON_BIN" -m uvicorn backend.app.main:app --host "$BACKEND_HOST" --port "$BACKEND_PORT" --reload

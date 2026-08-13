@@ -140,6 +140,11 @@ def upload_image_endpoint(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file provided")
         filename = (file.filename or "").strip()
         extension = Path(filename).suffix.lower()
+        if file.content_type and file.content_type.lower() not in {"image/png", "image/jpeg"}:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Unsupported image media type",
+            )
         data = file.file.read(UploadSecurity.MAX_FILE_SIZE + 1)
         UploadSecurity.validate_image_bytes(filename, data)
         idempotency_key = validate_idempotency_key(idempotency_key)

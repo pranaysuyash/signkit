@@ -15,6 +15,16 @@ def test_desktop_status_copy_names_the_local_companion_boundary() -> None:
     assert "cloud features enabled" not in extraction
 
 
+def test_startup_and_onboarding_copy_do_not_overclaim_topology() -> None:
+    bootstrap = (ROOT / "desktop_app" / "app_bootstrap.py").read_text(encoding="utf-8")
+    onboarding = (ROOT / "desktop_app" / "views" / "onboarding_dialog.py").read_text(encoding="utf-8")
+
+    assert "cloud features enabled" not in bootstrap
+    assert "Local companion service" in bootstrap
+    assert "Works 100% offline" not in onboarding
+    assert "locally by default" in onboarding
+
+
 def test_browser_workspace_explains_current_and_planned_topologies() -> None:
     page = (ROOT / "web" / "cloud_workspace" / "index.html").read_text(encoding="utf-8").lower()
     app = (ROOT / "web" / "cloud_workspace" / "app.js").read_text(encoding="utf-8").lower()

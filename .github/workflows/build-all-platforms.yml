@@ -286,6 +286,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -293,6 +296,47 @@ jobs:
 
       - name: Display structure
         run: ls -R ./artifacts
+
+      - name: Enforce canonical public-surface claim contract
+        run: python3 tools/audit_public_surface.py --strict
+
+      - name: Build and enforce release artifact ledger
+        env:
+          SIGNKIT_ROLLBACK_ARTIFACT: ${{ vars.SIGNKIT_ROLLBACK_ARTIFACT }}
+          SIGNKIT_MACOS_INTEL_SIGNING_STATUS: ${{ vars.SIGNKIT_MACOS_INTEL_SIGNING_STATUS }}
+          SIGNKIT_MACOS_INTEL_SMOKE_STATUS: ${{ vars.SIGNKIT_MACOS_INTEL_SMOKE_STATUS }}
+          SIGNKIT_MACOS_INTEL_SIGNING_EVIDENCE: ${{ vars.SIGNKIT_MACOS_INTEL_SIGNING_EVIDENCE }}
+          SIGNKIT_MACOS_INTEL_SMOKE_EVIDENCE: ${{ vars.SIGNKIT_MACOS_INTEL_SMOKE_EVIDENCE }}
+          SIGNKIT_MACOS_ARM64_SIGNING_STATUS: ${{ vars.SIGNKIT_MACOS_ARM64_SIGNING_STATUS }}
+          SIGNKIT_MACOS_ARM64_SMOKE_STATUS: ${{ vars.SIGNKIT_MACOS_ARM64_SMOKE_STATUS }}
+          SIGNKIT_MACOS_ARM64_SIGNING_EVIDENCE: ${{ vars.SIGNKIT_MACOS_ARM64_SIGNING_EVIDENCE }}
+          SIGNKIT_MACOS_ARM64_SMOKE_EVIDENCE: ${{ vars.SIGNKIT_MACOS_ARM64_SMOKE_EVIDENCE }}
+          SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_STATUS: ${{ vars.SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_STATUS }}
+          SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_STATUS: ${{ vars.SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_STATUS }}
+          SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_EVIDENCE: ${{ vars.SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_EVIDENCE }}
+          SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_EVIDENCE: ${{ vars.SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_EVIDENCE }}
+          SIGNKIT_WINDOWS_SIGNING_STATUS: ${{ vars.SIGNKIT_WINDOWS_SIGNING_STATUS }}
+          SIGNKIT_WINDOWS_SMOKE_STATUS: ${{ vars.SIGNKIT_WINDOWS_SMOKE_STATUS }}
+          SIGNKIT_WINDOWS_SIGNING_EVIDENCE: ${{ vars.SIGNKIT_WINDOWS_SIGNING_EVIDENCE }}
+          SIGNKIT_WINDOWS_SMOKE_EVIDENCE: ${{ vars.SIGNKIT_WINDOWS_SMOKE_EVIDENCE }}
+          SIGNKIT_LINUX_SIGNING_STATUS: ${{ vars.SIGNKIT_LINUX_SIGNING_STATUS }}
+          SIGNKIT_LINUX_SMOKE_STATUS: ${{ vars.SIGNKIT_LINUX_SMOKE_STATUS }}
+          SIGNKIT_LINUX_SIGNING_EVIDENCE: ${{ vars.SIGNKIT_LINUX_SIGNING_EVIDENCE }}
+          SIGNKIT_LINUX_SMOKE_EVIDENCE: ${{ vars.SIGNKIT_LINUX_SMOKE_EVIDENCE }}
+        run: |
+          python3 tools/release_artifact_ledger.py \
+            --output ./artifacts/release_artifact_ledger.json \
+            --markdown-output ./artifacts/release_artifact_ledger.md \
+            --release-tag "${GITHUB_REF_NAME}" \
+            --source-sha "${GITHUB_SHA}" \
+            --release-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
+            --rollback-artifact "${SIGNKIT_ROLLBACK_ARTIFACT:-not-recorded}" \
+            --artifact "SignKit macOS Intel|macOS|x86_64|./artifacts/SignKit-macOS-Intel/SignKit_macOS_Intel.dmg|${SIGNKIT_MACOS_INTEL_SIGNING_STATUS:-not_verified}|${SIGNKIT_MACOS_INTEL_SMOKE_STATUS:-not_run}|${SIGNKIT_MACOS_INTEL_SIGNING_EVIDENCE:-not-recorded}|${SIGNKIT_MACOS_INTEL_SMOKE_EVIDENCE:-not-recorded}" \
+            --artifact "SignKit macOS ARM64|macOS|arm64|./artifacts/SignKit-macOS-ARM64/SignKit_macOS_ARM64.dmg|${SIGNKIT_MACOS_ARM64_SIGNING_STATUS:-not_verified}|${SIGNKIT_MACOS_ARM64_SMOKE_STATUS:-not_run}|${SIGNKIT_MACOS_ARM64_SIGNING_EVIDENCE:-not-recorded}|${SIGNKIT_MACOS_ARM64_SMOKE_EVIDENCE:-not-recorded}" \
+            --artifact "SignKit Premium macOS ARM64|macOS|arm64|./artifacts/SignKit-Premium-macOS-ARM64/SignKit_Premium_macOS_ARM64.dmg|${SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_STATUS:-not_verified}|${SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_STATUS:-not_run}|${SIGNKIT_PREMIUM_MACOS_ARM64_SIGNING_EVIDENCE:-not-recorded}|${SIGNKIT_PREMIUM_MACOS_ARM64_SMOKE_EVIDENCE:-not-recorded}" \
+            --artifact "SignKit Windows|Windows|x86_64|./artifacts/SignKit-Windows/SignKit_Windows.zip|${SIGNKIT_WINDOWS_SIGNING_STATUS:-not_verified}|${SIGNKIT_WINDOWS_SMOKE_STATUS:-not_run}|${SIGNKIT_WINDOWS_SIGNING_EVIDENCE:-not-recorded}|${SIGNKIT_WINDOWS_SMOKE_EVIDENCE:-not-recorded}" \
+            --artifact "SignKit Linux|Linux|x86_64|./artifacts/SignKit-Linux/SignKit_Linux.tar.gz|${SIGNKIT_LINUX_SIGNING_STATUS:-not_verified}|${SIGNKIT_LINUX_SMOKE_STATUS:-not_run}|${SIGNKIT_LINUX_SIGNING_EVIDENCE:-not-recorded}|${SIGNKIT_LINUX_SMOKE_EVIDENCE:-not-recorded}" \
+            --require-ready
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -303,10 +347,19 @@ jobs:
             ./artifacts/SignKit-Premium-macOS-ARM64/SignKit_Premium_macOS_ARM64.dmg
             ./artifacts/SignKit-Windows/SignKit_Windows.zip
             ./artifacts/SignKit-Linux/SignKit_Linux.tar.gz
+            ./artifacts/release_artifact_ledger.json
+            ./artifacts/release_artifact_ledger.md
           body: |
             # SignKit ${{ github.ref_name }}
 
-            Professional signature extraction tool with complete privacy.
+            Professional signature extraction and PDF workflow. Core document
+            processing runs locally by default. Checkout, updates, and support
+            use network services only when you choose them.
+
+            This release is published only after the release artifact ledger
+            records checksums, signing status, smoke status, and a rollback
+            artifact for every platform. See `release_artifact_ledger.md` for
+            the operator-readable record.
 
             ## 📥 Downloads
 
@@ -345,7 +398,7 @@ jobs:
 
             - Extract signatures from photos with precision controls
             - Sign PDFs directly in the app
-            - 100% offline - complete privacy
+            - Local-first document processing with an explicit connected-service boundary
             - Library management for saved signatures
             - Export to PNG/JPG
 

@@ -115,9 +115,9 @@ class OnboardingDialog(QDialog):
         layout.addWidget(why_label)
 
         features = [
-            ("info", "Privacy First", "Contracts, intake forms, HR packets, and signed PDFs stay on your device. Works 100% offline."),
+            ("info", "Privacy First", "Core extraction and PDF work run locally by default. Checkout, updates, and support use network services only when you choose them."),
             ("ok", "Reusable Signature Library", "Extract once, save reusable signatures, and place them across future PDFs."),
-            ("apply", "Local PDF Workflow", "Clean signatures, keep a vault history, and finish sensitive documents without cloud upload."),
+            ("apply", "Local PDF Workflow", "Clean signatures, keep a vault history, and finish sensitive documents locally by default."),
         ]
 
         for emoji, title, description in features:

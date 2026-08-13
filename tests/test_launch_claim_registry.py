@@ -236,6 +236,17 @@ def test_public_surface_is_canonical() -> None:
     assert "utm_source" in checkout
 
 
+def test_local_server_covers_wildcard_retained_trees() -> None:
+    server = SERVER_PATH.read_text(encoding="utf-8")
+    redirects = REDIRECTS_PATH.read_text(encoding="utf-8")
+
+    for prefix in ("/deploy_dist/", "/web/archives/", "/web/backups/", "/web/concepts/"):
+        assert f'"{prefix}"' in server
+        assert f"{prefix}* / 301" in redirects
+    assert 'LEGACY_ROUTE_PATTERNS = ("/docs/*.html",)' in server
+    assert "/docs/*.html / 301" in redirects
+
+
 def test_canonical_surface_has_accessibility_primitives() -> None:
     page = _index()
     assert re.search(r"<main(?:\s[^>]*)?>", page)
