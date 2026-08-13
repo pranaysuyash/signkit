@@ -232,3 +232,14 @@ The shared agent-start generator now preserves a project-local `motto_v5.md`
 when present instead of deleting it in favor of the workspace-wide Doctrine
 6.0. Fresh fast-mode regeneration succeeded and recorded the local doctrine
 path, version, SHA-256, and explicit workspace separation in the context pack.
+
+## Addendum (2026-08-13): PDF field-detection contract
+
+The preserved local PDF detector slice was reviewed and integrated as `RECON-25`
+and `QA-37`. It consolidates the image-pixel to PDF-point transform and
+candidate dedupe policy, adds a generated labeled AcroForm regression with a
+confidence floor and IoU threshold, and adds a documentation drift gate for the
+image and PDF detector modules. Fifteen focused checks passed. This closes only
+the local code/regression/documentation contract; human or production PDF
+accuracy, confidence calibration, unattended placement, packaged/cross-platform,
+hosted, and assistive-technology evidence remain separate.

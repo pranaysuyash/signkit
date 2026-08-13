@@ -400,3 +400,57 @@ def test_build_field_anchor_signature_rect_from_ratio_prefers_best_field(signatu
     assert y < 170
 
     Path(temp_sig.name).unlink(missing_ok=True)
+
+
+def test_detect_known_signature_field_accuracy() -> None:
+    """Positive accuracy regression: a clearly-labeled signature field must be
+    detected at (near) its true location. This is the labeled-eval harness the
+    audits kept deferring -- a real bbox/IoU assertion rather than the
+    auto_detect_golden.json placeholder (which is a signature-template bbox, not
+    a field-detection case)."""
+    from reportlab.pdfgen import canvas as _canvas
+
+    temp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
+    temp.close()
+
+    pdf = _canvas.Canvas(temp.name, pagesize=letter)
+    _width, _height = letter  # noqa: F841
+    # A signature text field at a known rectangle (PDF user space).
+    pdf.acroForm.textfield(name="Signature", tooltip="Signature", x=120, y=200, width=240, height=44)
+    pdf.drawString(120, 260, "Please sign below:")
+    pdf.showPage()
+    pdf.save()
+
+    try:
+        detector = SignatureFieldDetector()
+        candidates = detector.detect_pdf(temp.name)
+
+        sig_candidates = [c for c in candidates if c.field_type == "signature"]
+        assert sig_candidates, "Expected a detected signature field"
+
+        best = max(sig_candidates, key=lambda c: c.confidence)
+        assert best.confidence >= 0.9
+
+        # IoU of detected rect vs the true (120, 200, 240, 44) placement.
+        expected = (120.0, 200.0, 240.0, 44.0)
+        iou = _iou((best.x, best.y, best.width, best.height), expected)
+        assert iou >= 0.85, (
+            f"detected rect IoU too low: {best.x},{best.y},{best.width},{best.height} (iou={iou:.3f})"
+        )
+    finally:
+        Path(temp.name).unlink(missing_ok=True)
+
+
+def _iou(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> float:
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    a1 = (ax, ay, ax + aw, ay + ah)
+    b1 = (bx, by, bx + bw, by + bh)
+    ix0 = max(a1[0], b1[0])
+    iy0 = max(a1[1], b1[1])
+    ix1 = min(a1[2], b1[2])
+    iy1 = min(a1[3], b1[3])
+    if ix1 <= ix0 or iy1 <= iy0:
+        return 0.0
+    inter = (ix1 - ix0) * (iy1 - iy0)
+    return inter / max((aw * ah) + (bw * bh) - inter, 1.0)

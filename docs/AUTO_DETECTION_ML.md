@@ -18,6 +18,26 @@ remains the fallback and the default for low-confidence documents.
 
 ---
 
+## Detection Subsystems in This Repo
+
+This document covers two *separate* auto-detection capabilities. They share the
+"auto-detect signature" goal but operate on different inputs and live in
+different modules:
+
+- **Image signature detection** — `desktop_app/processing/extractor.py`. Detects a
+  signature *inside a raster image* (the signature-extraction feature). Surfaced
+  via the **Auto-Detect** button and a ranked candidate confirmation dialog.
+- **PDF signature-field detection** — `desktop_app/pdf/field_detection.py`
+  (`SignatureFieldDetector`). Detects signature *fields / placement areas inside a
+  PDF* (AcroForm widgets + OpenCV layout heuristics + OCR keyword hints). Surfaced
+  via the PDF viewer's "Find fields" action and a candidate list the operator
+  picks from. See PDF Field Detection (1.3) below.
+
+Both are shipped and tested; both still emit **uncalibrated** confidence scores
+(see Open questions). Keep this list in sync with the code — a CI gate
+(`tests/test_auto_detection_doc_coverage.py`) fails if a detection module exists
+without a doc entry here.
+
 ## Approach 1: Traditional CV (Computer Vision)
 
 ### 1.1 Contour-Based Detection
@@ -144,6 +164,38 @@ def detect_signature_ocr(image_path):
 **When to use:** Documents with "Signature:" labels, forms
 
 ---
+
+### 1.3 PDF Field Detection (Shipped) — `desktop_app/pdf/field_detection.py`
+
+A second, independent traditional-CV detector that finds signature **fields inside
+a PDF** (where to *place* a signature), as opposed to extracting a signature from
+a raster image.
+
+**Signal sources (combined, de-duplicated per page):**
+
+1. **AcroForm / widget inspection** (`pikepdf`): reads real form fields. A `/Sig`
+   widget or a field whose label contains "signature"/"sign here" is classified as
+   a signature field (highest confidence; real form widgets are the most reliable
+   evidence).
+2. **OpenCV layout heuristics** (`cv2`): renders the page and looks for long
+   horizontal signature lines and rectangular field-like boxes (ratio/position
+   scored). Runs automatically on the first pages.
+3. **OCR keyword hints** (`pytesseract`, scan-preprocess mode only): finds text
+   like "Signature:", "Sign here:", "Initials" and offers them as lower-confidence
+   placement hints.
+
+All three share one image→PDF coordinate transform and one overlap-dedupe helper
+(no forked copies). Output is bounded per page (`MAX_HEURISTIC_CANDIDATES_PER_PAGE`
+= 3, `MAX_TOTAL_CANDIDATES_PER_PAGE` = 12).
+
+**Status:** ✅ Shipped and tested (`desktop_app/tests/test_pdf_field_detection.py`,
+`test_pdf_bulk_field_detection.py`). The PDF viewer surfaces the ranked candidates
+in a list the operator confirms before placement — the same "show candidates, let
+user pick" design as the image path. Confidence scores are **not** calibrated
+(see Open questions).
+
+**When to use:** PDFs with form fields or "Sign here" labels; the desktop PDF
+viewer's auto-placement flow.
 
 ## Approach 2: Machine Learning (Deep Learning)
 
@@ -523,6 +575,20 @@ tensorboard - monitoring
    dataset of 500+ documents exists, (b) a go/no-go accuracy bar is agreed, and (c) a
    privacy review clears any data-collection path (see Phase 2 consent + anonymization +
    kill-switch requirement).
+3. **Uncalibrated confidence (both detectors):** `extractor.py` *and*
+   `field_detection.py` emit hand-ranked confidence numbers (not calibrated
+   probabilities) that drive auto-placement thresholds. The image-path eval gap is
+   noted in (1); for the PDF path,
+   `test_pdf_field_detection.py::test_detect_known_signature_field_accuracy` now
+   asserts a labeled-field IoU, but the *confidence calibration* itself is still
+   unvalidated. Promote either detector to a default only after a recall@k / IoU
+   eval on a labeled set.
+4. **Test discovery (ISSUE-007) — resolved:** `pytest.ini` already collects
+   `tests`, `backend/tests`, and `desktop_app/tests`, so the field-detection and
+   backend suites are no longer invisible to the default run. The dated QA
+   matrix records the current full-suite count. A doc-lint gate
+   (`tests/test_auto_detection_doc_coverage.py`) now keeps this document in sync
+   with the detection modules.
 
 The candidate-picker slice is tracked as `RECON-22`, `QA-24`, and the native
 observation `QA-26` in the canonical PO backlog and QA matrix. `RECON-23` is

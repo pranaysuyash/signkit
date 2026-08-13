@@ -13,7 +13,7 @@ import importlib
 import logging
 import re
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, Sequence
+from typing import Any, Iterable, List, Optional, Sequence, TypeVar
 
 import pikepdf
 import pypdfium2 as pdfium
@@ -24,6 +24,8 @@ from desktop_app.pdf.pdfium_runtime import pdfium_operation
 LOG = logging.getLogger(__name__)
 MAX_HEURISTIC_CANDIDATES_PER_PAGE = 3
 MAX_TOTAL_CANDIDATES_PER_PAGE = 12
+
+_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
@@ -205,14 +207,17 @@ class SignatureFieldDetector:
 
             candidates: list[SignatureFieldCandidate] = []
             for item in heuristics:
+                x, y, width, height = self._image_rect_to_pdf(
+                    item["x"], item["y"], item["width"], item["height"], image, page_width_pt, page_height_pt
+                )
                 candidates.append(
                     SignatureFieldCandidate(
                         page_index=page_index,
                         field_type=item["field_type"],
-                        x=item["x"] * page_width_pt / image.shape[1],
-                        y=page_height_pt - (item["y"] + item["height"]) * page_height_pt / image.shape[0],
-                        width=item["width"] * page_width_pt / image.shape[1],
-                        height=item["height"] * page_height_pt / image.shape[0],
+                        x=x,
+                        y=y,
+                        width=width,
+                        height=height,
                         confidence=item["confidence"],
                         source="heuristic",
                         reason=item["reason"],
@@ -284,14 +289,17 @@ class SignatureFieldDetector:
                 if width <= 6 or height <= 6:
                     continue
 
+                px, py, pw, ph = self._image_rect_to_pdf(
+                    x, y, width, height, image, page_width_pt, page_height_pt
+                )
                 candidates.append(
                     SignatureFieldCandidate(
                         page_index=page_index,
                         field_type="ocr_keyword_hint",
-                        x=page_width_pt * (x / image.shape[1]),
-                        y=page_height_pt - ((y + height) * page_height_pt / image.shape[0]),
-                        width=page_width_pt * (width / image.shape[1]),
-                        height=page_height_pt * (height / image.shape[0]),
+                        x=px,
+                        y=py,
+                        width=pw,
+                        height=ph,
                         # Maps Tesseract's 0-1 confidence into a 0.6-0.94
                         # band: OCR hints are deliberately capped below the
                         # 0.99/0.93 AcroForm-widget scores in
@@ -341,6 +349,26 @@ class SignatureFieldDetector:
         if raw_conf <= 1:
             return max(0.0, raw_conf)
         return max(0.0, min(1.0, raw_conf / 100.0))
+
+    @staticmethod
+    def _image_rect_to_pdf(
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        image: "np.ndarray",
+        page_width_pt: float,
+        page_height_pt: float,
+    ) -> tuple[float, float, float, float]:
+        """Map an image-pixel rectangle (origin top-left) into PDF-point space
+        (origin bottom-left). Used by both the rendered-heuristic and OCR-hint
+        paths so the two coordinate transforms cannot drift apart."""
+        img_h, img_w = image.shape[:2]
+        pdf_x = x * page_width_pt / img_w
+        pdf_y = page_height_pt - (y + height) * page_height_pt / img_h
+        pdf_w = width * page_width_pt / img_w
+        pdf_h = height * page_height_pt / img_h
+        return pdf_x, pdf_y, pdf_w, pdf_h
 
     def _detect_from_image(self, image: np.ndarray, cv2_module: Any) -> List[dict[str, Any]]:
         gray = cv2_module.cvtColor(image, cv2_module.COLOR_RGB2GRAY)
@@ -450,23 +478,34 @@ class SignatureFieldDetector:
 
         return cv2_module, pytesseract_module
 
-    def _dedupe_candidates(self, candidates: Sequence[SignatureFieldCandidate]) -> List[SignatureFieldCandidate]:
-        ordered = sorted(candidates, key=lambda c: c.confidence, reverse=True)
-        output: list[SignatureFieldCandidate] = []
-        for candidate in ordered:
-            if any(self._rect_overlap((candidate.x, candidate.y, candidate.width, candidate.height), (existing.x, existing.y, existing.width, existing.height)) > 0.55 for existing in output):
+    def _dedupe(self, items: Sequence[_T], conf_of, rect_of) -> list[_T]:
+        """Keep highest-confidence items, dropping any whose rectangle overlaps
+        an already-kept item by more than 0.55 IoU. Shared by both the
+        dataclass and dict candidate paths so the overlap policy lives in one
+        place."""
+        ordered = sorted(items, key=conf_of, reverse=True)
+        output: list[_T] = []
+        for item in ordered:
+            rect = rect_of(item)
+            if any(self._rect_overlap(rect, rect_of(existing)) > 0.55 for existing in output):
                 continue
-            output.append(candidate)
-        return sorted(output, key=lambda c: (c.page_index, -c.confidence, c.y, c.x))
+            output.append(item)
+        return output
+
+    def _dedupe_candidates(self, candidates: Sequence[SignatureFieldCandidate]) -> List[SignatureFieldCandidate]:
+        kept = self._dedupe(
+            candidates,
+            conf_of=lambda c: c.confidence,
+            rect_of=lambda c: (c.x, c.y, c.width, c.height),
+        )
+        return sorted(kept, key=lambda c: (c.page_index, -c.confidence, c.y, c.x))
 
     def _dedupe_candidate_dicts(self, candidates: Sequence[dict[str, Any]]) -> List[dict[str, Any]]:
-        ordered = sorted(candidates, key=lambda c: c["confidence"], reverse=True)
-        output: list[dict[str, Any]] = []
-        for candidate in ordered:
-            if any(self._rect_overlap((candidate["x"], candidate["y"], candidate["width"], candidate["height"]), (existing["x"], existing["y"], existing["width"], existing["height"])) > 0.55 for existing in output):
-                continue
-            output.append(candidate)
-        return output
+        return self._dedupe(
+            candidates,
+            conf_of=lambda c: c["confidence"],
+            rect_of=lambda c: (c["x"], c["y"], c["width"], c["height"]),
+        )
 
     def _limit_candidates_per_page(self, candidates: Sequence[SignatureFieldCandidate]) -> List[SignatureFieldCandidate]:
         by_page: dict[int, list[SignatureFieldCandidate]] = {}
