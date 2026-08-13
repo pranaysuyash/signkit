@@ -40,3 +40,13 @@ def test_wayfinder_resolution_points_to_open_claim_remediation() -> None:
     assert "DOCUMENTATION_TRUTH_MAP_2026-08-13.md" in ticket
     assert "L1-07" in ticket
     assert "| L2-01 | explicit | wayfinder |" in backlog
+
+
+def test_operator_state_task_points_to_current_runtime_evidence() -> None:
+    backlog = _read("docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md")
+    matrix = _read("docs/STATE_CONTENT_MATRIX.md")
+    qa = _read("docs/QA_RESULTS.md")
+
+    assert "local_operator_state_proof_2026-08-13.md" in backlog
+    assert "disposable source-to-ready observation" in matrix
+    assert "QA-28" in qa

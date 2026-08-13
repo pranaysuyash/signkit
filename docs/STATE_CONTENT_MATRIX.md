@@ -61,3 +61,16 @@ Targeted evidence: `desktop_app/tests/test_workflow_screen_smoke.py` and
 environment. Full source-to-export runtime observation and manual verification
 of malformed-input, timeout, partial-export, cleanup, and local-companion
 outage recovery messages remain open.
+
+## Addendum (2026-08-13): disposable source-to-ready observation
+
+`tools/run_local_source_to_ready_proof.py` has a fresh Tier 4 local result
+recorded in `docs/review/local_operator_state_proof_2026-08-13.md`. It observes
+source extraction, encrypted Vault round trip, a forced `ERR_SIGNING_FAILED`
+transition to `retry`, canonical retry to `completed`, metadata-only passport
+projection, and a verified visual placement artifact receipt. Hosted contact
+and browser document-byte transfer were both false in the manifest.
+
+The proof advances the local source-to-export state contract but does not close
+the remaining malformed-input, timeout, partial-export, deletion-cleanup, or
+local-companion-outage states.

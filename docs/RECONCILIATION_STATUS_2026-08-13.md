@@ -19,8 +19,8 @@ as production proof.
 | Release and entitlement evidence | `6d0e54e` | Shared environment contract, deployment/public-surface gates, release artifact ledger, provider-neutral entitlement receipt, synthetic fixtures, QA matrix, claim inventory, release ADRs | 64 focused tests, S1; entitlement mutation failed then passed, S2; 5/5 mutation manifest, S3; local deployment smoke, Tier 3 | Provider adapter and purchase/revocation evidence, signed artifacts, cross-platform launch, hosted deployment, target migration and remote CI remain open |
 | Research and operator workflow | `5798235` | Extractor confidence threshold, web receipt hydration and failure visibility, isolated document-registration concept, browser proof, SignverOD inspection/evaluation, autoresearch protocol | 39 focused tests, S1; 7/7 mutation manifest, S3; Python compilation | Browser proof requires the external Playwright runtime and keep-running backend; external corpus and product promotion remain gated |
 
-The current canonical first-party local regression is `487 passed, 4 skipped`
-from `491` collected with the canonical `.venv`, isolated SQLite database, and
+The current canonical first-party local regression is `488 passed, 4 skipped`
+from `492` collected with the canonical `.venv`, isolated SQLite database, and
 offscreen Qt. Earlier smaller counts below are preserved as historical
 promotion evidence.
 This is S1 evidence for the current checkout. It does not close hosted,
