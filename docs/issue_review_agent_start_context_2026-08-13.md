@@ -147,3 +147,22 @@ preserved at `/Users/pranay/Projects/OPERATING_DOCTRINE.md.generated-copy-202608
 This closes the project-local determinism portion of L0-11. Shared retrieval
 rebuild, real indexing/search, and provider/runtime availability remain open
 under RECON-06.
+
+## Addendum (2026-08-13): repeated-refresh verification and installer hardening
+
+The first follow-up commit exposed that the shared generator and its hook
+installer had been overwritten back to the workspace Doctrine 6.0 defaults by
+another concurrent refresh. The live tools were rechecked and corrected again:
+`/Users/pranay/Projects/agent-start` now selects a project-local
+`motto_v5.md` before workspace Doctrine 6.0, skips synchronization of that
+more-specific file, and retains the workspace Doctrine symlink separately.
+`/Users/pranay/Projects/workspace_memory/scripts/install_git_precommit_agent_hook.py`
+now emits hooks that choose `motto_v5.md` when present and otherwise fall back
+to `OPERATING_DOCTRINE.md`.
+
+Two consecutive `agent-start --project ... --skip-index --quiet` runs exited
+`0`, left the project motto byte-identical to `HEAD` with SHA-256
+`f1ade186d46bf2e20e9eebd56ceca3a733711671471198284828482659524840`, and
+regenerated context that names the project motto, version `5`, and explicit
+workspace Doctrine 6.0 separation. The generated root Doctrine duplicate was
+classified as ignored runtime output and removed after hash preservation.
