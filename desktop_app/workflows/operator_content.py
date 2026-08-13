@@ -74,6 +74,11 @@ _DELETION_COPY = {
     "not_deleted": "The signature could not be removed. No deletion was recorded.",
 }
 
+_TIMEOUT_COPY = (
+    "The local companion did not respond in time. Core document work remains available locally. "
+    "Retry the local service or continue local work."
+)
+
 
 def _coerce_state(state: WorkflowState | str) -> Optional[WorkflowState]:
     if isinstance(state, WorkflowState):
@@ -148,12 +153,19 @@ def deletion_outcome_message(status: str) -> str:
     return _DELETION_COPY.get(status, _DELETION_COPY["not_deleted"])
 
 
+def timeout_outcome_message() -> str:
+    """Return bounded recovery copy for a local companion timeout."""
+
+    return _TIMEOUT_COPY
+
+
 __all__ = [
     "companion_status_label",
     "companion_status_message",
     "companion_tooltip",
     "deletion_outcome_message",
     "export_outcome_message",
+    "timeout_outcome_message",
     "outcome_message",
     "state_label",
 ]

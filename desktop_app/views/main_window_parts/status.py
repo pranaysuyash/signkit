@@ -41,6 +41,12 @@ class PaneStatusMixin:
         self.backend_status_label.setStyleSheet("color: #a37f00; padding: 2px 8px;")
         self.status_bar.addPermanentWidget(self.backend_status_label)
 
+        self.retry_companion_button = QPushButton("Retry local service")
+        self.retry_companion_button.setToolTip("Restart the local companion and check its health again")
+        self.retry_companion_button.clicked.connect(self._retry_local_companion)
+        self.retry_companion_button.hide()
+        self.status_bar.addPermanentWidget(self.retry_companion_button)
+
         mono_style = (
             "color: #666; padding: 2px 8px; font-family: 'Menlo', 'Roboto Mono',"
             " 'Fira Code', 'Courier New', monospace; font-size: 11px;"

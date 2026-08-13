@@ -111,6 +111,26 @@ def test_backend_health_updates_top_level_status_label(main_window):
     assert main_window.backend_status_label.text() == "Local service: Online"
 
 
+def test_typed_backend_timeout_uses_bounded_local_recovery_copy(main_window, monkeypatch):
+    from desktop_app.api.errors import BackendUnavailable
+
+    shown = []
+    monkeypatch.setattr(QMessageBox, "critical", lambda *args: shown.append(args[2]))
+    main_window._handle_backend_exception(BackendUnavailable("Backend timed out during upload"), context="Upload failed")
+
+    assert len(shown) == 1
+    assert "did not respond in time" in shown[0]
+    assert "Backend timed out during upload" not in shown[0]
+
+
+def test_companion_offline_state_exposes_retry_control(main_window):
+    main_window._on_backend_offline("test outage")
+    assert not main_window.retry_companion_button.isHidden()
+
+    main_window._on_backend_online()
+    assert main_window.retry_companion_button.isHidden()
+
+
 def test_rotate_preview_updates_rotation_state(main_window):
     main_window.preview_view.set_image(_make_image())
     main_window._on_pane_clicked("preview")

@@ -332,12 +332,12 @@ class MainWindow(
             elif not is_available and self._backend_online:
                 # Backend went offline
                 self._backend_online = False
-                self.backend_status_label.setText(companion_status_label("checking"))
+                self._on_backend_offline("health check did not respond")
                 self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
                 LOG.info("Backend connection lost, will keep checking")
             elif not is_available and not self._backend_online:
                 # Still waiting for backend to start
-                self.backend_status_label.setText(companion_status_label("starting"))
+                self._on_backend_offline("local companion is not health-ready")
                 self.backend_status_label.setStyleSheet("color: #0066cc; padding: 2px 8px;")
         except Exception as e:
             LOG.debug(f"Backend health check failed: {e}")

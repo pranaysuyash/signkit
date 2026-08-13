@@ -69,6 +69,7 @@ from desktop_app.workflows.operator_content import (
     companion_status_message,
     companion_tooltip,
     deletion_outcome_message,
+    timeout_outcome_message,
 )
 
 if TYPE_CHECKING:
@@ -2527,6 +2528,8 @@ class ExtractionTabMixin:
             self.backend_status_label.setText(f"● {companion_status_label('online')}")
             self.backend_status_label.setStyleSheet("color: #2e7d32; padding: 2px 8px;")
             self.backend_status_label.setToolTip(companion_tooltip("online"))
+        if hasattr(self, "retry_companion_button"):
+            self.retry_companion_button.hide()
         
         # Enable cloud features if any
         self._update_cloud_features_availability(True)
@@ -2539,6 +2542,8 @@ class ExtractionTabMixin:
             self.backend_status_label.setText(f"○ {companion_status_label('offline')}")
             self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
             self.backend_status_label.setToolTip(companion_tooltip("offline"))
+        if hasattr(self, "retry_companion_button"):
+            self.retry_companion_button.show()
         
         # Disable cloud features but keep core functionality
         self._update_cloud_features_availability(False)
@@ -2546,6 +2551,30 @@ class ExtractionTabMixin:
         # Show user-friendly message about offline mode
         if hasattr(self, 'status_bar'):
             self.status_bar.showMessage("Local mode - core document work available", 3000)
+
+    def _retry_local_companion(self) -> None:
+        """Restart the local companion off the UI thread and recheck health."""
+
+        if not getattr(self, "backend_manager", None):
+            self._check_backend_health()
+            return
+
+        if hasattr(self, "retry_companion_button"):
+            self.retry_companion_button.setEnabled(False)
+            self.retry_companion_button.setText("Restarting local service...")
+        self._backend_retry_runner = AsyncRunner(self.backend_manager.restart)
+        self._backend_retry_runner.finished.connect(self._on_local_companion_retry_finished)
+        self._backend_retry_runner.error.connect(self._on_local_companion_retry_error)
+        dispatch(self._backend_retry_runner)
+
+    def _on_local_companion_retry_finished(self, available: object) -> None:
+        if bool(available):
+            self._on_backend_online()
+            return
+        self._on_backend_offline("restart did not reach health-ready state")
+
+    def _on_local_companion_retry_error(self, _error: Exception) -> None:
+        self._on_backend_offline("restart failed")
     
     def _update_cloud_features_availability(self, available: bool) -> None:
         """Update availability of cloud-dependent features.
@@ -2554,8 +2583,9 @@ class ExtractionTabMixin:
             available: True if cloud features should be enabled
         """
         # Update API client offline mode
-        if hasattr(self, 'api_client'):
-            self.api_client.set_offline_mode(not available)
+        set_offline_mode = getattr(getattr(self, "api_client", None), "set_offline_mode", None)
+        if callable(set_offline_mode):
+            set_offline_mode(not available)
         
         # Here you can disable/enable specific cloud features
         # For now, core features work offline, so no changes needed
@@ -2628,7 +2658,11 @@ class ExtractionTabMixin:
         cls = e.__class__
         mod = getattr(cls, "__module__", "")
         name = getattr(cls, "__name__", "")
-        if mod.startswith("requests") and name in {"ConnectionError", "Timeout"}:
+        if (mod.startswith("requests") and name in {"ConnectionError", "Timeout"}) or (
+            e.__class__.__name__ == "BackendUnavailable" and "timed out" in str(e).lower()
+        ):
+            detail = timeout_outcome_message()
+        elif e.__class__.__name__ == "BackendUnavailable":
             detail = companion_status_message("offline")
         elif isinstance(e, FileNotFoundError):
             detail = "The selected local resource is unavailable. Choose it again or continue with another source."

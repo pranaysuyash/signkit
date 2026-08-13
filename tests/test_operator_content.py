@@ -7,6 +7,7 @@ from desktop_app.workflows.operator_content import (
     companion_tooltip,
     deletion_outcome_message,
     export_outcome_message,
+    timeout_outcome_message,
     outcome_message,
     state_label,
 )
@@ -74,3 +75,11 @@ def test_deletion_copy_distinguishes_complete_and_incomplete_cleanup() -> None:
     assert deletion_outcome_message("deleted") == "Signature removed and cleanup completed."
     assert "cleanup is incomplete" in deletion_outcome_message("cleanup_incomplete")
     assert "No deletion was recorded" in deletion_outcome_message("not_deleted")
+
+
+def test_timeout_copy_preserves_local_recovery_boundary() -> None:
+    message = timeout_outcome_message()
+
+    assert "did not respond in time" in message
+    assert "continue local work" in message
+    assert "127.0.0.1" not in message

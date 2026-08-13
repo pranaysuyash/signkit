@@ -79,3 +79,20 @@ is removed but sidecar or receipt cleanup fails, the result is
 needs attention. QA-33 records complete cleanup, surfaced failure, path
 boundary, and Qt action evidence. Permission-denied, cross-device, and
 restart/recovery observations remain open.
+
+## Addendum: local companion retry control
+
+The desktop status surface now exposes an explicit local-service retry action
+for offline state. It invokes the existing `BackendManager.restart` lifecycle
+off the UI thread and only hides the retry control after health-ready success.
+Typed transport timeouts map to bounded local recovery copy. QA-34 records the
+focused UI/control evidence. Real process restart, stale-state, packaged,
+device, and assistive-technology observations remain open.
+
+## Addendum: companion process recovery
+
+QA-35 records a real local `BackendManager` start, health-ready state,
+restart, second health-ready state, and clean shutdown on an isolated
+disposable data directory. This strengthens the companion outage recovery
+evidence beyond the copy/UI contract. Packaged, cross-platform, stale-state,
+and assistive-technology observations remain open.

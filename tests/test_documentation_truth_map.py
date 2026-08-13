@@ -54,7 +54,11 @@ def test_operator_state_task_points_to_current_runtime_evidence() -> None:
     assert "QA-31" in qa
     assert "QA-32" in qa
     assert "QA-33" in qa
+    assert "QA-34" in qa
+    assert "QA-35" in qa
     assert "local companion outage copy binding" in matrix
     assert "malformed-input recovery binding" in matrix
     assert "local library deletion cleanup binding" in matrix
+    assert "local companion retry binding" in matrix
+    assert "local companion process recovery observation" in matrix
     assert "partial-export recovery binding" in matrix

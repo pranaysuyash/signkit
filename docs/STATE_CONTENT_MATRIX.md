@@ -141,3 +141,29 @@ Targeted evidence: `tests/test_library_deletion_contract.py`,
 `desktop_app/tests/test_main_window_logic.py`, and
 `tests/test_operator_content.py` passed as QA-33. Permission-denied,
 cross-device, and restart/recovery observations remain open.
+
+## Addendum (2026-08-13): local companion retry binding
+
+The desktop status surface now exposes an explicit `Retry local service`
+control when the companion is offline. The retry runs `BackendManager.restart`
+off the UI thread, returns to Online only after the existing health proof
+passes, and keeps the control visible when restart does not reach a healthy
+state. Typed timeout failures use bounded local recovery copy. The control
+does not imply hosted availability or cryptographic document signing.
+
+Targeted evidence: `desktop_app/tests/test_main_window_logic.py`,
+`tests/test_topology_experience_contract.py`, and
+`tests/test_operator_content.py` passed as QA-34. A real process restart,
+stale-state recovery, packaged-runtime observation, and assistive-technology
+observation remain open.
+
+## Addendum (2026-08-13): local companion process recovery observation
+
+The real local runtime now has Tier 4 evidence for start, health readiness,
+restart, second health readiness, and clean shutdown through
+`BackendManager`. The desktop Retry local service control delegates to this
+existing lifecycle rather than introducing a second process owner. The proof
+is isolated to a disposable local data directory and does not establish
+packaged, cross-platform, hosted, or assistive-technology behavior.
+
+Evidence: `docs/review/local_companion_restart_proof_2026-08-13.md` and QA-35.

@@ -16,6 +16,8 @@ def test_desktop_status_copy_names_the_local_companion_boundary() -> None:
     assert "cloud features enabled" not in extraction
     assert "companion_status_message" in extraction
     assert "companion_status_label" in main_window
+    assert "retry_companion_button" in status
+    assert "_retry_local_companion" in extraction
 
 
 def test_startup_and_onboarding_copy_do_not_overclaim_topology() -> None:
