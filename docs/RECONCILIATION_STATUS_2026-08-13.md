@@ -52,6 +52,7 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-08 | open | commercial and release | Configure a provider-neutral adapter boundary, controlled purchase, receipt activation, refund/revocation, offline-grace expiry, support recovery, and customer-safe claims. |
 | RECON-09 | open | packaging | Produce real platform artifacts and complete signing, launch smoke, rollback, and machine-readable ledger evidence for every release artifact. |
 | RECON-10 | open | QA and product | Run browser accessibility, narrow viewport, device, full-suite, remote CI, and external-corpus checks at their required evidence and sensitivity tiers. |
+| RECON-11 | done | parallel-work integrity | The original primary `main` dirty diff is fully accounted for: 258 changed paths, 256 present at current paths, one baseline-recoverable deletion, and one archived superseded ADR. |
 
 ## Explicit non-claims
 
@@ -128,3 +129,10 @@ implementation and evidence paths, all present after the incoming `17f644b`
 baseline. The later documentation preservation commit `27ababa` contains the
 1,314-file full documentation snapshot, followed by evidence-only commits
 `29bc4a0` and `ab530e9`.
+
+The separate original-primary inventory is recorded in
+`docs/archive/PRIMARY_MAIN_258_PATH_ACCOUNTING_2026-08-13.md`. It proves that
+the 258-path primary dirty diff was not reduced to the focused 92-path series:
+198 primary contents were already present in incoming `17f644b`, 218 current
+paths remain byte-identical to the primary snapshot, and the remaining paths
+have explicit incoming, reconciled, deletion, or archival dispositions.

@@ -199,3 +199,17 @@ all 92 paths present in current `main`. The 1,314-file documentation snapshot
 is separately committed in `27ababa`; `29bc4a0` and `ab530e9` contain later
 evidence updates. The earlier shorthand “94 file paths” is corrected here to
 “94 per-commit entries, 92 unique paths.”
+
+## Addendum (2026-08-13): original primary-main inventory
+
+The original dirty primary `main` snapshot is separately accounted for in
+`docs/archive/PRIMARY_MAIN_258_PATH_ACCOUNTING_2026-08-13.md`. Its diff from
+`0d83a87` to `ee12dba` contains 258 changed paths. This is broader than the
+focused 92-path implementation promotion series because 198 primary contents
+were already present in incoming `17f644b` before those promotions.
+
+Current disposition is explicit: 218 paths remain byte-identical to the
+primary snapshot, 38 paths have reconciled content, the deleted signature image
+is recoverable from the baseline, and the historical ADR is preserved under
+the full primary archive snapshot. `RECON-11` is closed for accounting;
+production and hosted gates remain governed by RECON-06 through RECON-10.

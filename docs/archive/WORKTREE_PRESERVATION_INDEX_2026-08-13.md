@@ -136,3 +136,21 @@ The complete documentation trees from both dirty streams are also preserved in
 full historical files and visual evidence without creating additional runtime
 routes or replacing canonical current docs. Remaining code and canonical-doc
 reconciliation is still open. Remote `main` has not been pushed.
+
+## Addendum (2026-08-13): primary-main 258-path accounting
+
+The original primary dirty snapshot was not equivalent to the later focused
+92-path implementation promotion count. The complete accounting is preserved
+in `docs/archive/PRIMARY_MAIN_258_PATH_ACCOUNTING_2026-08-13.md`:
+
+- `0d83a87..ee12dba` contains 258 changed paths.
+- 198 primary snapshot contents were already identical in incoming `17f644b`.
+- 218 current paths remain byte-identical to the primary snapshot.
+- 38 current paths exist with explicit incoming, reconciled, or superseding
+  content.
+- The deleted signature image remains recoverable from `0d83a87`.
+- The historical visual-direction ADR remains in the full primary archive
+  snapshot under `docs/archive/parallel/`.
+
+No primary work is classified as silently discarded. The two paths absent at
+their original location have explicit deletion or supersession dispositions.
