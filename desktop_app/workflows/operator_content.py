@@ -38,6 +38,9 @@ _OUTCOME_COPY = {
     "ERR_OUTPUT_EXISTS": "The planned output already exists. Review the destination before retrying.",
     "ERR_IO_UNSTABLE": "The input or destination changed during processing. Stabilize it before retrying.",
     "ERR_OUTPUT_IO": "The output could not be written. Check the local destination and retry if safe.",
+    "ERR_WORKFLOW_INTERRUPTED": (
+        "The local workflow stopped before completion. Review the input and any planned output before retrying."
+    ),
 }
 
 _COMPANION_LABELS = {

@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import replace
 import shutil
 from typing import List
 import pytest
@@ -429,6 +430,79 @@ def test_workflow_engine_retry_and_cancel_paths(monkeypatch, tmp_path: Path) -> 
     cancelled = engine.cancel_job(pending.job_id, actor="operator", action_subject="operator@example.com")
     assert cancelled.state == models.WorkflowState.CANCELLED
     assert cancelled.last_error_code == "ERR_JOB_CANCELLED"
+
+
+def test_workflow_engine_recovers_only_old_transient_jobs_to_review(monkeypatch, tmp_path: Path) -> None:
+    _configure_store_path(monkeypatch, tmp_path)
+    recipe = store.save_recipe(_create_recipe(tmp_path))
+
+    monkeypatch.setattr(store, "_utc_now_iso", lambda: "2026-08-13T10:00:00+00:00")
+    stale = store.save_job(
+        models.WorkflowJob.new(
+            job_id="job-stale",
+            input_path_ref=str(tmp_path / "in" / "stale.pdf"),
+            input_fingerprint="stale-fp",
+            recipe_id=recipe.recipe_id,
+            recipe_version=recipe.version,
+            state=models.WorkflowState.PROCESSING,
+        )
+    )
+    monkeypatch.setattr(store, "_utc_now_iso", lambda: "2026-08-13T10:04:30+00:00")
+    fresh = store.save_job(
+        models.WorkflowJob.new(
+            job_id="job-fresh",
+            input_path_ref=str(tmp_path / "in" / "fresh.pdf"),
+            input_fingerprint="fresh-fp",
+            recipe_id=recipe.recipe_id,
+            recipe_version=recipe.version,
+            state=models.WorkflowState.VERIFYING,
+        )
+    )
+    engine = WorkflowEngine()
+    engine.start()
+    result = engine.recover_stale_jobs(
+        max_age_seconds=60,
+        now_ts="2026-08-13T10:05:00+00:00",
+        actor="operator@example.com",
+    )
+
+    assert result == {"scanned": 2, "recovered": 1, "job_ids": ["job-stale"]}
+    recovered = store.get_job("job-stale")
+    still_active = store.get_job("job-fresh")
+    assert recovered is not None
+    assert recovered.state == models.WorkflowState.NEEDS_REVIEW
+    assert recovered.attempts == 0
+    assert recovered.last_error_code == "ERR_WORKFLOW_INTERRUPTED"
+    assert still_active is not None
+    assert still_active.state == models.WorkflowState.VERIFYING
+    assert [event.code for event in store.list_events("job-stale")] == ["ERR_WORKFLOW_INTERRUPTED"]
+
+
+def test_workflow_engine_does_not_guess_when_stale_timestamp_is_invalid(monkeypatch, tmp_path: Path) -> None:
+    _configure_store_path(monkeypatch, tmp_path)
+    recipe = store.save_recipe(_create_recipe(tmp_path))
+    job = store.save_job(
+        models.WorkflowJob.new(
+            job_id="job-unknown-time",
+            input_path_ref=str(tmp_path / "in" / "unknown.pdf"),
+            input_fingerprint="unknown-fp",
+            recipe_id=recipe.recipe_id,
+            recipe_version=recipe.version,
+            state=models.WorkflowState.PROCESSING,
+        )
+    )
+    monkeypatch.setattr(store, "_utc_now_iso", lambda: "not-a-timestamp")
+    job = store.save_job(replace(job, updated_at="not-a-timestamp"))
+
+    engine = WorkflowEngine()
+    engine.start()
+    result = engine.recover_stale_jobs(
+        max_age_seconds=60,
+        now_ts="2026-08-13T10:05:00+00:00",
+    )
+
+    assert result == {"scanned": 1, "recovered": 0, "job_ids": []}
+    assert store.get_job(job.job_id).state == models.WorkflowState.PROCESSING
 
 
 def test_authorization_rejects_expired_grant(monkeypatch, tmp_path: Path) -> None:

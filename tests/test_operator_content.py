@@ -45,6 +45,15 @@ def test_terminal_and_recovery_copy_follows_state_contract() -> None:
     assert outcome_message(None, WorkflowState.NEEDS_REVIEW) == "Needs review before the workflow can continue."
 
 
+def test_interrupted_workflow_copy_requires_output_review_before_retry() -> None:
+    message = outcome_message("ERR_WORKFLOW_INTERRUPTED", WorkflowState.NEEDS_REVIEW)
+
+    assert "stopped before completion" in message
+    assert "planned output" in message
+    assert "retrying" in message
+    assert "/Users/pranay" not in message
+
+
 def test_local_companion_copy_is_bounded_and_recoverable() -> None:
     assert companion_status_label("offline") == "Local service: Offline"
     message = companion_status_message("offline")

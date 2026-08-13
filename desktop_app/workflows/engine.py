@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Union
 from uuid import uuid4
@@ -34,7 +35,18 @@ FAILURE_CODES = {
     "output_exists": "ERR_OUTPUT_EXISTS",
     "io_unstable": "ERR_IO_UNSTABLE",
     "output_io": "ERR_OUTPUT_IO",
+    "interrupted": "ERR_WORKFLOW_INTERRUPTED",
 }
+
+STALE_WORKFLOW_DEFAULT_AGE_SECONDS = 300
+_TRANSIENT_WORKFLOW_STATES = frozenset(
+    {
+        models.WorkflowState.VALIDATING,
+        models.WorkflowState.MATCHING,
+        models.WorkflowState.PROCESSING,
+        models.WorkflowState.VERIFYING,
+    }
+)
 
 
 def sign_pdf(input_pdf_path: str, output_pdf_path: str, signatures: List[Dict[str, object]]) -> bool:
@@ -458,6 +470,51 @@ class WorkflowEngine:
 
         return summary
 
+    def recover_stale_jobs(
+        self,
+        *,
+        max_age_seconds: int = STALE_WORKFLOW_DEFAULT_AGE_SECONDS,
+        now_ts: Optional[str] = None,
+        actor: str = "system",
+    ) -> Dict[str, object]:
+        """Move abandoned transient jobs to review without retrying them.
+
+        A process interruption can leave a durable job in a transient state.
+        Recovery is explicit and conservative: only states older than the
+        supplied threshold are changed, and the job is moved to review so an
+        operator can inspect any planned output before retrying.
+        """
+        self._require_running()
+        self._require_not_paused()
+        if max_age_seconds < 0:
+            raise ValueError("max_age_seconds must be non-negative")
+
+        now = _parse_utc_timestamp(now_ts) if now_ts else datetime.now(timezone.utc)
+        if now is None:
+            raise ValueError("now_ts must be an ISO-8601 timestamp")
+        cutoff = now - timedelta(seconds=max_age_seconds)
+
+        recovered: List[str] = []
+        scanned = 0
+        with store.workflow_store_lock():
+            for job in store.list_jobs():
+                if job.state not in _TRANSIENT_WORKFLOW_STATES:
+                    continue
+                scanned += 1
+                updated_at = _parse_utc_timestamp(job.updated_at)
+                if updated_at is None or updated_at > cutoff:
+                    continue
+                self._transition_job(
+                    job,
+                    to_state=models.WorkflowState.NEEDS_REVIEW,
+                    actor=actor,
+                    code=FAILURE_CODES["interrupted"],
+                    message="execution_interrupted_after_restart",
+                )
+                recovered.append(job.job_id)
+
+        return {"scanned": scanned, "recovered": len(recovered), "job_ids": recovered}
+
     def transition(
         self,
         job_id: str,
@@ -661,6 +718,18 @@ def _reason_code(code: str) -> str:
     if code.startswith("ERR_"):
         return code
     return FAILURE_CODES["invalid"]
+
+
+def _parse_utc_timestamp(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _is_invalid_input_match(match: matcher.MatchResult) -> bool:

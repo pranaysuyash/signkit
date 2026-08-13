@@ -94,6 +94,9 @@ class WorkflowConsole(QWidget):
         self.scan_btn.clicked.connect(self._scan_folders)
         self.run_queued_btn = QPushButton("Run queued")
         self.run_queued_btn.clicked.connect(self._run_queued_jobs)
+        self.recover_stale_btn = QPushButton("Recover stale")
+        self.recover_stale_btn.setToolTip("Move interrupted transient jobs to Needs review without retrying them.")
+        self.recover_stale_btn.clicked.connect(self._recover_stale_jobs)
         self.auto_run_after_scan = QCheckBox("Auto-run queued after scan")
         self.pause_btn = QPushButton("Pause")
         self.pause_btn.clicked.connect(self._toggle_pause)
@@ -115,6 +118,7 @@ class WorkflowConsole(QWidget):
         controls.addWidget(self.cancel_btn, 2, 3)
         controls.addWidget(self.scan_btn, 2, 4)
         controls.addWidget(self.run_queued_btn, 2, 5)
+        controls.addWidget(self.recover_stale_btn, 3, 5)
         controls.setColumnStretch(3, 1)
         layout.addLayout(controls)
 
@@ -563,6 +567,26 @@ class WorkflowConsole(QWidget):
                 f"Failed: {summary['failed']}\\n"
                 f"Cancelled: {summary['cancelled']}\\n"
                 f"Errors: {summary['errors']}"
+            ),
+        )
+        self.refresh()
+
+    def _recover_stale_jobs(self) -> None:
+        """Move abandoned transient jobs to review without an automatic retry."""
+        try:
+            summary = self._engine.recover_stale_jobs(actor=self._current_subject())
+        except Exception as exc:
+            QMessageBox.critical(self, "Stale recovery failed", str(exc))
+            self.refresh()
+            return
+
+        QMessageBox.information(
+            self,
+            "Stale recovery complete",
+            (
+                f"Transient jobs checked: {summary['scanned']}\n"
+                f"Moved to Needs review: {summary['recovered']}\n\n"
+                "No job was retried automatically. Review each recovered job before continuing."
             ),
         )
         self.refresh()

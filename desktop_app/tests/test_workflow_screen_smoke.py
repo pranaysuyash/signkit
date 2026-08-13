@@ -116,6 +116,7 @@ def test_workflow_console_refresh_smoke(qapp, monkeypatch, tmp_path: Path) -> No
     assert "Queued" in console._summary.text() and "Active Grants" in console._summary.text()
     assert console.job_table.rowCount() == 0
     assert console.job_table.columnCount() == 8
+    assert console.recover_stale_btn.text() == "Recover stale"
 
 
 def test_workflow_console_authorization_blocks_actions_for_mismatched_subject(qapp, monkeypatch, tmp_path: Path) -> None:

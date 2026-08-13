@@ -178,3 +178,19 @@ Chrome proof passed as QA-36. This closes only the local semantic and
 browser-observable sub-gate; VoiceOver/screen-reader, manual zoom/reflow,
 device, packaged, cross-platform, hosted, and formal WCAG evidence remain
 open.
+
+## Addendum (2026-08-13): stale transient workflow recovery binding
+
+The local workflow console now exposes an explicit `Recover stale` action for
+jobs left in `VALIDATING`, `MATCHING`, `PROCESSING`, or `VERIFYING` after a
+possible interruption. Recovery uses an explicit age threshold, moves only
+old transient jobs to `NEEDS_REVIEW` with `ERR_WORKFLOW_INTERRUPTED`, records
+the event, preserves the attempt count, and never retries or deletes output
+automatically. Fresh jobs and jobs with invalid timestamps remain unchanged.
+
+Targeted evidence: `desktop_app/tests/test_workflow_engine.py`,
+`tests/test_operator_content.py`, and
+`desktop_app/tests/test_workflow_screen_smoke.py` passed `36` checks as QA-40.
+The proof is local S1 evidence; packaged cross-platform interruption,
+filesystem recovery, assistive-technology, hosted, and provider observations
+remain open.
