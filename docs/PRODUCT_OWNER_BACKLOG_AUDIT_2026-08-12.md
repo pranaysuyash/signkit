@@ -183,5 +183,19 @@ coverage, remote CI, and agent-start retrieval health remain open tasks.
   `https://signkit.work` found the older root surface, legacy routes returning
   `200` or `308` rather than `301`, and retired `/web/live` JavaScript paths
   returning HTML. Local `main` was not changed to mask a deployment mismatch.
-- The local reconciled checkout remains the source of truth for the five local
+- The local reconciled checkout remains the source of truth for the six local
   commits and their evidence. No remote push was performed.
+
+## Addendum (2026-08-13): corrected path accounting
+
+The implementation reconciliation descends directly from incoming baseline
+`17f644b` through `b631e35`, `6d0e54e`, and `5798235`. The visible commit file
+counts are `13`, `57`, and `24`, which sum to 94 per-commit file-change
+entries. The unique path count is 92 because `desktop_app/app_bootstrap.py`
+and `tools/mutation_check.py` were each changed in two of those commits.
+
+The authoritative `git diff 17f644b..5798235` reports 92 files changed, with
+all 92 paths present in current `main`. The 1,314-file documentation snapshot
+is separately committed in `27ababa`; `29bc4a0` and `ab530e9` contain later
+evidence updates. The earlier shorthand “94 file paths” is corrected here to
+“94 per-commit entries, 92 unique paths.”
