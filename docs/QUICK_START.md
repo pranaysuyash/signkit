@@ -35,14 +35,14 @@ The build is currently creating an **ARM64 app** for your Mac (Apple Silicon).
 # Open the app
 open dist/SignatureExtractor.app
 
-# Test with test license
-# Email: pranay@example.com
+# Paid activation is exercised with the signed-receipt test fixture in the
+# repository suite. Do not use a raw email or arbitrary key as activation.
 ```
 
 ### 2. Quick Smoke Test
 
 - ✅ App launches
-- ✅ Enter license: `pranay@example.com`
+- ✅ Enter a signed activation receipt in a development/test environment
 - ✅ Upload an image
 - ✅ Draw selection & process
 - ✅ Export PNG
@@ -79,7 +79,7 @@ hdiutil create \
 **Tell friends:**
 
 > "Right-click the app → Open (first time only)"
-> "Test license: pranay@example.com"
+> A historical test grant exists only with explicit `SIGNKIT_LICENSE_TEST_MODE=1`.
 > "Let me know if anything breaks!"
 
 ### 4. Gather Feedback (2-3 days)
@@ -176,7 +176,8 @@ pip install pyinstaller
 ## 💡 Pro Tips
 
 1. **Test thoroughly yourself first** before sharing
-2. **Use the test license** (`pranay@example.com`) for testing
+2. **Use the signed-receipt fixture** from the entitlement contract tests for
+   local development testing; do not place test grants in a packaged build.
 3. **Ask friends for honest feedback** - don't take it personally
 4. **Fix critical issues** before public launch
 5. **Use GitHub Actions** for final builds (ensures consistency)

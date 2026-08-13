@@ -1,5 +1,11 @@
 # Licensing & Updates — Code Audit
 
+> Historical audit retained for traceability. Its “any key is licensed” and
+> key-only dialog observations describe the pre-ADR-0151 implementation. The
+> current entitlement contract is in
+> `docs/decisions/ADR-0151-signed-local-entitlement-activation.md`; provider
+> fulfilment and real purchase evidence remain open.
+
 Date: 2025-10-31
 
 This document cross-checks our current codebase against the pricing/licensing model and highlights concrete implementation gaps with suggested next steps.
@@ -70,4 +76,3 @@ This document cross-checks our current codebase against the pricing/licensing mo
 - Help menu contains “Check for Updates…” which fetches `updates.json` and shows status.
 - License dialog stores key and updates status bar; About dialog links refund/terms.
 - Docs updated to match chosen provider and UX.
-

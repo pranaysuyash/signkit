@@ -1,18 +1,24 @@
 import json
 import os
+import sys
+import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Iterable, Optional, Tuple
 
 from desktop_app.license.entitlements import EntitlementReceipt
+from desktop_app.license.verification import load_public_keys
 
 
 APP_DIR_NAME = ".signature_extractor"
 LICENSE_FILE = "license.json"
 
-# Test license configuration
+# Compatibility label only. It is accepted solely when explicit test mode is
+# enabled in a development/test process; it is never production entitlement
+# evidence.
 TEST_LICENSE_EMAIL = "pranay@example.com"
+TEST_LICENSE_MODE_ENV = "SIGNKIT_LICENSE_TEST_MODE"
 
 
 class LicenseTier(Enum):
@@ -108,26 +114,12 @@ def _normalize_add_ons(add_on_values: Optional[Iterable[LicenseAddon | str]]) ->
     return normalized
 
 
-def _plan_from_key(key: str) -> LicenseTier:
-    """Infer a legacy tier from key shape."""
+def _test_mode_enabled() -> bool:
+    """Require an explicit opt-in before accepting the development test key."""
 
-    if not key:
-        return LicenseTier.TRIAL
-
-    normalized = key.strip().lower()
-    if normalized in {"starter", "team", "business"}:
-        return LicenseTier(normalized)
-
-    for tier in (LicenseTier.BUSINESS, LicenseTier.TEAM, LicenseTier.STARTER):
-        prefix = f"{tier.value}:"
-        if normalized.startswith(prefix):
-            return tier
-
-    if LicenseValidator.is_test_license(key):
-        return LicenseTier.BUSINESS
-
-    # Existing behavior: valid legacy keys were treated as licensed, so keep that path
-    return LicenseTier.TEAM if len(key) >= 6 else LicenseTier.TRIAL
+    if getattr(sys, "frozen", False):
+        return False
+    return os.getenv(TEST_LICENSE_MODE_ENV, "").strip().lower() in {"1", "true", "yes"}
 
 
 OperationType = LicenseFeature
@@ -165,15 +157,15 @@ class LicenseInfo:
         return features
 
     def is_valid(self) -> bool:
-        """Check if license is currently valid."""
+        """Check whether trusted entitlement evidence currently grants access."""
+
         if not self.key:
             return False
         if self.entitlement is not None:
-            return self.entitlement.is_usable()
-        if self.is_test_license:
-            return True
-        # Keep legacy behavior: minimum key length grants a working license
-        return len(self.key) >= 6
+            public_keys = load_public_keys()
+            public_key = public_keys.get(self.entitlement.key_id or "")
+            return self.entitlement.is_usable(public_key=public_key)
+        return self.is_test_license and _test_mode_enabled()
 
     def has_feature(self, feature: LicenseFeature) -> bool:
         """Return whether the feature is enabled under this license tier."""
@@ -196,9 +188,7 @@ def load_license() -> Optional[LicenseInfo]:
             data = json.load(f)
         key = data.get("key", "").strip()
         email = data.get("email")
-        is_test_license = data.get("is_test_license", False)
-        tier_value = data.get("tier")
-        add_on_values = data.get("add_ons")
+        is_test_license = bool(data.get("is_test_license", False))
         entitlement_data = data.get("entitlement")
         entitlement = None
         if entitlement_data is not None:
@@ -212,16 +202,20 @@ def load_license() -> Optional[LicenseInfo]:
                 pass
         
         if key:
-            # Check if this is the test license
-            if key == TEST_LICENSE_EMAIL or email == TEST_LICENSE_EMAIL:
-                is_test_license = True
-            
+            is_test_license = is_test_license and _test_mode_enabled()
+            if entitlement is not None:
+                persisted_tier = _normalize_tier(entitlement.plan_id)
+                persisted_add_ons = _normalize_add_ons(entitlement.add_ons)
+            else:
+                persisted_tier = LicenseTier.BUSINESS if is_test_license else LicenseTier.TRIAL
+                persisted_add_ons = set()
+
             return LicenseInfo(
                 key=key, 
                 email=email, 
                 is_test_license=is_test_license,
-                tier=_normalize_tier(tier_value) if tier_value else _plan_from_key(key),
-                add_ons=_normalize_add_ons(add_on_values),
+                tier=persisted_tier,
+                add_ons=persisted_add_ons,
                 validated_at=validated_at,
                 entitlement=entitlement,
             )
@@ -238,13 +232,25 @@ def save_license(
     add_ons: Optional[Iterable[LicenseAddon | str]] = None,
     entitlement: Optional[EntitlementReceipt] = None,
 ) -> None:
-    """Persist license info to disk."""
+    """Persist raw activation input or a normalized entitlement receipt.
+
+    A key-only record is retained for support/migration visibility but cannot
+    grant paid access. Production activation must use ``activate_receipt``.
+    """
+
     key = key.strip()
-    is_test_license = key == TEST_LICENSE_EMAIL or email == TEST_LICENSE_EMAIL
-    license_tier = LicenseTier.BUSINESS if is_test_license else _normalize_tier(tier)
-    if license_tier == LicenseTier.TRIAL:
-        license_tier = _plan_from_key(key)
-    normalized_add_ons = _normalize_add_ons(add_ons)
+    is_test_license = _test_mode_enabled() and (
+        key == TEST_LICENSE_EMAIL or email == TEST_LICENSE_EMAIL
+    )
+    if entitlement is not None:
+        license_tier = _normalize_tier(entitlement.plan_id)
+        normalized_add_ons = _normalize_add_ons(entitlement.add_ons)
+    elif is_test_license:
+        license_tier = LicenseTier.BUSINESS
+        normalized_add_ons = _normalize_add_ons(add_ons)
+    else:
+        license_tier = LicenseTier.TRIAL
+        normalized_add_ons = set()
     
     data = {
         "key": key,
@@ -258,40 +264,45 @@ def save_license(
     if entitlement is not None:
         data["entitlement"] = entitlement.to_dict()
     
-    with open(_license_path(), "w", encoding="utf-8") as f:
-        json.dump(data, f)
+    path = _license_path()
+    directory = os.path.dirname(path) or "."
+    fd, temporary_path = tempfile.mkstemp(prefix=".license-", suffix=".tmp", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, sort_keys=True)
+            f.flush()
+            os.fsync(f.fileno())
+        try:
+            os.chmod(temporary_path, 0o600)
+        except OSError:
+            pass
+        os.replace(temporary_path, path)
+    finally:
+        try:
+            os.unlink(temporary_path)
+        except FileNotFoundError:
+            pass
 
 
 def is_licensed() -> bool:
-    """Very lightweight local check for MVP: consider any non-empty key as licensed.
+    """Return whether a signed receipt or explicit development test grant is active."""
 
-    Later, integrate an online verification or signature check if desired.
-    """
     info = load_license()
     return bool(info and info.is_valid())
 
 
 class LicenseValidator:
-    """Enhanced license validation with test license support."""
+    """Feature validation over the one canonical local entitlement boundary."""
     
     @staticmethod
     def is_test_license(license_key: str) -> bool:
-        """Check if license key is the test license."""
-        return license_key.strip() == TEST_LICENSE_EMAIL
+        """Check the test key only in explicit development/test mode."""
+        return _test_mode_enabled() and license_key.strip() == TEST_LICENSE_EMAIL
     
     @staticmethod
     def validate_license_key(key: str) -> bool:
-        """Validate license key including test license."""
-        key = key.strip()
-        if not key:
-            return False
-        
-        # Test license is always valid
-        if LicenseValidator.is_test_license(key):
-            return True
-        
-        # Regular license validation (minimum length requirement)
-        return len(key) >= 6
+        """Validate only the explicit development key; receipts use activation."""
+        return LicenseValidator.is_test_license(key)
     
     @staticmethod
     def is_operation_allowed(operation_type: OperationType) -> Tuple[bool, str]:
@@ -330,14 +341,16 @@ class LicenseValidator:
         if not license_info:
             return False, "Trial Mode - No License", False
         
-        if license_info.is_test_license:
+        if license_info.is_test_license and license_info.is_valid():
             return True, f"Test License Active ({license_info.key})", True
-        
+
         if license_info.is_valid():
             email_part = f" ({license_info.email})" if license_info.email else ""
             return True, f"Licensed {license_info.tier.value}{email_part}", False
-        
-        return False, "Invalid License", False
+
+        if license_info.entitlement is not None:
+            return False, "Activation is not verified on this device", False
+        return False, "License is unverified; activate with a signed receipt", False
 
     @staticmethod
     def has_feature(feature: LicenseFeature) -> bool:

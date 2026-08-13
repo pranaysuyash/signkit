@@ -17,10 +17,16 @@
 
 ---
 
-### 2. ⚠️ Gumroad API License Validation
+### 2. ⚠️ Gumroad API License Validation (historical assessment)
+
+> Superseded local decision: the current product boundary is a provider-neutral
+> Ed25519-signed receipt with local verification and bounded offline semantics.
+> A provider adapter, product ID, and controlled purchase are still open. The
+> legacy recommendation below must not be used as a current release claim.
 
 **Current State:** 
-- App accepts any license key (stores locally)
+- App stores key-only input for migration visibility but paid access requires
+  a signed receipt; see ADR-0151.
 - No validation against Gumroad
 - Works offline (by design)
 

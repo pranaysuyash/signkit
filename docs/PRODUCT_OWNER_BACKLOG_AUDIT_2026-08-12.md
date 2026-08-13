@@ -109,7 +109,7 @@ Baseline evidence checked this pass:
 - `L2-04`: Closed with Tier 3 evidence: `.venv/bin/pytest -q backend/tests/test_extraction_router.py backend/tests/test_extraction_hosted.py` passed `10 passed`; desktop API assertions cover generated idempotency headers. The focused suite was first red on three response classification defects, then passed after fixing those defects (S2).
 
 - `L2-08`: Closed by adding backend regression coverage in `backend/tests/test_extraction_router.py` and client contract assertions in `desktop_app/tests/test_api_client.py`.
-- `L2-09`: Closed locally. Root collection now includes `tests`, `backend/tests`, and `desktop_app/tests`; the expanded command collects 478 tests and passes `475 passed, 4 skipped`. The optional PyMuPDF boundary is explicit, and the destructor shutdown regression has S2 evidence. Hosted, remote-runner, provider, device, and assistive-technology gates remain separate.
+- `L2-09`: Closed locally. Root collection now includes `tests`, `backend/tests`, and `desktop_app/tests`; the latest expanded command collects 485 tests and passes `482 passed, 4 skipped`. The optional PyMuPDF boundary is explicit, and the destructor shutdown regression has S2 evidence. Hosted, remote-runner, provider, device, and assistive-technology gates remain separate.
 
 ## Addendum (2026-08-13): first-party test collection and context doctrine
 
@@ -283,6 +283,7 @@ adds and tracks the local promotion separately from deployment gates:
 | RECON-18 | implicit | local product / cross-surface architecture | done-local | P0 | The existing `/workspace` route family now exposes authenticated `/workspace/local-jobs`, `/workspace/local-jobs/{job_id}`, and `/workspace/local-jobs/{job_id}/retry` projections. The desktop JSON store remains the source of truth; `ExecutionPassport` is metadata-only; authorization binds the exact `ExecutionGrant.approver_subject` to the authenticated user; hosted profile returns 404. Focused route tests pass, 2 bridge mutants are killed, and the real Chrome bridge proof passes with 401/404, private-path exclusion, retry, recovery, and zero browser errors. | Preserve one canonical local bridge. Reopen if the desktop store, authorization model, workspace route family, passport boundary, or local/hosted topology changes. Do not interpret this local closure as hosted deployment or legal-signing evidence. |
 | RECON-19 | implicit | local product / retry integrity | done-local | P0 | The existing retry route now serializes local store mutations, accepts or derives a bounded idempotency key, persists a replay receipt, and exposes the opaque key through the existing passport. The focused workflow/store/passport/bridge suite passes `32` tests at S1; the full `12/12` mutation manifest passes at S3; same-key replay and concurrent keyed requests converge on one engine execution; fresh source-to-ready and real-Chrome bridge proofs pass at Tier 4. | Preserve the route/store/engine ownership boundary. Reopen if the local store changes, retry becomes multi-process across machines, or receipt retention requires compaction. Hosted/provider retry remains separate. |
 | RECON-20 | implicit | local packaged runtime | done-local | P0 | The macOS ARM64 PyInstaller artifact starts the in-process backend with generated local SQLite/JWT settings, serves and renders the bundled canonical `/workspace-app/`, passes the real-browser landing/workspace handoff and authenticated local bridge recovery flow, contains no `.env`, passes ad hoc code-sign verification, and leaves no port-8001 listener after bounded shutdown. | Preserve the spec/runtime contract and rerun `QA-20` after packaging changes. Intel/Windows/Linux, notarization, clean-install, rollback, hosted, and provider evidence remain separate. |
+| RECON-21 | implicit | local product / entitlement integrity | done-local | P0 | `desktop_app/license/` now requires an Ed25519-signed canonical receipt for paid access, derives plan/add-on grants from the receipt, rejects unsigned/key-shaped grants, isolates the historical test key behind explicit test mode, includes the activation modules in every PyInstaller spec, and replays one activation idempotently while rejecting a different second entitlement. Focused entitlement tests pass. | Preserve the receipt-owned grant and replay boundary. Reopen when a provider adapter, product ID, account/device policy, refund/revocation delivery, or support recovery path is selected; those remain `L0-02`, `L2-03`, `QA-15`, and `RECON-09` gates. |
 
 ## Addendum (2026-08-13): local packaged runtime
 
@@ -304,3 +305,20 @@ S2-style regression evidence because the prior artifact failed at missing
 release gate remain open for Intel/Windows/Linux artifacts, distribution
 signing/notarization, clean installation, rollback, and a release ledger tied
 to a real release source and recoverable prior artifact.
+
+## Addendum (2026-08-13): local entitlement integrity
+
+The local-first entitlement slice is now implemented and tracked as `RECON-21`.
+`EntitlementReceipt` signs canonical provider/product/plan/add-on/activation
+fields with Ed25519. The local verifier reads only an explicit public-key
+keyring, `LicenseInfo` derives paid grants from the signed receipt, and the
+activation path replays the same activation without mutation while rejecting a
+different second entitlement. Legacy key-only records remain readable but
+cannot unlock paid features. The historical test email requires explicit
+`SIGNKIT_LICENSE_TEST_MODE=1`.
+
+This closes only the local code and test slice at Tier 2. It does not close the
+provider/product configuration, checkout fulfilment, controlled purchase,
+refund/dispute/chargeback delivery, device or account policy, support recovery,
+or hosted release gates. `L0-02` and `L2-03` therefore remain in progress or
+blocked as recorded above; `QA-15` and `RECON-09` remain open.

@@ -37,26 +37,35 @@ license gate and use the same lock messaging.
 
 ## 2. Checkout + License [~] IN PROGRESS (MUST DO)
 
-**Your requirement:** Hosted checkout (Gumroad/LemonSqueezy); send license key by email; in-app "Enter License" stores locally; 30-day refund link exposed.
+> Current truth (2026-08-13): the local app now accepts only a provider-issued
+> signed activation receipt for paid access. The earlier “stores a key locally”
+> wording below is historical and is superseded by
+> `docs/decisions/ADR-0151-signed-local-entitlement-activation.md`. Provider
+> configuration, controlled purchase, refund/revocation delivery, and support
+> recovery remain open.
+
+**Tracked requirement:** Provider-backed checkout and receipt delivery, with a
+local-first signed activation boundary and a documented refund path.
 
 **Current state:**
 
-- [x] In-app "Enter License" UI exists and stores locally
+- [x] In-app "Enter License" UI accepts signed receipt JSON and stores normalized evidence locally
 - [x] Buy menu opens GUMROAD_PRODUCT_URL from env
 - [ ] Gumroad account created
 - [ ] Product created on Gumroad
 - [ ] License key email flow configured
 - [x] 30-day refund link documented
 
-**Decision:** **DO NOW**
+**Decision:** **BLOCKED pending the commercial/provider decision and fulfilment evidence**
 
-- Infrastructure is ready; need to create actual Gumroad product
+- The local entitlement boundary is ready for a provider adapter, but provider
+  fulfilment and purchase evidence are not present yet.
 - **Action needed:**
-  1. Create Gumroad account
-  2. Create product ($29 or test price ladder)
-  3. Set up license key delivery via email
-  4. Add GUMROAD_PRODUCT_URL to .env
-  5. Document refund process
+  1. Select one provider and product/version mapping
+  2. Configure the provider adapter without embedding provider secrets
+  3. Exercise signed receipt delivery, duplicate/retry, refund, dispute,
+     chargeback, offline grace, and support recovery
+  4. Update checkout and legal claims only after that evidence exists
 
 **Code files:** `desktop_app/views/main_window.py` (on_buy_license), `.env`
 

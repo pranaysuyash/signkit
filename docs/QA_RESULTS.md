@@ -20,8 +20,9 @@ Scope: local reproducible matrix only unless stated otherwise
 | QA-09 | PASS | Tier 1 plus Tier 2, S1 | Configuration contract and backend manager checks passed `6 passed`; fresh SQLite migration to Alembic head also passed in the canonical environment. |
 | QA-10 | PASS | Tier 3 local runtime | Fresh `bash scripts/test-deployment.sh http://127.0.0.1:8080` passed the root, 27 legacy redirects, wildcard routes, retained asset content types, and JavaScript content-type checks against the running canonical `serve.py`. This is not hosted proof. |
 | QA-11 | PASS | Tier 3 local runtime | Fresh `./.venv/bin/python tools/test_deployed_surface.py --base-url http://127.0.0.1:8080 --json` returned `status: pass`, with the canonical document-registration-studio marker, 301 legacy redirects, current checkout assets, and no errors. This is not hosted proof. |
-| QA-21 | PASS | Tier 2 local suite, S2 for shutdown regression | After expanding `pytest.ini` to collect all first-party suites, the canonical root command collected 478 tests and passed `475 passed, 4 skipped`. The native-form module reports an explicit missing-optional-PyMuPDF skip. The destructor logging test failed under a deliberate reversion and passed after the fix. |
+| QA-21 | PASS | Tier 2 local suite, S2 for shutdown regression | After expanding `pytest.ini` to collect all first-party suites, the canonical root command collected 485 tests and passed `482 passed, 4 skipped`. The native-form module reports an explicit missing-optional-PyMuPDF skip. The destructor logging test failed under a deliberate reversion and passed after the fix. |
 | QA-22 | PASS | Tier 2 local suite, S1 | `backend/tests/test_config_and_path_security.py backend/tests/test_extraction_router.py` passed `13 passed` with an isolated SQLite URL. The recovered security group removes hardcoded credential defaults, fails closed for incomplete production configuration, preserves local SQLite, and asserts POSIX owner-only data/sidecar permissions. |
+| QA-23 | PASS | Tier 2 local suite, S1 | Signed entitlement receipt, receipt-owned plan/add-on grants, key-only fail-closed behavior, explicit test-mode isolation, replay, tamper, expiry, and second-entitlement conflict tests passed `15` focused checks. This is local code evidence only. |
 
 Additional touched-flow checks:
 
@@ -80,7 +81,9 @@ PyMuPDF native-form capability and three require a Qt event loop.
 The decision and alternatives are recorded in
 `docs/decisions/ADR-0149-first-party-test-discovery-and-optional-pdf-boundary.md`.
 
-The matrix is now part of the canonical CI workflow. A GitHub-hosted run is
+The matrix is now part of the canonical CI workflow. The latest local run
+collected `485` tests and passed `482 passed, 4 skipped` after the signed
+entitlement slice. A GitHub-hosted run is
 still required before L1-09 can close; local workflow-contract and
 CI-equivalent evidence cannot substitute for the remote runner, artifact URL,
 or retained workflow receipt.
@@ -117,3 +120,12 @@ The detailed evidence is in
 the local ARM64 artifact contract. Intel/Windows/Linux, distribution signing
 and notarization, clean installation, rollback, hosted deployment, and
 provider activation remain open.
+
+## Addendum (2026-08-13): signed local entitlement slice
+
+QA-23 passed with `15` focused entitlement checks. The canonical full local
+run then passed `482 passed, 4 skipped` from `485` collected tests. The new
+evidence covers signed receipt canonicalization, keyring verification,
+receipt-owned grants, explicit test-mode isolation, replay, tamper, expiry,
+and conflict behavior. It remains Tier 2 local evidence; QA-15 is still open
+for a configured provider, controlled purchase, and revocation/support flow.

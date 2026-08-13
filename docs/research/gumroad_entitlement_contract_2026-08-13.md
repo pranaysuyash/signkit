@@ -89,7 +89,19 @@ cannot grant access. The local license store persists this receipt under an
 
 This is Tier 2 targeted code evidence only. It does not add a Gumroad client,
 configure a product ID, verify a real purchase, enforce device activation, or
-replace legacy key compatibility when no receipt exists. The next closure
-step is a server-side provider adapter and controlled purchase or sandbox
-record that exercises replay, timeout, refund, dispute, chargeback, and
-offline-grace behavior.
+replace legacy key readability when no receipt exists. The next closure step is
+a provider adapter and controlled purchase or sandbox record that exercises
+replay, timeout, refund, dispute, chargeback, and offline-grace behavior.
+
+## Addendum (2026-08-13): local-first activation implementation
+
+The local product slice now uses an Ed25519-signed canonical receipt with
+receipt-owned plan/add-on grants, explicit public-key configuration, bounded
+offline-grace expiry, and a replay-safe `activate_receipt` path. Key-only
+records remain readable but fail closed. The development test key requires
+`SIGNKIT_LICENSE_TEST_MODE=1` and is not a packaged production default.
+
+This is Tier 2 local code/test evidence. It does not upgrade the Tier 1
+provider research into provider-flow evidence: no Gumroad product ID, Dodo
+product ID, API adapter, webhook, controlled purchase, refund, device policy,
+or support recovery receipt is present.

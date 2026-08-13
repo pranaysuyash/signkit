@@ -323,3 +323,11 @@ def check_for_updates():
 - **Data Privacy**: Comply with GDPR/CCPA requirements
 
 This setup guide ensures you have a complete, professional payment and licensing system integrated with your Signature Extractor application.
+# Status note (2026-08-13)
+
+This is retained as provider research/setup history, not as proof that a
+Gumroad product or license-delivery flow is configured. The current desktop
+activation boundary requires a signed normalized receipt and is documented in
+`docs/decisions/ADR-0151-signed-local-entitlement-activation.md`. Provider
+selection, product configuration, controlled purchase, revocation, and support
+recovery remain open `QA-15`/`RECON-09` gates.

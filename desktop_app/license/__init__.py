@@ -18,6 +18,7 @@ from .storage import (
     load_license,
     save_license,
 )
+from .activation import ActivationError, ActivationResult, activate_receipt
 
 from .validator import (
     check_export_license,
@@ -93,6 +94,9 @@ __all__ = [
     'load_license',
     'save_license',
     'is_licensed',
+    'ActivationError',
+    'ActivationResult',
+    'activate_receipt',
     
     # Validation helpers
     'check_export_license',

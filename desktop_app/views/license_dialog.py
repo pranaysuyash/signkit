@@ -1,11 +1,14 @@
 from PySide6.QtCore import Qt
+import json
+
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 )
 import sys
 from typing import Optional
 
-from desktop_app.license.storage import save_license
+from desktop_app.license.activation import ActivationError, activate_receipt
+from desktop_app.license.entitlements import EntitlementReceipt
 from desktop_app.widgets.modern_mac_button import ModernMacButton
 
 
@@ -50,7 +53,7 @@ def _create_button(
 
 
 class LicenseDialog(QDialog):
-    """Simple dialog to enter and save a license key (and optional email)."""
+    """Install a provider-issued signed entitlement receipt."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -59,15 +62,10 @@ class LicenseDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel("Paste your license key:"))
+        layout.addWidget(QLabel("Paste your signed activation receipt (JSON):"))
         self.key_edit = QLineEdit(self)
-        self.key_edit.setPlaceholderText("XXXX-XXXX-XXXX or any provided key")
+        self.key_edit.setPlaceholderText("Paste the receipt supplied after purchase")
         layout.addWidget(self.key_edit)
-
-        layout.addWidget(QLabel("Email (optional):"))
-        self.email_edit = QLineEdit(self)
-        self.email_edit.setPlaceholderText("you@example.com")
-        layout.addWidget(self.email_edit)
 
         btn_row = QHBoxLayout()
         self.cancel_btn = _create_button("Cancel", self)
@@ -83,11 +81,20 @@ class LicenseDialog(QDialog):
         self.resize(420, 160)
 
     def _on_activate(self):
-        key = (self.key_edit.text() or "").strip()
-        email = (self.email_edit.text() or "").strip() or None
-        if not key:
-            # Keep it simple: require non-empty key for MVP
+        raw_receipt = (self.key_edit.text() or "").strip()
+        if not raw_receipt:
             self.key_edit.setFocus()
             return
-        save_license(key, email)
+        try:
+            payload = json.loads(raw_receipt)
+            receipt = EntitlementReceipt.from_dict(payload)
+            activate_receipt(receipt)
+        except (json.JSONDecodeError, ValueError, TypeError, ActivationError) as error:
+            QMessageBox.warning(
+                self,
+                "Activation not verified",
+                f"SignKit could not verify this activation receipt. {error}",
+            )
+            self.key_edit.setFocus()
+            return
         self.accept()

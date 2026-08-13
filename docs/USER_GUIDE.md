@@ -131,8 +131,8 @@
 
 **Export disabled:**
 
-- Enter license key via Help → Enter License
-- Test license: `pranay@example.com`
+- Enter a signed activation receipt via Help → Enter License
+- Raw keys and email addresses are not sufficient to unlock paid features
 - Or purchase at [Gumroad Link]
 
 **App won't launch on macOS:**
@@ -181,17 +181,18 @@
 
 ### License & Updates
 
-**Test License:**
+**Development testing:**
 
-- Email: `pranay@example.com`
-- Unlocks all features for testing
+- The historical test grant requires explicit `SIGNKIT_LICENSE_TEST_MODE=1`
+  and is not enabled in packaged/production defaults.
+- The current activation dialog accepts signed receipt JSON. Provider-backed
+  activation remains a separate release gate.
 
-**Production License:**
+**Planned production entitlement:**
 
-- One-time purchase: $29
-- Covers all v1.x updates (forever)
-- No subscription, no recurring fees
-- 30-day money-back guarantee
+- Provider and product ID are not yet configured in this repository.
+- Do not treat historical prices, provider names, or refund terms in archived
+  launch documents as current product claims.
 
 **Updates:**
 

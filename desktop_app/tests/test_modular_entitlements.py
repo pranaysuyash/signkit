@@ -1,22 +1,30 @@
 """Regression coverage for composable commercial entitlements."""
 
 import json
+import base64
 
 from desktop_app import config
 from desktop_app.license import storage
 
 
-def test_starter_license_can_receive_workflow_automation_add_on(monkeypatch, tmp_path) -> None:
+def test_starter_license_can_receive_workflow_automation_add_on(
+    monkeypatch, tmp_path, signed_receipt
+) -> None:
     """A paid module augments a base plan without promoting the customer to Team."""
 
     license_path = tmp_path / "license.json"
     monkeypatch.setattr(storage, "_license_path", lambda: str(license_path))
 
-    storage.save_license(
-        "starter:customer-key",
-        tier="starter",
-        add_ons=[storage.LicenseAddon.WORKFLOW_AUTOMATION],
+    receipt, public_key = signed_receipt(
+        plan_id="starter",
+        add_ons=(storage.LicenseAddon.WORKFLOW_AUTOMATION.value,),
+        activation_id="starter-addon-activation",
     )
+    monkeypatch.setenv(
+        "SIGNKIT_ENTITLEMENT_PUBLIC_KEYS",
+        json.dumps({"test-key": base64.urlsafe_b64encode(public_key).decode("ascii")}),
+    )
+    storage.save_license("starter:customer-key", entitlement=receipt)
 
     loaded = storage.load_license()
     assert loaded is not None

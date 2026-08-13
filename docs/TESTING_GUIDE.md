@@ -442,3 +442,11 @@ The app is ready if:
 ---
 
 **Remember:** This is a test build. Expect some rough edges. The goal is to find and fix issues before the public launch!
+# Current entitlement note (2026-08-13)
+
+This document contains older broad launch procedures. Its historical raw-key
+and test-email activation steps are superseded by
+`docs/decisions/ADR-0151-signed-local-entitlement-activation.md`. Current paid
+access requires a signed receipt; the development test grant requires explicit
+`SIGNKIT_LICENSE_TEST_MODE=1`. Do not use this document as provider or release
+evidence until its remaining scenarios are rerun against the current contract.

@@ -63,17 +63,20 @@ The application includes an optional local backend server that runs on your comp
 
 ### License Activation
 
-When you purchase a license:
-1. You receive a license key via email from Gumroad
-2. You enter the key in the application
-3. The application validates the key format locally
-4. License information is stored on your computer only
+The current local product accepts a provider-issued signed activation receipt.
+The receipt is verified locally against an explicit public key and the
+normalized receipt is stored on your computer. An arbitrary key, email address,
+or key length does not unlock paid features. Provider-specific receipt delivery
+and revocation are not yet configured in this repository and remain a release
+gate.
 
-**No Phone Home:** License validation happens locally. We don't track license usage or activations.
+**No document upload for activation:** The local activation boundary does not
+send document bytes to a provider. Any future provider verification must be
+documented with its exact data flow before publication.
 
-### Test License
-
-For testing purposes, the email `pranay@example.com` acts as a test license. This is hardcoded in the application and doesn't communicate with any server.
+The historical development test key is not a production entitlement and is
+accepted only when `SIGNKIT_LICENSE_TEST_MODE=1` is explicitly enabled in a
+development/test process.
 
 ## Third-Party Services
 

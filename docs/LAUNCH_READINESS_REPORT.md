@@ -213,3 +213,10 @@ The Signature Extractor application is **technically ready for launch** with a r
 The combination of privacy-first design, professional features, and cross-platform support positions this product strongly in the market. The hybrid architecture ensures reliability while the comprehensive licensing system enables sustainable business operations.
 
 **Recommendation**: Proceed with launch preparation immediately, focusing on completing the Gumroad setup and creating final product assets. The technical foundation is solid and ready for customers.
+# Status note (2026-08-13)
+
+This report is historical and is not current launch evidence. In particular,
+the old test-license and provider claims are superseded by the signed local
+entitlement contract in `docs/decisions/ADR-0151-signed-local-entitlement-
+activation.md`; provider, packaging, hosted, and controlled-purchase gates
+remain open in the canonical PO backlog.

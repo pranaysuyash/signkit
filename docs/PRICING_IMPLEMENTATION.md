@@ -77,3 +77,10 @@ Recommendation: Start with Paddle/Lemon Squeezy for checkout + license issuance.
 - “Manage License” menu entry
 - Background validator (weekly) with back‑off and privacy‑respectful logs
 - Graceful error states and clear messaging if license invalid
+# Status note (2026-08-13)
+
+The older key-redemption plan in this document is superseded. The current
+implementation does not unlock export from a stored arbitrary key. Paid access
+requires a provider-issued signed receipt; pricing, provider, fulfilment, and
+refund/revocation policy remain open product decisions tracked by `L2-03` and
+`QA-15`.

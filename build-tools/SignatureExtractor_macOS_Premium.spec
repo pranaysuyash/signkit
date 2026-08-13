@@ -146,6 +146,9 @@ a = Analysis(
         "desktop_app.license.storage",
         "desktop_app.license.validator",
         "desktop_app.license.restrictions",
+        "desktop_app.license.entitlements",
+        "desktop_app.license.verification",
+        "desktop_app.license.activation",
         "desktop_app.pdf",
         "desktop_app.pdf.signer",
 

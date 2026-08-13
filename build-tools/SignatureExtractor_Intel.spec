@@ -63,6 +63,8 @@ a = Analysis(
         "desktop_app.widgets.modern_mac_button", "desktop_app.processing",
         "desktop_app.processing.extractor", "desktop_app.license",
         "desktop_app.license.storage", "desktop_app.license.validator",
+        "desktop_app.license.entitlements", "desktop_app.license.verification",
+        "desktop_app.license.activation",
         "desktop_app.license.restrictions", "desktop_app.pdf", "desktop_app.pdf.signer",
         "backend.app.main", "backend.app.config", "backend.app.database",
         "backend.app.routers", "backend.app.routers.auth", "backend.app.routers.extraction",

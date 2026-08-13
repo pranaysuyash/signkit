@@ -1,5 +1,30 @@
 # Licensing System Testing Guide
 
+> Current contract (2026-08-13): paid access requires a provider-issued,
+> Ed25519-signed `EntitlementReceipt` and an explicitly configured public-key
+> ring. The historical key-only and `pranay@example.com` instructions below
+> are retained for repository history only. They do not describe current
+> production behavior. See `docs/decisions/ADR-0151-signed-local-entitlement-
+> activation.md` for the canonical boundary.
+
+## Current local contract
+
+Use a disposable test keyring and a signed fixture when exercising paid gates.
+Do not put a provider API token or signing secret in the desktop environment.
+The local test suite provides the canonical signing fixture and verifies:
+
+- receipt signature and canonical-payload tamper detection;
+- receipt-owned plan and add-on grants;
+- unknown, revoked, expired, unsigned, and key-only fail-closed behavior;
+- same-activation replay and different-entitlement conflict behavior;
+- explicit `SIGNKIT_LICENSE_TEST_MODE=1` isolation for the historical test key.
+
+The activation dialog expects signed receipt JSON. A raw provider key is not
+purchase evidence until a provider adapter verifies it and produces the
+normalized receipt. A real provider activation is still an open `QA-15` gate.
+
+The remainder of this file is historical procedure retained for audit context.
+
 ## Overview
 
 The Signature Extractor application implements a licensing system that restricts core functionality (export and PDF operations) when no valid license is present. This guide covers how to test both licensed and trial modes during development.

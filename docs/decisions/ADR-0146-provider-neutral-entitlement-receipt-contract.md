@@ -12,9 +12,10 @@ must normalize its response into this contract before the desktop feature gate
 uses it. Unknown states fail closed. A verified receipt may be cached for a
 bounded offline grace period only when its expiry is explicit.
 
-The legacy key-only path remains compatibility behavior when no entitlement
-receipt is present. It is not treated as purchase evidence and must not be the
-basis for claiming provider verification.
+The legacy key-only path remains readable for migration/support visibility when
+no entitlement receipt is present, but it cannot grant paid access. The local
+activation dialog now accepts a signed receipt, and the enforced activation
+and replay policy is recorded in ADR-0151.
 
 ## Context
 
@@ -44,8 +45,8 @@ enforces receipt-backed states through `LicenseInfo.is_valid()`.
 
 ## Risks and tradeoffs
 
-- The legacy compatibility path still exists, so release claims must not say
-  that all activations are provider-verified.
+- Key-only compatibility records still exist on disk for migration, so release
+  claims must not say that all activation inputs are provider-verified.
 - Offline grace can extend access after a provider revocation until expiry;
   the product decision must choose the duration and recovery messaging.
 - The provider and product ID are not configured, and no controlled purchase
@@ -61,3 +62,14 @@ enforces receipt-backed states through `LicenseInfo.is_valid()`.
 - Close this ADR only after a configured product ID, a secret-safe provider
   boundary, an idempotent activation record, documented support recovery, and
   a controlled sandbox or real purchase evidence record exist.
+
+## Addendum (2026-08-13): enforced local activation boundary
+
+ADR-0151 promotes this scaffold into the local product contract. Receipt grants
+are now signed canonical JSON, verified with an explicit Ed25519 public-key
+ring, owned by the receipt rather than unsigned license-file fields, and
+installed through an idempotent local activation function. Key-only records and
+the historical test email cannot unlock paid features unless explicit
+development test mode is enabled. Provider API integration, configured product
+IDs, controlled purchase evidence, refund/revocation delivery, and support
+recovery remain open release gates.

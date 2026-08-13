@@ -31,7 +31,7 @@ Execution rule:
 
 ## Licensing/Checkout (In‑App Surfaces)
 
-- [x] Wire Buy link (env‑configurable) and “Enter License” dialog to store key locally
+- [x] Wire Buy link (env-configurable) and signed-receipt activation dialog; key-only inputs remain readable for migration but cannot unlock paid features
 - [x] Evaluation mode hard-gate strategy is active for export/copy/save-to-library in unlicensed mode
 - [x] Surface 30-day refund link in Help/About
 - [x] Export/copy/save gating aligned in `on_export`, `_copy_result_to_clipboard`, `on_save_to_library`
