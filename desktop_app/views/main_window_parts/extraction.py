@@ -1091,6 +1091,13 @@ class ExtractionTabMixin:
         self.delete_from_library_btn.clicked.connect(self.on_delete_selected_library)
         self.delete_from_library_btn.setEnabled(False)
         controls.addWidget(self.delete_from_library_btn)
+
+        self.repair_library_cleanup_btn = _create_button("Repair Cleanup", parent_widget)
+        self.repair_library_cleanup_btn.setObjectName("repairLibraryCleanupButton")
+        self.repair_library_cleanup_btn.setToolTip("Retry incomplete local library cleanup explicitly")
+        self.repair_library_cleanup_btn.clicked.connect(self.on_repair_library_cleanup)
+        self.repair_library_cleanup_btn.setEnabled(False)
+        controls.addWidget(self.repair_library_cleanup_btn)
         
         controls.addSpacing(20)
         
@@ -3107,6 +3114,8 @@ class ExtractionTabMixin:
     def _update_library_controls(self):
         has_selection = bool(self.library_list.selectedItems())
         self.delete_from_library_btn.setEnabled(has_selection)
+        if hasattr(self, "repair_library_cleanup_btn"):
+            self.repair_library_cleanup_btn.setEnabled(lib.incomplete_deletion_count() > 0)
 
     def _set_preview_panel_visible(self, visible: bool) -> None:
         """Show or collapse the preview/result stack - natural resize to content."""
@@ -3237,6 +3246,28 @@ class ExtractionTabMixin:
             return
 
         self.status_bar.showMessage(deletion_outcome_message("deleted"), 3000)
+
+    def on_repair_library_cleanup(self):
+        """Retry recorded library sidecar cleanup only after explicit operator action."""
+        try:
+            summary = lib.recover_incomplete_deletions()
+        except Exception as exc:
+            QMessageBox.critical(cast(QWidget, self), "Cleanup repair failed", str(exc))
+            self._update_library_controls()
+            return
+
+        self._refresh_library_list()
+        if summary["remaining"]:
+            QMessageBox.warning(
+                cast(QWidget, self),
+                "Cleanup still needs attention",
+                (
+                    f"Repaired {summary['recovered']} of {summary['scanned']} recorded cleanup item(s). "
+                    f"{summary['remaining']} still need review."
+                ),
+            )
+            return
+        self.status_bar.showMessage(deletion_outcome_message("cleanup_recovered"), 3000)
 
     def on_rotate(self, degrees: int):
         """Rotate the active pane. Source rotates image+session, others rotate display only."""

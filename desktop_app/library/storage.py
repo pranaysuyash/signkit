@@ -289,10 +289,17 @@ def _write_deletion_receipt(*, item_name: str, item_sha256: Optional[str], clean
     payload = {
         "schema": "signkit.library_deletion_receipt.v1",
         "item_name": item_name,
+        "sidecar_name": f"{os.path.splitext(item_name)[0]}.json",
         "item_sha256": item_sha256,
         "cleanup_status": cleanup_status,
         "recorded_at": datetime.now().astimezone().isoformat(),
     }
+    _write_deletion_receipt_payload(destination, payload, receipt_dir=receipt_dir)
+
+
+def _write_deletion_receipt_payload(destination: str, payload: Dict[str, Any], *, receipt_dir: str) -> None:
+    """Atomically write a deletion receipt inside the local receipt directory."""
+
     descriptor, temporary_name = tempfile.mkstemp(prefix=".deletion-", suffix=".tmp", dir=receipt_dir)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
@@ -304,6 +311,83 @@ def _write_deletion_receipt(*, item_name: str, item_sha256: Optional[str], clean
     finally:
         if os.path.exists(temporary_name):
             os.unlink(temporary_name)
+
+
+def _incomplete_deletion_receipt_paths() -> List[str]:
+    receipt_dir = os.path.join(LIB_DIR, DELETION_RECEIPT_DIRNAME)
+    if not os.path.isdir(receipt_dir):
+        return []
+    paths: List[str] = []
+    for name in os.listdir(receipt_dir):
+        if not name.endswith(".json"):
+            continue
+        path = os.path.join(receipt_dir, name)
+        if os.path.islink(path) or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            continue
+        if isinstance(payload, dict) and payload.get("cleanup_status") == "incomplete":
+            paths.append(path)
+    return sorted(paths)
+
+
+def incomplete_deletion_count() -> int:
+    """Return the number of local cleanup receipts awaiting explicit repair."""
+
+    return len(_incomplete_deletion_receipt_paths())
+
+
+def recover_incomplete_deletions() -> Dict[str, int]:
+    """Explicitly retry sidecar cleanup recorded as incomplete.
+
+    Only sidecars derived from a receipt's basename are considered, and the
+    resolved path must remain inside ``LIB_DIR``. Ambiguous, missing, directory,
+    permission-denied, and receipt-write failures remain incomplete for a later
+    explicit attempt.
+    """
+
+    receipt_paths = _incomplete_deletion_receipt_paths()
+    recovered = 0
+    for receipt_path in receipt_paths:
+        receipt_dir = os.path.dirname(receipt_path)
+        try:
+            with open(receipt_path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except (OSError, ValueError, TypeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+
+        item_name = payload.get("item_name")
+        if not isinstance(item_name, str) or os.path.basename(item_name) != item_name or not item_name:
+            continue
+        sidecar_name = payload.get("sidecar_name") or f"{os.path.splitext(item_name)[0]}.json"
+        if not isinstance(sidecar_name, str) or os.path.basename(sidecar_name) != sidecar_name:
+            continue
+        sidecar_path = _library_path(os.path.join(LIB_DIR, sidecar_name))
+        if sidecar_path is None:
+            continue
+
+        try:
+            if os.path.exists(sidecar_path):
+                if os.path.isdir(sidecar_path):
+                    continue
+                os.remove(sidecar_path)
+            payload["cleanup_status"] = "complete"
+            payload["recovered_at"] = datetime.now().astimezone().isoformat()
+            _write_deletion_receipt_payload(receipt_path, payload, receipt_dir=receipt_dir)
+        except OSError:
+            continue
+        recovered += 1
+
+    return {
+        "scanned": len(receipt_paths),
+        "recovered": recovered,
+        "remaining": len(receipt_paths) - recovered,
+    }
 
 
 def list_items(limit: int = 50) -> List[LibraryItem]:

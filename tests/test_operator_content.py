@@ -83,6 +83,7 @@ def test_partial_export_copy_protects_against_incomplete_output_claim() -> None:
 def test_deletion_copy_distinguishes_complete_and_incomplete_cleanup() -> None:
     assert deletion_outcome_message("deleted") == "Signature removed and cleanup completed."
     assert "cleanup is incomplete" in deletion_outcome_message("cleanup_incomplete")
+    assert "cleanup was repaired" in deletion_outcome_message("cleanup_recovered").lower()
     assert "No deletion was recorded" in deletion_outcome_message("not_deleted")
 
 

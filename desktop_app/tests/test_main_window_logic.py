@@ -318,6 +318,7 @@ def test_library_delete_button_enables_with_selection(main_window):
     main_window.library_list.addItem(item)
     main_window._update_library_controls()
     assert not main_window.delete_from_library_btn.isEnabled()
+    assert not main_window.repair_library_cleanup_btn.isEnabled()
 
     item.setSelected(True)
     main_window._update_library_controls()

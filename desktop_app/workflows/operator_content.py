@@ -74,6 +74,7 @@ _EXPORT_COPY = {
 _DELETION_COPY = {
     "deleted": "Signature removed and cleanup completed.",
     "cleanup_incomplete": "Signature removed, but cleanup is incomplete. Review local cleanup before continuing.",
+    "cleanup_recovered": "Local cleanup was repaired. No signature data remains in the library.",
     "not_deleted": "The signature could not be removed. No deletion was recorded.",
 }
 

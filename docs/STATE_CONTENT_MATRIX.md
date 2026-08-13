@@ -188,6 +188,26 @@ old transient jobs to `NEEDS_REVIEW` with `ERR_WORKFLOW_INTERRUPTED`, records
 the event, preserves the attempt count, and never retries or deletes output
 automatically. Fresh jobs and jobs with invalid timestamps remain unchanged.
 
+## Addendum (2026-08-14): explicit local library cleanup recovery
+
+The local library now exposes a `Repair Cleanup` action when a prior deletion
+receipt records incomplete JSON-sidecar cleanup. The repair scans only
+metadata-only receipts with `cleanup_status: incomplete`, derives a basename
+sidecar path, verifies the resolved target remains inside the local library,
+and removes a file only after the operator explicitly invokes the action.
+Successful repair atomically updates the receipt with `cleanup_status:
+complete` and `recovered_at`; missing sidecars are treated as already clean.
+Directories, malformed or ambiguous receipts, symlink escapes, permission
+failures, and receipt-write failures remain visible as unresolved rather than
+being guessed through or retried automatically.
+
+Targeted evidence: `tests/test_library_deletion_contract.py`,
+`desktop_app/tests/test_main_window_logic.py`, and
+`tests/test_operator_content.py` passed as QA-44. This closes the local
+explicit-action and receipt-state sub-gate. Permission/device behavior across
+filesystems, recovery after application restart, packaged runtime behavior,
+and assistive-technology observation remain open.
+
 Targeted evidence: `desktop_app/tests/test_workflow_engine.py`,
 `tests/test_operator_content.py`, and
 `desktop_app/tests/test_workflow_screen_smoke.py` passed `36` checks as QA-40.
