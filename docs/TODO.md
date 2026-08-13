@@ -84,8 +84,8 @@ Full backlog (34 items): see TODO_FULL.md
 
 - [x] Local paid-feature gating uses one signed receipt boundary; legacy keys fail closed and the historical test key is explicit test mode. See `docs/decisions/ADR-0151-signed-local-entitlement-activation.md`.
 - [ ] Provider adapter and controlled activation: configure product ID, verify receipt delivery, and exercise replay, timeout, refund, dispute, chargeback, offline grace, and support recovery (`L0-02`, `QA-15`)
-- [ ] Real-GUI proof for the candidate confirmation flow, including cancel/confirm, keyboard focus, and failure messaging (`RECON-23`)
-- [ ] Permissioned held-out auto-detection evaluation with provenance, recall@k/IoU, and failure classes (`RECON-24`)
+- [x] Native-GUI proof archived for cancel/confirm, keyboard focus, preview rendering, and failure messaging; rerun after candidate-dialog or desktop-runtime changes (`RECON-23`)
+- [~] Synthetic auto-detection baseline recorded; permissioned held-out evaluation, provenance, recall@k/IoU, failure classes, and an accuracy-bar decision remain open (`RECON-24`)
 - [ ] Export gating: show Upgrade dialog if unlicensed (soft gate first)
 - [ ] Status bar note when unlicensed: “Evaluation mode — Export locked”
 - [ ] Optional watermark overlay in evaluation mode (off by default)

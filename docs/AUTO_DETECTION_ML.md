@@ -512,17 +512,22 @@ tensorboard - monitoring
   ranked candidate before applying it.
 
 ### Open questions / possible enhancements (not yet built)
-1. **Accuracy measurement:** There is no labeled dataset or eval harness, so the "60-70%"
-   figure is unverified. Building a recall@k / IoU eval is a prerequisite before promoting
-   auto-detect as a default.
+1. **Accuracy measurement:** A local evaluator and checked-in synthetic fixtures now exist.
+   The first baseline is recorded in
+   `docs/research/auto_detection_synthetic_baseline_2026-08-13.md`. It exposes a known
+   multi-signature miss and is regression evidence only. The "60-70%" figure remains
+   unverified for human or real documents, and the synthetic results must not be used to
+   promote a default threshold.
 2. **ML / cloud phases (2-4):** These remain future-only. No `ultralytics`/`torch`/Document AI
    dependencies or weights exist in the repo. They should not start until: (a) a labeled
    dataset of 500+ documents exists, (b) a go/no-go accuracy bar is agreed, and (c) a
    privacy review clears any data-collection path (see Phase 2 consent + anonymization +
    kill-switch requirement).
 
-The candidate-picker slice is tracked as `RECON-22` and `QA-24` in the canonical
-PO backlog and QA matrix. `RECON-23` tracks real-GUI observation, and `RECON-24`
-tracks a permissioned held-out evaluation baseline. The remaining evaluation
-and ML work must not start until its dataset, accuracy bar, and privacy
-prerequisites are accepted.
+The candidate-picker slice is tracked as `RECON-22`, `QA-24`, and the native
+observation `QA-26` in the canonical PO backlog and QA matrix. `RECON-23` is
+closed for this local macOS dialog observation, with broader desktop,
+assistive-technology, packaged, and hosted gates still separate. `RECON-24`
+tracks the remaining permissioned held-out evaluation decision. A synthetic
+baseline now exists, but the remaining evaluation and ML work must not start
+until its dataset, accuracy bar, and privacy prerequisites are accepted.
