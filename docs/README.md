@@ -1,5 +1,13 @@
 # Signature Extractor App
 
+> Current-truth notice: this repository preserves launch-era and parallel-work
+> documents for auditability. For active product state, task status, claims,
+> and evidence, start with the [documentation truth map](DOCUMENTATION_TRUTH_MAP_2026-08-13.md),
+> then follow the [Product Owner backlog](PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md)
+> and [QA results](QA_RESULTS.md). Historical `FINAL_*`, dated launch reports,
+> retained landing variants, and `docs/archive/` snapshots are not current
+> release proof.
+
 **Desktop-first signature extraction tool** with precision control for extracting signatures from documents.
 
 ✨ **Features**:

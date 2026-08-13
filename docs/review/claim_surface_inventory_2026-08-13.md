@@ -110,3 +110,14 @@ test verifies that the claim gate appears before the ledger command in
 `.github/workflows/build-all-platforms.yml`. This prevents a release job from
 creating a checksum ledger while silently skipping source claim parity. It does
 not replace the external deployed probe or product/legal review.
+
+## Addendum (2026-08-13): local static audit rerun
+
+The local strict audit was rerun after the documentation truth-map repair:
+`tools/audit_public_surface.py --strict --json` reported `13` registered claim
+families, `0` errors, `27` legacy redirects, and `5` wildcard redirect groups.
+It retained warnings for legacy HTML checkout/high-risk claim content and `30`
+historical documentation references. This is a clean local structural result
+with explicit warnings, not proof that the deployed surface or release
+artifact excludes those retained pages. `L0-13` and `L1-07` therefore remain
+open.

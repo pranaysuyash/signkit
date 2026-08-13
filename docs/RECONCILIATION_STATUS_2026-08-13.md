@@ -3,7 +3,8 @@
 Date: 2026-08-13
 Canonical checkout: `/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app`
 Branch: `main`
-Remote push: not performed
+Remote push: verified after the latest canonical `main` handoff; local `HEAD`
+and `origin/main` were equal at the handoff commit.
 
 This is the live status record for bringing the preserved parallel work into
 local `main`. It complements the immutable preservation index and the Product
@@ -18,9 +19,10 @@ as production proof.
 | Release and entitlement evidence | `6d0e54e` | Shared environment contract, deployment/public-surface gates, release artifact ledger, provider-neutral entitlement receipt, synthetic fixtures, QA matrix, claim inventory, release ADRs | 64 focused tests, S1; entitlement mutation failed then passed, S2; 5/5 mutation manifest, S3; local deployment smoke, Tier 3 | Provider adapter and purchase/revocation evidence, signed artifacts, cross-platform launch, hosted deployment, target migration and remote CI remain open |
 | Research and operator workflow | `5798235` | Extractor confidence threshold, web receipt hydration and failure visibility, isolated document-registration concept, browser proof, SignverOD inspection/evaluation, autoresearch protocol | 39 focused tests, S1; 7/7 mutation manifest, S3; Python compilation | Browser proof requires the external Playwright runtime and keep-running backend; external corpus and product promotion remain gated |
 
-Integrated local regression after the three implementation promotion commits:
-`170 passed in 9.14s` with the canonical `.venv`, isolated SQLite database, and
-offscreen Qt.
+The current canonical first-party local regression is `487 passed, 4 skipped`
+from `491` collected with the canonical `.venv`, isolated SQLite database, and
+offscreen Qt. Earlier smaller counts below are preserved as historical
+promotion evidence.
 This is S1 evidence for the current checkout. It does not close hosted,
 provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 
@@ -46,12 +48,12 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-02 | done | backend and desktop | Runtime profile, local inspection receipts, health proof, and remote-upload policy are in one canonical path with focused tests. |
 | RECON-03 | done | release engineering | Release ledger, deployment probes, claim checks, QA matrix, and entitlement receipt contract are in local `main`. |
 | RECON-04 | done | research and product | Research tooling, web operator receipt recovery, isolated concept surface, and evidence-bound experiment protocol are in local `main`. |
-| RECON-05 | open | workspace tooling | The shared `/Users/pranay/Projects/agent-start` wrapper now fails closed with exit `1` when a full refresh cannot find `/Users/pranay/Projects/workspace_memory/.venv/bin/python` or a usable `memsearch` CLI; fast `--skip-index --quiet` remains explicit and non-blocking. The configured interpreter is still absent and `memsearch` is still a 17-byte `exit 0` stub. Rebuild the shared environment through the documented setup path, prove real indexing/retrieval, and attach regenerated context hashes. |
-| RECON-06 | open | release and ops | Apply the Alembic head to the target database, run authenticated hosted extraction and local inspection smoke, prove replay, deletion, rollback, and operator recovery receipts. |
-| RECON-07 | open | release owner | Run the hosted public-surface probe after deployment propagation and retain root, redirect, JavaScript content-type, and claim results. |
-| RECON-08 | open | commercial and release | Configure a provider-neutral adapter boundary, controlled purchase, receipt activation, refund/revocation, offline-grace expiry, support recovery, and customer-safe claims. |
-| RECON-09 | open | packaging | Produce real platform artifacts and complete signing, launch smoke, rollback, and machine-readable ledger evidence for every release artifact. |
-| RECON-10 | open | QA and product | Run browser accessibility, narrow viewport, device, full-suite, remote CI, and external-corpus checks at their required evidence and sensitivity tiers. |
+| RECON-05 | done | documentation continuity | The dated truth map, canonical source precedence, stale-status classification, and backlog/task-reference repair are now in `docs/DOCUMENTATION_TRUTH_MAP_2026-08-13.md`; remaining claim/deployment work is tracked separately. |
+| RECON-06 | open | workspace tooling and agent-start | The shared `/Users/pranay/Projects/agent-start` wrapper fails closed for full retrieval when the workspace Python interpreter or usable `memsearch` CLI is absent; fast `--skip-index --quiet` remains explicitly truthful. Rebuild the shared environment through the documented setup path, run a real sync/index/search refresh, confirm retrieval results or truthful unavailable status, and attach generated context hashes. |
+| RECON-07 | open | hosted migration and recovery | Apply the Alembic head to the target database, run authenticated hosted extraction and local inspection smoke, prove replay, deletion, rollback, and operator recovery receipts. |
+| RECON-08 | open | public claims and deployment | Run the hosted public-surface probe after deployment propagation and retain root, redirect, JavaScript content-type, and claim results. |
+| RECON-09 | open | commercial and release | Configure a provider-neutral adapter boundary, controlled purchase, receipt activation, refund/revocation, offline-grace expiry, support recovery, and customer-safe claims. |
+| RECON-10 | open | packaging and QA | Produce real platform artifacts and complete signing, launch smoke, rollback, machine-readable ledger, browser accessibility, narrow viewport, device, remote CI, and external-corpus evidence at their required tiers. |
 | RECON-11 | done | parallel-work integrity | The original primary `main` dirty diff is fully accounted for: 258 changed paths, 256 present at current paths, one baseline-recoverable deletion, and one archived superseded ADR. |
 | RECON-12 | done | parallel-work integrity | The a11f worktree diff is fully accounted for: 281 tracked changed paths, 280 non-deleted paths present in current `main`, and runtime-only untracked directories preserved on disk. |
 | RECON-17 | done-local | local product and operator workflow | The disposable local proof proves desktop source/import, extraction and cleanup, encrypted vault, controlled placement/export, forced failure, canonical retry, metadata-only recovery passports, and verified artifact receipt. The real browser bridge proof now exposes that local passport and recovery state through `/workspace-app/` without document bytes. |
@@ -79,7 +81,7 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 The workspace tooling refresh was rerun with a 90-second bound. It returned
 shell exit code `0` while reporting the missing workspace-memory interpreter and
 failed retrieval sections. The exact evidence and interpretation are recorded
-in `docs/issue_review_agent_start_context_2026-08-13.md`; RECON-05 remains open.
+in `docs/issue_review_agent_start_context_2026-08-13.md`; RECON-06 remains open.
 
 The hosted checks were also rerun read-only against `https://signkit.work`:
 
@@ -109,17 +111,16 @@ now returns exit `1` before claiming retrieval health; explicit
 and marks retrieval as skipped. This is S2 command-execution evidence.
 
 The shared runtime is not rebuilt in this product pass because the documented
-setup recreates `/Users/pranay/Projects/workspace_memory/.venv`. RECON-05
+setup recreates `/Users/pranay/Projects/workspace_memory/.venv`. RECON-06
 remains open for that workspace-tooling owner action, real indexing/search
 verification, and final context hashes. The current truthful fast-mode hashes
 are recorded in `docs/issue_review_agent_start_context_2026-08-13.md`.
 
 ## Next coherent unit
 
-Reconcile the remaining canonical docs and code families against the path-level
-matrix, then run the hosted and workspace-tooling gates that can be executed
-without credentials or deployment mutation. Do not push remote `main` until
-the local acceptance report lists every remaining item and its closure path.
+Run the local claim-surface and operator-state checks for `L0-13`, `L1-07`, and
+`L1-08`, then keep hosted, provider, and workspace-tooling gates explicitly
+separate until their required external evidence exists.
 
 ## Addendum (2026-08-13): exact implementation path accounting
 

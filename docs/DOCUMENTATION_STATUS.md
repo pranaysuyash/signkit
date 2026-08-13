@@ -1,7 +1,18 @@
 # Documentation Status Guide
 
-**Last Updated:** November 27, 2025  
-**Purpose:** Guide to which docs are current vs obsolete
+**Last Updated:** 2026-08-13
+**Purpose:** Guide to which docs are current versus historical
+
+## Current-truth precedence
+
+This file preserves its older status lists for audit context. It is not the
+release-status authority. Use the
+[`DOCUMENTATION_TRUTH_MAP_2026-08-13.md`](DOCUMENTATION_TRUTH_MAP_2026-08-13.md)
+first, then the canonical
+[`PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`](PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md),
+[`QA_RESULTS.md`](QA_RESULTS.md), reconciliation status, and claim registry.
+The November 2025 lists below are historical snapshots and cannot establish a
+current launch, provider, deployment, or artifact claim.
 
 ---
 

@@ -44,7 +44,7 @@ Baseline evidence checked this pass:
 | L0-03 | explicit | backend | Resolve `/extraction` + `/uploads/images` boundary for any hosted claim (authentication, owner scope, retention, deletion, idempotency) | in-progress | P0 | Application contract is authenticated and owner/workspace scoped with private artifacts, export/deletion/audit receipts, and durable idempotency; production migration/rollout and live-host proof remain required | `backend/app/routers/extraction.py`, `backend/app/models/image.py`, `backend/app/models/extraction_audit.py`, `backend/alembic/versions/e42b7f8c91aa_add_extraction_asset_ownership_receipts.py`, `docs/decisions/ADR-0142-authenticated-extraction-asset-contract.md` | eng |
 | L0-04 | explicit | release | Complete deployment smoke contract for root and `/index.html`, including redirect and content-type checks | in-progress | P0 | Clean pass of `bash scripts/test-deployment.sh https://signkit.work` with required redirects/content types | `scripts/test-deployment.sh`, `web/live/js/checkout.js` | eng |
 | L0-05 | explicit | release | Publish evidence-backed artifact ledger (release SHA, package filename, checksum, signing/notarization, smoke output) | in-progress | P0 | One ledger file per release artifact with reproducible checks | CI + release scripts | PO + eng |
-| L0-06 | explicit | architecture | Reconcile stale docs as canonical vs historical (`FINAL_STATUS_AND_TODO`, legacy landing notes) | in-progress | P1 | Public-facing docs now link to current canonical tracker and call out date/range of truth | `Docs/APP_OPEN_ITEMS.md`, `Docs/TODO.md`, `Docs/TODO_FULL.md` | PO |
+| L0-06 | explicit | architecture | Reconcile stale docs as canonical vs historical (`FINAL_STATUS_AND_TODO`, legacy landing notes) | done | P1 | Current docs link to the dated truth map and canonical tracker; historical status reports, retained landing variants, and parallel snapshots are explicitly classified and cannot override current evidence | `docs/DOCUMENTATION_TRUTH_MAP_2026-08-13.md`, `docs/DOCUMENTATION_STATUS.md`, `docs/README.md` | PO |
 | L0-07 | explicit | config | Standardize port policy between docs, backend config, and dev scripts | in-progress | P1 | `scripts/run-backend-dev.sh` uses configurable `BACKEND_PORT` (default 8001), and tracked app docs now align around 8001 in active paths | `scripts/run-backend-dev.sh`, `docs/TODO_FULL.md`, `docs/TODO.md`, `Docs/APP_OPEN_ITEMS.md` | PO + eng |
 | L0-08 | implicit | architecture | Restore canonical motto propagation so `agent-start` can regenerate context without a symlink guard failure, and promote doctrine additions to the Downloads source | done | P0 | `/Users/pranay/Downloads/motto_v5.md` contains the doctrine additions; `/Users/pranay/Projects/motto_v5.md` is a symlink to that source; project context regeneration exits successfully and records the canonical source | `/Users/pranay/Downloads/motto_v5.md`, `/Users/pranay/Projects/motto_v5.md`, `/Users/pranay/Projects/agent-start`, `docs/context/agent-start/*` | PO + eng |
 | L1-01 | explicit | licensing | Implement consistent evaluation mode behavior across export/copy/save path and status copy in UI copywriting | done | P1 | Export/copy/library now use one gate helper, action controls are disabled in trial, and lock messaging is unified | `desktop_app/views/main_window_parts/extraction.py` | eng |
@@ -52,7 +52,7 @@ Baseline evidence checked this pass:
 | L1-03 | explicit | docs | Unify config references to port 8001 and generate `.env.example` with exact required variables | in-progress | P2 | Config loads from `.env.example` defaults and all tracked docs use same values | `.env.example`, `desktop_app/config.py`, `backend/app/config.py` | eng |
 | L1-04 | explicit | support | Add Help-driven issue reporting flow with local diagnostics snapshot + prefilled email template | done | P1 | Help menu action opens diagnostics folder and opens pre-filled email payload with version, environment, and session context | `desktop_app/views/main_window.py`, `docs/HELP.md`, `Docs/APP_OPEN_ITEMS.md` | PO |
 | L1-05 | explicit | docs | Add in-app update-check action wired to `updates.json` compare flow | done | P1 | Help menu opens update check and status message with `UPDATES_URL` comparison logic and user prompt to download update | `desktop_app/views/main_window.py`, `Docs/APP_OPEN_ITEMS.md`, `Docs/TODO.md` | eng |
-| L2-01 | explicit | wayfinder | Close `reconcile-historical-docs-and-public-claims.md` as executable remediation, not a passive ticket | in-progress | P0 | Ticket updated from “open” to “resolved” or replaced by concrete migration ticket with criteria | `docs/wayfinder/tickets/reconcile-historical-docs-and-public-claims.md` | PO |
+| L2-01 | explicit | wayfinder | Close `reconcile-historical-docs-and-public-claims.md` as executable remediation, not a passive ticket | done | P0 | Ticket is resolved with a dated truth map, canonical source precedence, and explicit remaining claim/deployment tasks | `docs/wayfinder/tickets/reconcile-historical-docs-and-public-claims.md`, `docs/DOCUMENTATION_TRUTH_MAP_2026-08-13.md` | PO |
 | L2-02 | explicit | wayfinder | Resolve `define-template-system-and-governance.md` with owner/versioned addendum | blocked | P2 | Decision memo includes versioning, ownership, publish controls, rollback path | `docs/wayfinder/tickets/define-template-system-and-governance.md` | PO |
 | L2-03 | explicit | wayfinder | Resolve `choose-commercial-packaging-and-activation-model.md` | blocked | P0 | Chosen topology+pricing+activation model and operational impact documented with legal/commercial sign-off | `docs/wayfinder/tickets/choose-commercial-packaging-and-activation-model.md` | PO |
 | L2-04 | implicit | quality | Add contract-level tests for extraction route abuse and partial-failure recovery | done | P1 | Tier 3 coverage includes unauthenticated/cross-owner/cross-workspace denial, duplicate replay/conflict, concurrent convergence, export, deletion replay, audit-after-delete, malformed/oversized inputs, and private artifact responses | `backend/tests/test_extraction_router.py`, `backend/tests/test_extraction_hosted.py`, `desktop_app/tests/test_api_client.py` | eng |
@@ -68,6 +68,10 @@ Baseline evidence checked this pass:
 | L2-05 | implicit | QA | Create QA matrix with reproducible commands/results and attach to runbook | in-progress | P1 | Matrix includes negative-path cases and known-limit table | `docs/QA_*` (new) | PO + QA |
 | L2-06 | explicit | web claims | Add `docs/launch_claims/registry.md` and claim smoke check for every public copy statement that implies hosted/cloud behavior | in-progress | P2 | Every hosted claim has a gate test and a source commit hash | `web/live`, `tests/test_landing_surface_contract.py` | PO |
 | L2-07 | explicit | UX | Add explicit delete/escape/shortcut discoverability and close alignment with docs | done | P1 | `Docs/SHORTCUTS.md` and actual bindings match | `desktop_app/views/main_window_parts/extraction.py` | eng |
+| L0-13 | implicit | release/claims | Reject HTML fallbacks and retired high-risk claims on the deployed root and checkout assets | in-progress | P0 | Local strict audit now reports `13` claim families and `0` errors, while retained legacy claim warnings remain explicit; deployed probe requires canonical root markers, JavaScript checkout assets, required redirects, and no retired absolute claims after deployment propagation | `tools/audit_public_surface.py`, `tools/test_deployed_surface.py`, `tests/test_deployed_surface_probe.py`, `docs/review/claim_surface_inventory_2026-08-13.md`, `QA-27` | eng + Web Platform |
+| L0-14 | implicit | release | Create a per-artifact release ledger with checksum, signing, smoke, and rollback evidence | in-progress | P0 | Each platform artifact has source SHA/tag, checksum, platform, signing/notarization state, smoke result, evidence references, release URL, and a recoverable rollback artifact; the strict release job blocks incomplete evidence | `tools/release_artifact_ledger.py`, `tests/test_release_artifact_ledger.py`, `docs/release/RELEASE_ARTIFACT_LEDGER_SPEC.md`, `.github/workflows/build-all-platforms.yml` | eng + release owner |
+| L1-07 | implicit | claims | Extend claim governance from the canonical root to all reachable, retained, legal, support, email, and release surfaces | in-progress | P1 | The local audit classifies the retained surface and reports `30` historical documentation references plus explicit legacy-page warnings; every reachable surface must still be qualified, redirected, archived, or removed from delivery, with a clean deployed scan or explicit owner/date | `tools/audit_public_surface.py`, `docs/launch_claims/registry.md`, `docs/review/claim_surface_inventory_2026-08-13.md`, `QA-27` | PO + Legal |
+| L1-08 | implicit | operator workflow | Establish one operator-facing state and recovery contract across desktop extraction, PDF placement, Vault, export, and workspace surfaces | in-progress | P1 | Source-to-export workflow, failure states, retry/idempotency, cleanup, and receipts are documented and runtime-observed; terminology distinguishes local companion from hosted service | `docs/PRODUCT_GLOSSARY.md`, `docs/STATE_CONTENT_MATRIX.md`, `desktop_app/views/`, `desktop_app/workflows/` | Product + eng |
 
 ## Implicit but must be explicit now
 
@@ -109,7 +113,7 @@ Baseline evidence checked this pass:
 - `L2-04`: Closed with Tier 3 evidence: `.venv/bin/pytest -q backend/tests/test_extraction_router.py backend/tests/test_extraction_hosted.py` passed `10 passed`; desktop API assertions cover generated idempotency headers. The focused suite was first red on three response classification defects, then passed after fixing those defects (S2).
 
 - `L2-08`: Closed by adding backend regression coverage in `backend/tests/test_extraction_router.py` and client contract assertions in `desktop_app/tests/test_api_client.py`.
-- `L2-09`: Closed locally. Root collection now includes `tests`, `backend/tests`, and `desktop_app/tests`; the latest expanded command collects 487 tests and passes `484 passed, 4 skipped`. The optional PyMuPDF boundary is explicit, and the destructor shutdown regression has S2 evidence. Hosted, remote-runner, provider, device, and assistive-technology gates remain separate.
+- `L2-09`: Closed locally. Root collection now includes `tests`, `backend/tests`, and `desktop_app/tests`; the latest expanded command collects `491` tests and passes `487 passed, 4 skipped`, including the documentation truth-map checks. The prior `487 collected / 484 passed` result remains historical evidence. The optional PyMuPDF boundary is explicit, and the destructor shutdown regression has S2 evidence. Hosted, remote-runner, provider, device, and assistive-technology gates remain separate.
 
 ## Addendum (2026-08-13): first-party test collection and context doctrine
 
@@ -191,10 +195,12 @@ as dated records.
 | RECON-10 | implicit | full validation | open | P1 | Focused suites and mutation gates pass; browser accessibility, device, remote CI, full-suite, and external-corpus evidence remain scoped. | Run each QA row at its required evidence tier and record S2/S3 where release blocking. |
 
 The live reconciliation record is maintained in
-`docs/RECONCILIATION_STATUS_2026-08-13.md`. No remote push has occurred.
+`docs/RECONCILIATION_STATUS_2026-08-13.md`. The no-push statement in this
+historical addendum was true when it was written; later remote parity is
+recorded in the live reconciliation record.
 
-Integrated local regression checkpoint: the current `main` checkout passed
-`170 passed in 9.14s` with the canonical `.venv`, isolated SQLite database,
+Historical integrated local regression checkpoint: the then-current `main`
+checkout passed `170 passed in 9.14s` with the canonical `.venv`, isolated SQLite database,
 and offscreen Qt. This is S1 evidence only. Hosted migration and recovery,
 public deployment, provider activation, signed packaging, browser/device
 coverage, remote CI, and agent-start retrieval health remain open tasks.
@@ -213,7 +219,9 @@ coverage, remote CI, and agent-start retrieval health remain open tasks.
   `200` or `308` rather than `301`, and retired `/web/live` JavaScript paths
   returning HTML. Local `main` was not changed to mask a deployment mismatch.
 - The local reconciled checkout remains the source of truth for the six local
-  commits and their evidence. No remote push was performed.
+  commits and their evidence. At the time of this historical addendum no remote
+  push was performed; current parity is recorded in the live reconciliation
+  record.
 
 ## Addendum (2026-08-13): agent-start guard correction
 
