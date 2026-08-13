@@ -180,9 +180,9 @@ code.
   `manual_publish_landing.yml` publish the repository root to Cloudflare Pages.
   `wrangler.toml` has `pages_build_output_dir = "."`. These workflows do not
   deploy FastAPI, migrations, or `/workspace-app` as a hosted backend.
-- **Backend run:** `scripts/run-backend-dev.sh` requires `DATABASE_URL` and starts
-  `uvicorn backend.app.main:app` on port 8000. `backend/alembic/` is the migration
-  source. `backend/app/main.py` still calls `Base.metadata.create_all` for local
+- **Backend run:** `scripts/run-backend-dev.sh` uses the local `BACKEND_PORT`
+  default of 8001 and starts `uvicorn backend.app.main:app` on that port.
+  `backend/alembic/` is the migration source. `backend/app/main.py` still calls `Base.metadata.create_all` for local
   compatibility, so production must run migrations explicitly and avoid relying on
   import-time schema creation.
 - **Desktop build:** `build-tools/build.py --show-targets` reports standard

@@ -57,7 +57,7 @@ Legend:
 ## Backend (3)
 
 - [ ] Clean up commented/duplicate code
-- [~] Confirm port 8001 across docs, tests, and desktop client
+- [x] Confirm port 8001 across docs, tests, and desktop client
 - [ ] Smoke tests: /health, upload, process round-trip
 
 ## Packaging and distribution (3)
