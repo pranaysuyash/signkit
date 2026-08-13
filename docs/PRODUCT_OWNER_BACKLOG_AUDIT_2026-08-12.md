@@ -62,6 +62,9 @@ Baseline evidence checked this pass:
 | L0-11 | implicit | developer experience | Diagnose the non-returning `agent-start --project ... --skip-index --quiet` refresh path and restore deterministic context regeneration | done | P1 | Ordinary `--skip-index --quiet` completes and refreshes truthful fast-mode context; full retrieval and explicitly forced retrieval fail closed when the shared runtime is absent; cause and evidence are documented without bypassing canonical motto guards | `/Users/pranay/Projects/agent-start`, `docs/context/agent-start/*`, `docs/issue_review_agent_start_context_2026-08-13.md`, `/Users/pranay/Projects/motto_v5.md` | eng |
 | L0-12 | implicit | packaging | Close the local packaged desktop runtime contract for the promoted product direction | done-local | P0 | ARM64 bundle starts the in-process backend with generated user-writable local settings, serves the canonical `/workspace-app/`, contains no developer `.env`, passes bounded local smoke and ad hoc signature verification; cross-platform, notarization, rollback, hosted, and provider evidence remain separate | `desktop_app/backend_manager.py`, `build-tools/SignatureExtractor_*.spec`, `docs/decisions/ADR-0148-local-packaged-runtime-boundary.md`, `docs/review/local_packaging_runtime_proof_2026-08-13.md`, `tests/test_build_profile.py` | desktop + release |
 | L2-08 | implicit | backend | Add regression check so extraction responses never return public `uploads/images` URLs | done | P1 | Upload/select responses keep `file_path` null/internal and contract tests guard against accidental reintroduction | `backend/app/routers/extraction.py`, `backend/tests/test_extraction_router.py`, `desktop_app/tests/test_api_client.py` | eng |
+| L2-09 | implicit | QA/tooling | Make the canonical local test command collect every first-party backend and desktop suite, while keeping optional PDF capability boundaries explicit | done-local | P1 | Root `pytest` collects all three first-party test roots, the CI matrix uses the same collection, missing optional PyMuPDF skips explicitly, and the expanded suite passes with bounded skips | `pytest.ini`, `.github/workflows/test-data.yml`, `desktop_app/tests/test_pdf_form_fields.py`, `docs/decisions/ADR-0149-first-party-test-discovery-and-optional-pdf-boundary.md` | eng + QA |
+| L2-10 | implicit | security/config | Remove hardcoded database credentials, fail closed for incomplete production database configuration, and add a narrow settings reload seam | done-local | P1 | No real-looking credential defaults remain; explicit production configuration fails closed without a complete URL or credentials; isolated local SQLite remains supported; targeted tests pass | `backend/app/config.py`, `backend/tests/test_config_and_path_security.py`, `docs/decisions/ADR-0150-config-and-local-pii-boundary.md` | eng + security |
+| L2-11 | implicit | security/privacy | Enforce owner-only POSIX permissions on local user-data, upload, and selection-sidecar paths | done-local | User-data/upload/sidecar directories are `0700` and selection metadata files are `0600` on POSIX; non-POSIX behavior is explicitly bounded | `backend/app/paths.py`, `backend/app/routers/extraction.py`, `backend/app/services/extraction.py`, `backend/tests/test_config_and_path_security.py`, `docs/decisions/ADR-0150-config-and-local-pii-boundary.md` | eng + security |
 | L2-05 | implicit | QA | Create QA matrix with reproducible commands/results and attach to runbook | in-progress | P1 | Matrix includes negative-path cases and known-limit table | `docs/QA_*` (new) | PO + QA |
 | L2-06 | explicit | web claims | Add `docs/launch_claims/registry.md` and claim smoke check for every public copy statement that implies hosted/cloud behavior | in-progress | P2 | Every hosted claim has a gate test and a source commit hash | `web/live`, `tests/test_landing_surface_contract.py` | PO |
 | L2-07 | explicit | UX | Add explicit delete/escape/shortcut discoverability and close alignment with docs | done | P1 | `Docs/SHORTCUTS.md` and actual bindings match | `desktop_app/views/main_window_parts/extraction.py` | eng |
@@ -106,6 +109,26 @@ Baseline evidence checked this pass:
 - `L2-04`: Closed with Tier 3 evidence: `.venv/bin/pytest -q backend/tests/test_extraction_router.py backend/tests/test_extraction_hosted.py` passed `10 passed`; desktop API assertions cover generated idempotency headers. The focused suite was first red on three response classification defects, then passed after fixing those defects (S2).
 
 - `L2-08`: Closed by adding backend regression coverage in `backend/tests/test_extraction_router.py` and client contract assertions in `desktop_app/tests/test_api_client.py`.
+- `L2-09`: Closed locally. Root collection now includes `tests`, `backend/tests`, and `desktop_app/tests`; the expanded command collects 478 tests and passes `475 passed, 4 skipped`. The optional PyMuPDF boundary is explicit, and the destructor shutdown regression has S2 evidence. Hosted, remote-runner, provider, device, and assistive-technology gates remain separate.
+
+## Addendum (2026-08-13): first-party test collection and context doctrine
+
+The random document audit at
+`docs/audits/random_document_audit_AUTO_DETECTION_ML_2026-08-13.md` identified
+that root `pytest` silently omitted 291 backend and desktop tests. That finding
+was independently reproduced in the live checkout. ADR-0149 makes the three
+first-party roots canonical, removes the hand-picked CI collection boundary,
+and records the optional PyMuPDF and Qt event-loop limits.
+
+The same startup pass found a generator conflict: the shared
+`/Users/pranay/Projects/agent-start` had begun deleting this repository's
+tracked `motto_v5.md` in favor of workspace Doctrine 6.0. The generator now
+retains a project-local `motto_v5.md` override and records that choice in the
+generated context. The workspace Doctrine 6.0 symlink remains available for
+projects without a local motto. The original generated Doctrine 6.0 copy was
+preserved outside this repository at
+`/Users/pranay/Projects/OPERATING_DOCTRINE.md.generated-copy-20260813` before
+the symlink was restored.
 
 ## Add-task protocol (live)
 

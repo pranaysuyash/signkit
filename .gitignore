@@ -110,8 +110,14 @@ ehthumbs.db
 .kiro/
 .claude/
 
+# The project uses its tracked motto_v5.md. A root Operating Doctrine file is
+# a generated workspace copy and must not become a second project truth source.
+/OPERATING_DOCTRINE.md
+
 # Trash
 .trash/
+# Local agent/test runners may create these at the repository root. They are
+# runtime output, not source or QA evidence; durable reports belong under docs/.
 .codex-test-tmp/
 .wrangler/
 

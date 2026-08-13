@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import os
 import hashlib
 import json
 import logging
@@ -58,6 +59,14 @@ os_uploads_dir = Path(str(UPLOADS_DIR))
 os_uploads_dir.mkdir(parents=True, exist_ok=True)
 REGION_METADATA_DIR = os_uploads_dir / "regions"
 REGION_METADATA_DIR.mkdir(parents=True, exist_ok=True)
+# Owner-only permissions on directories holding uploaded signatures and
+# selection sidecars (local PII).
+if os.name == "posix":
+    try:
+        os.chmod(os_uploads_dir, 0o700)
+        os.chmod(REGION_METADATA_DIR, 0o700)
+    except OSError:
+        pass
 
 
 class RegionSelectionRequest(BaseModel):

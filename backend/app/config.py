@@ -24,10 +24,17 @@ class Settings(BaseSettings):
     # Database settings
     DATABASE_HOSTNAME: str = "localhost"
     DATABASE_PORT: str = "5432"
-    DATABASE_PASSWORD: str = "pranay"
+    # No hardcoded default password. Credentials are optional at the config
+    # layer: production must supply a full DATABASE_URL (which embeds creds) or
+    # set these explicitly; local development falls back to a private SQLite
+    # database via the desktop app launcher.
+    DATABASE_PASSWORD: str | None = None
     DATABASE_NAME: str = "signature_extractor"
-    DATABASE_USERNAME: str = "pranay"
+    DATABASE_USERNAME: str | None = None
     DATABASE_URL: str | None = None
+    # Deployment mode. Used to fail closed on missing DB credentials in
+    # production while keeping local development frictionless.
+    ENVIRONMENT: str = "development"
 
     # JWT settings
     JWT_SECRET: str
@@ -77,15 +84,16 @@ class Settings(BaseSettings):
         # Validate database configuration
         if not self.DATABASE_NAME:
             errors.append("DATABASE_NAME is required")
-        
-        if not self.DATABASE_USERNAME:
-            errors.append("DATABASE_USERNAME is required")
-        
-        if not self.DATABASE_PASSWORD or self.DATABASE_PASSWORD == "your_db_password":
-            errors.append(
-                "DATABASE_PASSWORD is missing or using example value. "
-                "Set a secure database password."
-            )
+
+        # Postgres credentials are optional here. A full DATABASE_URL (SQLite or
+        # Postgres) supplies everything needed; bare-component Postgres is only
+        # expected in production, where missing credentials must fail closed.
+        if self.DATABASE_URL is None and self.ENVIRONMENT == "production":
+            if not self.DATABASE_USERNAME or not self.DATABASE_PASSWORD:
+                errors.append(
+                    "DATABASE_USERNAME and DATABASE_PASSWORD are required when "
+                    "DATABASE_URL is not set in a production environment."
+                )
         
         # Validate port
         try:
@@ -111,3 +119,25 @@ except ValidationError as exc:
 except Exception as exc:
     logger.error("Unexpected error loading settings: %s", exc)
     raise
+
+
+def get_settings() -> "Settings":
+    """Return the process-wide Settings singleton.
+
+    Prefer this over ``from backend.app.config import settings`` when code may
+    run after a test-time ``reload_settings()`` call, because a direct import
+    binds the name at import time and will not see a reloaded instance.
+    """
+    return settings
+
+
+def reload_settings() -> "Settings":
+    """Re-read configuration from the environment and replace the singleton.
+
+    Test-only helper. Production code should treat ``settings`` as immutable for
+    the process lifetime. After mutating ``os.environ``, call this to pick up
+    the new values (pydantic-settings reads the environment at construction).
+    """
+    global settings
+    settings = Settings()
+    return settings

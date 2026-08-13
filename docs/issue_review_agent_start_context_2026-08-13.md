@@ -125,3 +125,25 @@ SESSION_CONTEXT.md       0a96aa5f48567df0fd0fd1bd7cec61de1661445a52857397876210b
 AGENT_KICKOFF_PROMPT.txt b9c0119cd9d26d8383a3e7b21db652573cf3c779b0958136e90e0ecda27b76e7
 STEP1_ENV.sh             5a8a24dfe122d7d38f282b4c55898eb5b04d382cd2fded5e055b98e98f0f84a8
 ```
+
+## Addendum (2026-08-13): project-local doctrine override
+
+A later context refresh exposed a second source-of-truth conflict. The shared
+generator synchronized workspace Doctrine 6.0 into this project and removed
+the tracked `motto_v5.md`, even though the project instruction stack and the
+operator's release brief designate `motto_v5.md` as the more-specific project
+doctrine. The deleted file was restored byte-for-byte from `HEAD` with SHA-256
+`f1ade186d46bf2e20e9eebd56ceca3a733711671471198284828482659524840`.
+
+The generator now detects an existing project-local `motto_v5.md`, retains it
+as the selected doctrine, and leaves the workspace-wide Doctrine 6.0 symlink
+separate. A fresh `agent-start --project ... --skip-index --quiet` run exits
+`0`, retains the project file, and regenerates `docs/context/agent-start/*`
+with the local path, version `5`, matching SHA-256, and explicit provenance.
+The workspace symlink was restored after verifying that the generated regular
+copy matched `/Users/pranay/Downloads/OPERATING_DOCTRINE.md`; that copy remains
+preserved at `/Users/pranay/Projects/OPERATING_DOCTRINE.md.generated-copy-20260813`.
+
+This closes the project-local determinism portion of L0-11. Shared retrieval
+rebuild, real indexing/search, and provider/runtime availability remain open
+under RECON-06.

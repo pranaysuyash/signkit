@@ -48,16 +48,7 @@ jobs:
           DATABASE_URL: sqlite:///./ci-qa.sqlite
           JWT_SECRET: ci-only-secret-that-is-at-least-32-bytes-long
           QT_QPA_PLATFORM: offscreen
-        run: >-
-          ./.venv/bin/pytest -q
-          tests/test_ci_workflow_contract.py
-          tests/test_security.py
-          tests/test_configuration_contract.py
-          backend/tests/test_extraction_router.py
-          backend/tests/test_workspace_router.py
-          desktop_app/tests/test_coordinate_mapping.py
-          desktop_app/tests/test_api_client.py
-          desktop_app/tests/test_main_window_logic.py
+        run: ./.venv/bin/pytest -q
       - name: Run authenticated extraction hosted smoke
         run: ./.venv/bin/python tools/run_extraction_hosted_smoke.py
       - name: Validate test-data manifest

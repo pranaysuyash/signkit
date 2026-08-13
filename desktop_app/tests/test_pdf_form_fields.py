@@ -9,6 +9,7 @@ import pytest
 
 pytest.importorskip("reportlab")
 pytest.importorskip("PySide6")
+pytest.importorskip("fitz")
 
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas

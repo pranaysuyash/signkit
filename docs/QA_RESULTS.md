@@ -20,6 +20,8 @@ Scope: local reproducible matrix only unless stated otherwise
 | QA-09 | PASS | Tier 1 plus Tier 2, S1 | Configuration contract and backend manager checks passed `6 passed`; fresh SQLite migration to Alembic head also passed in the canonical environment. |
 | QA-10 | PASS | Tier 3 local runtime | Fresh `bash scripts/test-deployment.sh http://127.0.0.1:8080` passed the root, 27 legacy redirects, wildcard routes, retained asset content types, and JavaScript content-type checks against the running canonical `serve.py`. This is not hosted proof. |
 | QA-11 | PASS | Tier 3 local runtime | Fresh `./.venv/bin/python tools/test_deployed_surface.py --base-url http://127.0.0.1:8080 --json` returned `status: pass`, with the canonical document-registration-studio marker, 301 legacy redirects, current checkout assets, and no errors. This is not hosted proof. |
+| QA-21 | PASS | Tier 2 local suite, S2 for shutdown regression | After expanding `pytest.ini` to collect all first-party suites, the canonical root command collected 478 tests and passed `475 passed, 4 skipped`. The native-form module reports an explicit missing-optional-PyMuPDF skip. The destructor logging test failed under a deliberate reversion and passed after the fix. |
+| QA-22 | PASS | Tier 2 local suite, S1 | `backend/tests/test_config_and_path_security.py backend/tests/test_extraction_router.py` passed `13 passed` with an isolated SQLite URL. The recovered security group removes hardcoded credential defaults, fails closed for incomplete production configuration, preserves local SQLite, and asserts POSIX owner-only data/sidecar permissions. |
 
 Additional touched-flow checks:
 
@@ -65,6 +67,18 @@ The local QA matrix is now reproducible and attached to the launch runbook.
 It supports closing the documentation/task-creation portion of L2-05, but it
 does not authorize a hosted launch. The public deployment, migration/recovery,
 packaging, and provider gates remain separate release blockers.
+
+## Addendum (2026-08-13): first-party test discovery
+
+QA-21 closes the silent collection gap locally. The canonical `pytest.ini`
+now includes `tests`, `backend/tests`, and `desktop_app/tests`; the CI release
+matrix uses the same default collection. The full local result is `475 passed,
+4 skipped` at S1, with S2 sensitivity for the destructor shutdown fix. The
+four skips remain explicit and are not release claims: one is the optional
+PyMuPDF native-form capability and three require a Qt event loop.
+
+The decision and alternatives are recorded in
+`docs/decisions/ADR-0149-first-party-test-discovery-and-optional-pdf-boundary.md`.
 
 The matrix is now part of the canonical CI workflow. A GitHub-hosted run is
 still required before L1-09 can close; local workflow-contract and

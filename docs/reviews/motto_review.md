@@ -1,385 +1,114 @@
-# Motto v5 Review — Commit Attestation
+# Operating Doctrine Review
 
-**Risk class:** high
-**Review started:** 2026-08-13T10:19:05+00:00
-**Sections reviewed:** 54 / 54
+- Doctrine path: /Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/OPERATING_DOCTRINE.md
+- SHA-256: a49b686d381b2a9d83c57028138f59821686627b319085d40f54030bfca4ab45
+- Generated: 2026-08-13T14:02:17Z
+- This is a generated review artifact, not an instruction source.
 
----
+## SECTION_0
 
-## §0.0.1 Whole-Answer Mandate (v5)
+- Label: §0 Start from live truth
+- Reviewed: True
+- Evidence: Verified live main and staged pytest.ini, .gitignore, backend/app/config.py, and docs/QA_RESULTS.md against preserved worktrees; no source loss or hidden runtime artifact is staged.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+## SECTION_00_INTEGRATED
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: Full doctrine integrated audit
+- Reviewed: True
+- Evidence: Integrated audit across the staged diff: pytest.ini and CI now share one first-party collection; extractor.py finalizer cleanup is silent at interpreter shutdown; backend config fails closed for incomplete production credentials; local PII paths are owner-only; AUTO_DETECTION_ML.md is corrected to shipped Phase 1; agent-start retains project-local motto_v5.md; all runtime artifacts are ignored; local evidence is not presented as hosted, migration, provider, device, or assistive-technology proof.
 
-## §0 Boldness and Long-Term Build Mandate
+## SECTION_1
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+- Label: §1 Outcomes and retained value
+- Reviewed: True
+- Evidence: The staged pytest discovery and security changes improve local operator confidence; docs/QA_RESULTS.md records user, team, and operational value.
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+## SECTION_10
 
-## §full Integrated full-motto audit (cross-section findings vs staged diff)
+- Label: §10 Parallel work and contested state
+- Reviewed: True
+- Evidence: Compared main with archive worktrees and preserved the recovered backend security group and docs/audits evidence without deleting parallel ownership.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+## SECTION_11
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §11 Engineering and data integrity
+- Reviewed: True
+- Evidence: Checked backend/app/config.py, paths.py, extraction.py, pytest.ini, and workflow collection for canonical data/config and no duplicate route path.
 
-## §0.1.1 'Anything Else?' Standing Review Prompt (v5)
+## SECTION_12
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+- Label: §12 AI output boundary
+- Reviewed: True
+- Evidence: The staged change has no model-backed output; docs/audits/random_document_audit_AUTO_DETECTION_ML_2026-08-13.md records future ML claims as unverified.
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+## SECTION_13
 
-## §0.16 Instruction Surface Freshness Rule
+- Label: §13 Product, operator, and claim reality
+- Reviewed: True
+- Evidence: Validated operator-facing local versus hosted boundaries in docs/QA_RESULTS.md and docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md; hosted gates remain open.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+## SECTION_14
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §14 Documentation and decisions
+- Reviewed: True
+- Evidence: Added docs/decisions/ADR-0149-first-party-test-discovery-and-optional-pdf-boundary.md, docs/decisions/ADR-0150-config-and-local-pii-boundary.md, and docs/QA_RESULTS.md evidence.
 
-## §0.17 One Canonical Motto Rule (v5)
+## SECTION_15
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:31+00:00
+- Label: §15 Completion contract
+- Reviewed: True
+- Evidence: Acceptance evidence is recorded in docs/QA_RESULTS.md with commands, tiers, skips, and remaining hosted/provider/device gaps.
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+## SECTION_16
 
-## §0.1 Missed-Anything Sweep
+- Label: §16 Propagation contract
+- Reviewed: True
+- Evidence: Regenerated docs/context/agent-start and .agent mirrors from project-local motto_v5.md; SHA and provenance are recorded in SESSION_CONTEXT.md.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:32+00:00
+## SECTION_2
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §2 Truth taxonomy
+- Reviewed: True
+- Evidence: Separated verified code/runtime facts from inferred and historical audit claims in docs/audits and ADR-0150.
 
-## §0.2.1 Agent Time-Frame Honesty (v5)
+## SECTION_3
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:32+00:00
+- Label: §3 Proportional rigor and evidence
+- Reviewed: True
+- Evidence: Ran tests/test_security.py, backend/tests/test_config_and_path_security.py, tests/test_ci_workflow_contract.py, full pytest, static checks, and mutation_check.py; results and tiers are recorded in docs/QA_RESULTS.md.
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+## SECTION_4
 
-## §0.2 Confidence Honesty Standard
+- Label: §4 Authorization and side effects
+- Reviewed: True
+- Evidence: Staged .gitignore and docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md only after the user authorized git add, commit, and push; no deployment or migration command is in this diff.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:32+00:00
+## SECTION_5
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §5 Canonical paths and ownership
+- Reviewed: True
+- Evidence: Confirmed pytest.ini is the single local collection source and project motto_v5.md remains the more-specific doctrine source.
 
-## §0.3.1 Everything Is a Documentation Candidate (v5)
+## SECTION_6
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:32+00:00
+- Label: §6 Semantic salvage and supersession
+- Reviewed: True
+- Evidence: Updated docs/AUTO_DETECTION_ML.md from stale manual-only claims to shipped Phase 1 and preserved future ML work as explicitly unverified.
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+## SECTION_7
 
-## §0.3 Documentation Continuity
+- Label: §7 Capability routing
+- Reviewed: True
+- Evidence: No new capability routing or model/provider configuration is introduced; optional PyMuPDF and Qt event-loop limits remain explicit.
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
+## SECTION_8
 
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §8 Skills lifecycle
+- Reviewed: True
+- Evidence: Regenerated .agent/SESSION_CONTEXT.md and docs/context/agent-start/SESSION_CONTEXT.md through /Users/pranay/Projects/agent-start; the project-local doctrine provenance remains explicit.
 
-## §0.4.1 Completion Confidence Gate
+## SECTION_9
 
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.4.2 Multi-Pass Review
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.4 Acceptance Contract Before Done
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.5.1 Test Sensitivity Tiers (Required)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.5 Evidence Tiers
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:33+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.6 Risk-Based Verification
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.7 AI Output Boundary Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.8 Data Layer and Configuration Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.9 Prompt, Model, and Routing Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.10 Observability Is Delivery
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §10 Pattern & Related-Issue Search
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:34+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.11.1 Launch-Claim Registry (v5)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:35+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.11 Customer-Facing Claims Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:35+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §11 Engineering Standards
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:35+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.12.1 Decision Records Are Appends, Not Edits (v5)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:35+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.12.2 ADR-First Process (v5)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:35+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.12.3 Pattern Families (v5)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:36+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.12.4 Cut/Keep/Finish Anchored to Product Shape (v5)
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:36+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.12 Decision Record Requirement
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:36+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §12 Product & Domain Alignment
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:36+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §13 Analysis Expectations
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:36+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.13 Scope Expansion Control
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.14 Product Reality and Operator Workflow
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §14 Validation Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §15 Documentation Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §0.15 Third-Layer Rule: Models, Pipeline, Data
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §16 Branch / Review Branch Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:37+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §17 Cleanup Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:38+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §18 Communication Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:38+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §19 Primary Goal
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:38+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §1 Core Context Requirements
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:38+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §20 Commit Attribution Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:38+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §21 Code Is Evidence, Not a Boundary
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §22 Automated Checks Are Advisory, Not Authority
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §23 Parallel-Authoring, Long-Term Continuity, and Contested Runtime Boundaries
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §2 Global Working Style: Parallel Agents, Main First
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §3 Git Safety Rules
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §4 Local Work Preservation Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:39+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §5 Stale State Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:40+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §6 'Pre-existing' Is Not an Excuse
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:40+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §7 Supersession / Canonical Replacement Rule
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:40+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §8 Group-by-Group Preservation
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:40+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
-
-## §9 Artifact Handling
-
-**Status:** PASS
-**Reviewed at:** 2026-08-13T13:21:40+00:00
-
-Documentation checkpoint docs/reviews/motto_review.md was reviewed against commit d86a587, the 181-test full suite, 13/13 mutation kills, local deployment smoke, and explicit remaining hosted/provider gates.
+- Label: §9 Exploration and durable knowledge
+- Reviewed: True
+- Evidence: Classified every staged artifact: source/tests/docs are tracked; runtime DBs, caches, Wrangler output, and root Doctrine duplicate are ignored and unstaged.

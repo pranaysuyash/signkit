@@ -209,3 +209,24 @@ S2-style regression evidence because the prior artifact failed at missing
 release gate remain open for Intel/Windows/Linux artifacts, distribution
 signing/notarization, clean installation, rollback, and a release ledger tied
 to a real release source and recoverable prior artifact.
+
+## Addendum (2026-08-13): canonical first-party test collection
+
+The current local checkout now uses one default test collection across
+`tests/`, `backend/tests/`, and `desktop_app/tests/`. The previous root command
+collected only 181 tests while the omitted suites contained 291 tests. The
+first explicit omitted-suite run exposed three missing-optional-PyMuPDF
+failures and repeated destructor logging errors at interpreter shutdown.
+
+ADR-0149 records the decision and alternatives. The canonical root run now
+collects 478 tests and passes `475 passed, 4 skipped` at S1. The PyMuPDF
+native-form capability remains an explicit optional skip, and three Qt cases
+remain event-loop-dependent. A deliberate reversion of the destructor fix
+failed its regression test and the restored fix passed, providing S2 evidence.
+
+## Addendum (2026-08-13): instruction-surface preservation
+
+The shared agent-start generator now preserves a project-local `motto_v5.md`
+when present instead of deleting it in favor of the workspace-wide Doctrine
+6.0. Fresh fast-mode regeneration succeeded and recorded the local doctrine
+path, version, SHA-256, and explicit workspace separation in the context pack.

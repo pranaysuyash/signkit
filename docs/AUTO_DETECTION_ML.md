@@ -1,8 +1,11 @@
 # Auto-Detection & ML Training for Signature Extraction
 
-## Current Approach (Manual Selection)
+## Current Approach (Manual + Automatic Selection)
 
-Users manually draw rectangle around signature → threshold/color adjust → extract
+Users can either manually draw a rectangle around the signature, or use the shipped
+**Auto-Detect** button, which runs traditional-CV detection
+(`desktop_app/processing/extractor.py`) and auto-applies the best candidate. Manual
+selection remains the fallback and the default for low-confidence documents.
 
 **Problem**: Tedious for batch processing, requires user input for each signature
 
@@ -79,6 +82,13 @@ def detect_signature_contours(image_path):
 ```
 
 **When to use:** Quick prototype, simple documents (contracts, forms)
+
+> **Implementation note (superseded):** The snippet above is a naive contour-only
+> illustration that returns the single largest candidate. The shipped implementation in
+> `desktop_app/processing/extractor.py` (`auto_detect_signature` / `auto_detect_signatures`)
+> is more advanced: it first tries a blue-ink color path, then an Otsu envelope, then an
+> adaptive-threshold + `cv2.findContours` fallback, and returns a ranked candidate list.
+> Treat the snippet as illustrative only.
 
 ---
 
@@ -303,14 +313,24 @@ for entity in result.document.entities:
 
 ## Recommended Approach for You (Solo Dev)
 
-### Phase 1: Traditional CV Prototype (Do This First)
+> **Status (as of 2026-08-13):** Phase 1 is **shipped**. Phases 2-4 (training-data
+> collection, custom model training, fine-tuning) are **future / decision-needed** and are
+> **not** started — there is no dataset, no model, and no ML dependencies in the repo. Each
+> later phase should be gated on the prerequisites listed under "Next Steps → Open questions"
+> before any work begins.
+
+### Phase 1: Traditional CV Prototype (Do This First) — ✅ Shipped
 
 **Implementation:**
 
-1. Add "Auto-Detect" button to UI
-2. Use contour-based detection (OpenCV only, no new deps)
-3. Show all candidates, let user pick correct one
-4. Good enough for 60-70% of simple documents
+1. ✅ Add "Auto-Detect" button to UI — **shipped** (`desktop_app/views/main_window_parts/extraction.py`)
+2. ✅ Use contour-based detection (OpenCV only, no new deps) — **shipped** (`desktop_app/processing/extractor.py`)
+3. Show all candidates, let user pick correct one — **NOT implemented**: the UI currently
+   auto-applies the single best candidate. The multi-candidate API exists
+   (`auto_detect_signatures`) but is not surfaced in the UI. See open question below.
+4. "Good enough for 60-70% of simple documents" — **unverified**: detection parameters were
+   selected on an external corpus development split only, not tuned against a labeled
+   signature dataset. No measured accuracy exists yet.
 
 **Effort:** 1-2 days  
 **Cost:** $0 (no new infrastructure)
@@ -480,13 +500,25 @@ tensorboard - monitoring
 
 ## Next Steps
 
-**Want me to implement Phase 1 (contour detection) now?**
+**Phase 1 (contour-based auto-detection) is already shipped.** The work described above as
+"next steps" is complete:
 
-I can add:
+- ✅ Contour-based detection lives in `desktop_app/processing/extractor.py`
+  (blue-ink color path → Otsu envelope → adaptive + contour fallback).
+- ✅ The **Auto-Detect** button is wired in
+  `desktop_app/views/main_window_parts/extraction.py` and auto-applies the best candidate.
 
-1. `desktop_app/utils/auto_detect.py` - Contour-based detection
-2. "🔍 Auto-Detect" button in main window
-3. Shows all candidates, user picks best one
-4. ~200 lines of code, no new dependencies
+### Open questions / possible enhancements (not yet built)
+1. **Candidate picker UI:** The multi-candidate API (`auto_detect_signatures`) exists and is
+   unit-tested, but the UI auto-applies a single box. Should we surface a picker (per the
+   original Phase 1 design), or declare single-best auto-apply intentional?
+2. **Accuracy measurement:** There is no labeled dataset or eval harness, so the "60-70%"
+   figure is unverified. Building a recall@k / IoU eval is a prerequisite before promoting
+   auto-detect as a default.
+3. **ML / cloud phases (2-4):** These remain future-only. No `ultralytics`/`torch`/Document AI
+   dependencies or weights exist in the repo. They should not start until: (a) a labeled
+   dataset of 500+ documents exists, (b) a go/no-go accuracy bar is agreed, and (c) a
+   privacy review clears any data-collection path (see Phase 2 consent + anonymization +
+   kill-switch requirement).
 
-**Or research more first?** Happy to dive deeper into any approach!
+**Happy to dive deeper into any of the above, or start the candidate-picker / eval work.**

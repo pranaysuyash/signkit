@@ -23,6 +23,14 @@ def get_user_data_dir(app_name: str = "SignKit") -> Path:
     else:
         base = Path.home() / ".local" / "share" / app_name
     base.mkdir(parents=True, exist_ok=True)
+    # Restrict the per-user data directory to the owner. Signature images and
+    # selection sidecars are local PII; prevent other accounts on a shared
+    # machine from reading them.
+    if os.name == "posix":
+        try:
+            os.chmod(base, 0o700)
+        except OSError:
+            pass
     return base
 
 

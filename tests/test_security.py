@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from desktop_app.processing import SignatureExtractor, SecurityValidator
+from desktop_app.processing import extractor as extractor_module
 
 
 class TestSecurityValidator:
@@ -248,6 +249,21 @@ class TestSignatureExtractorSecurity:
         finally:
             if os.path.exists(test_image_path):
                 os.unlink(test_image_path)
+
+    def test_destructor_cleanup_does_not_emit_after_logging_shutdown(self, monkeypatch):
+        """Finalization clears state without writing to closed log streams."""
+        extractor = SignatureExtractor()
+
+        calls = []
+
+        def record_log(*_args, **_kwargs):
+            calls.append(True)
+
+        monkeypatch.setattr(extractor_module.LOG, "debug", record_log)
+        monkeypatch.setattr(extractor_module.LOG, "warning", record_log)
+
+        extractor.__del__()
+        assert calls == []
     
     def _create_test_image(self, width: int = 300, height: int = 200) -> str:
         """Create a valid test image for testing."""

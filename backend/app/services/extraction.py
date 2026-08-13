@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import threading
 from collections import OrderedDict
 from datetime import datetime, timezone
@@ -134,8 +135,21 @@ def build_selection_metadata(
 def persist_selection_metadata(metadata_dir: Path, session_id: str, payload: dict) -> Path:
     """Persist region selection metadata to a JSON sidecar."""
     metadata_dir.mkdir(parents=True, exist_ok=True)
+    # Restrict the metadata directory (holds selection sidecars, local PII).
+    if os.name == "posix":
+        try:
+            os.chmod(metadata_dir, 0o700)
+        except OSError:
+            pass
     metadata_path = metadata_dir / f"{session_id}.json"
     metadata_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    # Selection metadata is bound to the owner's document; restrict the sidecar
+    # to the owner only.
+    if os.name == "posix":
+        try:
+            os.chmod(metadata_path, 0o600)
+        except OSError:
+            pass
     return metadata_path
 
 

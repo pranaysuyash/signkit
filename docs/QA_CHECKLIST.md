@@ -27,6 +27,8 @@ customer or hosted database.
 | QA-07 | Malformed workspace input | `JWT_SECRET='<32+ chars>' DATABASE_URL='sqlite:///./.codex-test-tmp/qa.db' .venv/bin/pytest -q backend/tests/test_workspace_router.py -k malformed` | Malformed or unkeyed document inspection returns 422 | Test output plus response detail |
 | QA-08 | Offline mode with no backend request | `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q desktop_app/tests/test_api_client.py -k offline` | Manual offline mode returns a typed failure without attempting HTTP | Test output plus request-count assertion |
 | QA-09 | Shared environment and launcher contract | `.venv/bin/pytest -q tests/test_configuration_contract.py desktop_app/tests/test_backend_manager.py` | Root `.env`, SQLite local default, port 8001, and launcher defaults agree | Test output plus static contract assertions |
+| QA-21 | First-party test discovery and optional PDF boundary | `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q` | Root collection includes `tests`, `backend/tests`, and `desktop_app/tests`; optional PyMuPDF tests skip explicitly when the optional dependency is absent; no shutdown logging errors are emitted | Collection output, full result, and S2 regression evidence for shutdown cleanup |
+| QA-22 | Configuration and local PII permission boundary | `JWT_SECRET='<32+ chars>' DATABASE_URL='sqlite:///:memory:' .venv/bin/pytest -q backend/tests/test_config_and_path_security.py backend/tests/test_extraction_router.py` | No hardcoded DB credential defaults; production missing-credential config fails closed; local SQLite remains supported; POSIX data/sidecar paths are owner-only | Targeted output plus explicit local-versus-hosted boundary |
 
 ## Runtime and release-owner checks
 

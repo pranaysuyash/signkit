@@ -1209,7 +1209,7 @@ class SignatureExtractor:
         if y1 >= max_height or y2 > max_height:
             raise ValueError(f"Y coordinates must be <= {max_height} (y1 < {max_height}), got y1={y1}, y2={y2}")
 
-    def cleanup_all(self) -> None:
+    def cleanup_all(self, *, emit_logs: bool = True) -> None:
         """Clean up all sessions and temporary files securely."""
         # Clear session data from memory
         for session in self.sessions.values():
@@ -1237,16 +1237,22 @@ class SignatureExtractor:
                     
                     # Delete the file
                     os.unlink(temp_file)
-                    LOG.debug(f"Securely cleaned up temp file: {os.path.basename(temp_file)}")
+                    if emit_logs:
+                        LOG.debug(f"Securely cleaned up temp file: {os.path.basename(temp_file)}")
             except OSError as e:
-                LOG.warning(f"Failed to clean up temp file {os.path.basename(temp_file)}: {e}")
+                if emit_logs:
+                    LOG.warning(f"Failed to clean up temp file {os.path.basename(temp_file)}: {e}")
         
         self._temp_files.clear()
-        LOG.debug("Completed secure cleanup of all sessions and temporary files")
+        if emit_logs:
+            LOG.debug("Completed secure cleanup of all sessions and temporary files")
     
     def __del__(self):
         """Cleanup on destruction."""
         try:
-            self.cleanup_all()
+            # Interpreter shutdown can close logging streams before object
+            # finalizers run. Destruction must still clear sensitive state,
+            # but it must not emit into a closed logging handler.
+            self.cleanup_all(emit_logs=False)
         except Exception:
             pass  # Ignore errors during cleanup
