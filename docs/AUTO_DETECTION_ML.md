@@ -583,6 +583,17 @@ tensorboard - monitoring
    asserts a labeled-field IoU, but the *confidence calibration* itself is still
    unvalidated. Promote either detector to a default only after a recall@k / IoU
    eval on a labeled set.
+
+   **Calibration harness now exists** (`calibration/`, runnable today via
+   `python -m calibration.run --self-test`). It measures ECE / reliability /
+   ROC-PR AUC / recall@k on a labeled set and fits a pure-numpy Platt or isotonic
+   calibrator, then derives recommended auto-placement thresholds from a product
+   accuracy bar. It is **not yet fed real data** — the collection schema,
+   annotation rules, privacy/consent gate, and the accuracy-bar decision are in
+   `docs/calibration_dataset_spec.md`. Blocked on: (a) a labeled dataset per
+   detector, (b) the §8 accuracy-bar decision, (c) the Phase-2 privacy review
+   (consent + anonymization + kill-switch). Calibrated thresholds should replace
+   the current hard-coded 0.9 once the bar is met.
 4. **Test discovery (ISSUE-007) — resolved:** `pytest.ini` already collects
    `tests`, `backend/tests`, and `desktop_app/tests`, so the field-detection and
    backend suites are no longer invisible to the default run. The dated QA

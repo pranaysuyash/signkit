@@ -197,3 +197,31 @@ closure. It supersedes the earlier addendum's claim that two consecutive fast
 refreshes retained the project doctrine. `RECON-26` tracks the required
 source-selection and retention fix; `RECON-06` remains open for the shared
 runtime rebuild and real retrieval proof.
+
+## Addendum (2026-08-14): source-selection repair verified
+
+The shared wrapper was repaired at `/Users/pranay/Projects/agent-start` so an
+existing project-local `motto_v5.md` is selected before workspace Doctrine 6.0,
+is excluded from legacy-file cleanup, and is never overwritten as a side
+effect of context generation. The wrapper also safely creates the missing
+Projects-root alias at `/Users/pranay/Projects/motto_v5.md` only when absent and
+refuses conflicting non-symlink state.
+
+Two consecutive bounded commands returned exit code `0`:
+
+```bash
+/opt/homebrew/bin/timeout 45 env AGENT_START_INSTALL_PRECOMMIT_HOOKS=0 \
+  /Users/pranay/Projects/agent-start \
+  --project Data_Science/computer_vision/proj6/signature-extractor-app \
+  --skip-index --quiet
+```
+
+Both generated contexts selected the repository-local motto, version `5`, and
+SHA-256 `f1ade186d46bf2e20e9eebd56ceca3a733711671471198284828482659524840`.
+The second run also verified that the SHA was unchanged before and after the
+refresh and that the alias resolved to `/Users/pranay/Downloads/motto_v5.md`.
+See `docs/review/agent_start_doctrine_contract_proof_2026-08-14.md` and QA-42.
+
+This closes the project-local fast-mode source-selection portion of L0-08 and
+L0-11. The shared workspace-memory interpreter and usable `memsearch` CLI are
+still absent, so RECON-06 remains open for real indexing and retrieval proof.
