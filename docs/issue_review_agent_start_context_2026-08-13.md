@@ -166,3 +166,34 @@ Two consecutive `agent-start --project ... --skip-index --quiet` runs exited
 regenerated context that names the project motto, version `5`, and explicit
 workspace Doctrine 6.0 separation. The generated root Doctrine duplicate was
 classified as ignored runtime output and removed after hash preservation.
+
+## Addendum (2026-08-13): live fast-refresh source-selection regression
+
+The bounded fast refresh was rerun from the canonical clean checkout after the
+earlier guard correction:
+
+```bash
+/opt/homebrew/bin/timeout 45 /Users/pranay/Projects/agent-start \
+  --project Data_Science/computer_vision/proj6/signature-extractor-app \
+  --skip-index --quiet
+```
+
+It returned exit code `0`, but the result was unsafe and not deterministic:
+
+- `docs/context/agent-start/STEP1_ENV.sh` selected
+  `/Users/pranay/Downloads/OPERATING_DOCTRINE.md` instead of the project-local
+  `motto_v5.md`.
+- The generated session context described workspace Doctrine 6.0 as the
+  project doctrine.
+- The tracked project-local `motto_v5.md` was deleted.
+- The six generated context files were modified.
+- The live `/Users/pranay/Projects/motto_v5.md` alias was already absent.
+
+The generated files and `motto_v5.md` were restored byte-for-byte from `HEAD`
+after capture; the checkout is clean and the project-local file still hashes
+to `f1ade186d46bf2e20e9eebd56ceca3a733711671471198284828482659524840`.
+This is command-execution evidence of a shared-tool regression, not a product
+closure. It supersedes the earlier addendum's claim that two consecutive fast
+refreshes retained the project doctrine. `RECON-26` tracks the required
+source-selection and retention fix; `RECON-06` remains open for the shared
+runtime rebuild and real retrieval proof.
