@@ -213,3 +213,17 @@ primary snapshot, 38 paths have reconciled content, the deleted signature image
 is recoverable from the baseline, and the historical ADR is preserved under
 the full primary archive snapshot. `RECON-11` is closed for accounting;
 production and hosted gates remain governed by RECON-06 through RECON-10.
+
+## Addendum (2026-08-13): worktree file inventory
+
+The a11f worktree is fully accounted for in
+`docs/archive/A11F_WORKTREE_281_PATH_ACCOUNTING_2026-08-13.md`. Its preserved
+snapshot contains 281 tracked changed paths, of which 234 are byte-identical
+in current `main` and 46 have explicit reconciled content. No non-deleted
+tracked a11f path is missing from current `main`.
+
+The a11f worktree still contains only the untracked runtime directories
+`.codex-test-tmp/` and `.wrangler/`; they remain on disk and are intentionally
+excluded from source history. The eb41 worktree is clean and identical to
+incoming `17f644b`. `RECON-12` is closed for accounting; hosted, provider,
+packaging, and QA gates remain open.

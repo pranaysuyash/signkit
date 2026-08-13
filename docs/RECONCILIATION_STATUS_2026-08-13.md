@@ -53,6 +53,7 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-09 | open | packaging | Produce real platform artifacts and complete signing, launch smoke, rollback, and machine-readable ledger evidence for every release artifact. |
 | RECON-10 | open | QA and product | Run browser accessibility, narrow viewport, device, full-suite, remote CI, and external-corpus checks at their required evidence and sensitivity tiers. |
 | RECON-11 | done | parallel-work integrity | The original primary `main` dirty diff is fully accounted for: 258 changed paths, 256 present at current paths, one baseline-recoverable deletion, and one archived superseded ADR. |
+| RECON-12 | done | parallel-work integrity | The a11f worktree diff is fully accounted for: 281 tracked changed paths, 280 non-deleted paths present in current `main`, and runtime-only untracked directories preserved on disk. |
 
 ## Explicit non-claims
 
@@ -136,3 +137,10 @@ the 258-path primary dirty diff was not reduced to the focused 92-path series:
 198 primary contents were already present in incoming `17f644b`, 218 current
 paths remain byte-identical to the primary snapshot, and the remaining paths
 have explicit incoming, reconciled, deletion, or archival dispositions.
+
+The separate a11f worktree inventory is recorded in
+`docs/archive/A11F_WORKTREE_281_PATH_ACCOUNTING_2026-08-13.md`. Its 281-path
+tracked diff has no missing non-deleted path in current `main`; its only
+untracked directories are `.codex-test-tmp/` and `.wrangler/`, which remain
+excluded runtime artifacts. The eb41 worktree is a clean incoming reference at
+`17f644b`.

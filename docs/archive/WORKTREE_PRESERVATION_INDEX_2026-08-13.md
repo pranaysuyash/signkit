@@ -154,3 +154,20 @@ in `docs/archive/PRIMARY_MAIN_258_PATH_ACCOUNTING_2026-08-13.md`:
 
 No primary work is classified as silently discarded. The two paths absent at
 their original location have explicit deletion or supersession dispositions.
+
+## Addendum (2026-08-13): a11f and incoming worktree accounting
+
+The separate a11f worktree is accounted for in
+`docs/archive/A11F_WORKTREE_281_PATH_ACCOUNTING_2026-08-13.md`:
+
+- `0d83a87..b8d024c` contains 281 tracked changed paths.
+- 234 paths remain byte-identical in current `main`.
+- 46 paths have explicit incoming, reconciled, or superseding content.
+- The one explicit deleted asset is recoverable from `0d83a87`.
+- No non-deleted tracked a11f path is absent from current `main`.
+- The only untracked a11f directories are `.codex-test-tmp/` and `.wrangler/`.
+  They remain on disk as runtime artifacts and were intentionally excluded
+  from source history.
+
+The eb41 worktree is clean and detached at incoming `17f644b`, identical to
+`origin/main`, with no untracked source files.
