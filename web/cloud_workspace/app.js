@@ -468,8 +468,9 @@ function documentInspectionBlock(execution) {
       <p class="eyebrow">LOCAL COMPANION INSPECTION</p>
       <p>Submit one PDF to the local companion. PDFium runs in a disposable worker; the source bytes are deleted after inspection.</p>
       <form id="document-inspection-form" class="document-inspection-form">
-        <label>PDF document<input name="file" type="file" accept="application/pdf,.pdf" required /></label>
-        <button class="secondary-button" type="submit">Inspect locally <span>→</span></button>
+        <label for="inspection-file">PDF document</label>
+        <input id="inspection-file" name="file" type="file" accept="application/pdf,.pdf" required />
+        <button class="secondary-button" type="submit">Inspect locally <span aria-hidden="true">→</span></button>
       </form>
       ${resultMarkup}
       ${failureMarkup}

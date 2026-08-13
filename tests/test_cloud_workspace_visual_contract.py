@@ -47,6 +47,11 @@ def test_workspace_preserves_metadata_first_truth_and_semantic_state_roles() -> 
     assert "MutationObserver" in markup
     assert "ArrowRight" in markup and "ArrowLeft" in markup
 
+    main_elements = [attrs for tag, attrs in elements if tag == "main"]
+    assert len(main_elements) == 1
+    assert main_elements[0].get("id") == "main-content"
+    assert 'class="skip-link" href="#main-content"' in markup
+
     trust_boundary = next(attrs for tag, attrs in elements if attrs.get("id") == "trust-boundary")
     passport = next(attrs for tag, attrs in elements if attrs.get("id") == "passport-panel-label")
     assert trust_boundary.get("role") == "note"
@@ -78,6 +83,14 @@ def test_workspace_form_controls_have_explicit_labels_names_and_autocomplete() -
     assert controls_by_id["reviewer-email"]["autocomplete"] == "email"
 
 
+def test_workspace_dynamic_document_inspection_control_has_explicit_label() -> None:
+    app = (ROOT / "web" / "cloud_workspace" / "app.js").read_text(encoding="utf-8")
+
+    assert 'for="inspection-file"' in app
+    assert 'id="inspection-file"' in app
+    assert 'accept="application/pdf,.pdf"' in app
+
+
 def test_workspace_styles_cover_focus_motion_and_mobile_contract() -> None:
     styles = STYLES.read_text(encoding="utf-8")
 
@@ -88,3 +101,4 @@ def test_workspace_styles_cover_focus_motion_and_mobile_contract() -> None:
     assert "@media (max-width: 560px)" in styles
     assert ".topology-options { grid-template-columns: 1fr; }" in styles
     assert ".execution-row { grid-template-columns: 1fr; }" in styles
+    assert ".skip-link:focus-visible" in styles

@@ -35,6 +35,7 @@ Scope: local reproducible matrix only unless stated otherwise
 | QA-33 | PASS | Tier 2 local library deletion contract, S1 | `tests/test_library_deletion_contract.py desktop_app/tests/test_main_window_logic.py -k delete_selected_library tests/test_operator_content.py -k deletion_copy` passed complete sidecar cleanup, metadata-only deletion receipts, surfaced `cleanup_incomplete` behavior, path-boundary rejection, and structured Qt action handling. Runtime permission/device and recovery-after-restart observation remain open. |
 | QA-34 | PASS | Tier 2 local companion timeout/retry-control contract, S1 | `desktop_app/tests/test_main_window_logic.py -k 'companion_offline or backend_health or timeout' tests/test_topology_experience_contract.py tests/test_operator_content.py` passed bounded typed-timeout copy, explicit Retry local service visibility for offline state, hidden retry control after online recovery, and API-client interface fallback. This is a local UI/control contract; real process restart and packaged/device observation remain open. |
 | QA-35 | PASS | Tier 4 local companion process recovery, S1 | The real `BackendManager` started an isolated local companion on port `8124`, passed health proof, restarted to a new process with health proof, and shut down cleanly with no managed process or health response remaining. See `docs/review/local_companion_restart_proof_2026-08-13.md`. This is not packaged, cross-platform, hosted, or assistive-technology evidence. |
+| QA-36 | PASS with boundary | Tier 4 local real-Chrome accessibility contract plus Tier 2 static contracts, S1 | The canonical root and `/workspace-app/` now expose a stable main landmark and focused skip link across login/workspace views; the dynamic local PDF file control has an explicit label association. Focused contracts passed `13`; `node tools/run_local_product_browser_proof.mjs` passed at 1440x900, 390x844, and 320x844 for the root plus 390x844 for the workspace with no browser errors or overflow. See `docs/review/local_accessibility_audit_2026-08-13.md`. This is not VoiceOver, WCAG certification, packaged, cross-platform, hosted, or device evidence. |
 
 Additional touched-flow checks:
 
@@ -104,6 +105,21 @@ QA-12 is closed for the reusable local browser contract at Tier 4. A full
 screen-reader, VoiceOver, device-browser, and manual assistive-technology pass
 remains a separate release-quality follow-up; the proof does not claim those
 surfaces from Playwright alone.
+
+## Addendum (2026-08-13): canonical workspace accessibility semantics
+
+The accessibility audit found and corrected a local workspace landmark gap:
+the login view had no active main landmark or stable skip target even though
+the authenticated view did. The canonical workspace now uses one
+`main#main-content` around both view states, exposes a visible-on-focus skip
+link, and explicitly associates the dynamically rendered PDF file input with
+its label. The focused semantic suite passed `13` checks and the real Chrome
+proof passed at the documented local viewports with no overflow or browser
+errors.
+
+This is a local semantic and browser-observable result. VoiceOver/screen-reader,
+manual zoom/reflow, device, packaged, cross-platform, hosted, and formal WCAG
+evidence remain open.
 
 ## Addendum (2026-08-13): fresh local public-surface gate
 

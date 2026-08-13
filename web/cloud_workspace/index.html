@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="paper-grain" aria-hidden="true"></div>
-    <section class="auth-shell" id="auth-shell" aria-labelledby="auth-title">
+    <main id="main-content">
+      <section class="auth-shell" id="auth-shell" aria-labelledby="auth-title">
       <section class="auth-story">
         <p class="eyebrow">SIGNKIT WORKSPACE</p>
         <h1>Document work deserves a visible chain of care.</h1>
@@ -66,9 +68,9 @@
         </form>
         <p id="auth-message" class="form-message" role="status"></p>
       </section>
-    </section>
+      </section>
 
-    <main class="app-shell is-hidden" id="app-shell" aria-labelledby="workspace-title">
+      <section class="app-shell is-hidden" id="app-shell" aria-labelledby="workspace-title">
       <aside class="rail">
         <a class="brand-lockup" href="#top"><span>SK</span> SignKit</a>
         <div class="workspace-label">YOUR WORKSPACE</div>
@@ -150,7 +152,8 @@
           <div id="template-list" class="template-list"></div>
         </section>
       </section>
-    </section>
+      </section>
+    </main>
 
     <dialog id="execution-dialog" aria-labelledby="execution-dialog-title">
       <form id="execution-form" class="execution-form">

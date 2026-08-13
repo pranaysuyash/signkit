@@ -167,3 +167,14 @@ is isolated to a disposable local data directory and does not establish
 packaged, cross-platform, hosted, or assistive-technology behavior.
 
 Evidence: `docs/review/local_companion_restart_proof_2026-08-13.md` and QA-35.
+
+## Addendum (2026-08-13): canonical web accessibility semantics
+
+The canonical root and backend-mounted workspace now share a stable
+`main#main-content` landmark and visible-on-focus skip link across login and
+authenticated states. The dynamically rendered local PDF file control has an
+explicit label association. Focused semantic contracts and the real local
+Chrome proof passed as QA-36. This closes only the local semantic and
+browser-observable sub-gate; VoiceOver/screen-reader, manual zoom/reflow,
+device, packaged, cross-platform, hosted, and formal WCAG evidence remain
+open.

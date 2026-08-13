@@ -128,15 +128,31 @@ async function verifyWorkspace(browser) {
     const result = await page.evaluate(() => ({
       title: document.title,
       status: document.querySelector("#trust-boundary")?.textContent.trim() || "",
+      main: Boolean(document.querySelector("main#main-content")),
+      skipLink: {
+        href: document.querySelector(".skip-link")?.getAttribute("href") || "",
+        text: document.querySelector(".skip-link")?.textContent.trim() || "",
+      },
       overflow: document.documentElement.scrollWidth > window.innerWidth,
       authShell: Boolean(document.querySelector("#auth-shell")),
       appShell: Boolean(document.querySelector("#app-shell")),
     }));
     assertCondition(response?.status() === 200, `workspace: expected 200, got ${response?.status()}`);
     assertCondition(result.title === "SignKit Workspace", "workspace: unexpected title");
+    assertCondition(result.main, "workspace: main landmark missing");
+    assertCondition(result.skipLink.href === "#main-content", "workspace: skip link target is missing");
+    assertCondition(result.skipLink.text === "Skip to main content", "workspace: skip link label is missing");
     assertCondition(/metadata-first|not a signing claim/i.test(result.status), "workspace: boundary copy missing");
     assertCondition(!result.overflow, "workspace: horizontal overflow detected");
     assertCondition(result.authShell && result.appShell, "workspace: auth/app shell contract missing");
+
+    await page.locator(".skip-link").focus();
+    const skipFocus = await page.evaluate(() => ({
+      active: document.activeElement?.classList.contains("skip-link"),
+      transform: getComputedStyle(document.querySelector(".skip-link")).transform,
+    }));
+    assertCondition(skipFocus.active, "workspace: skip link cannot receive focus");
+    assertCondition(skipFocus.transform !== "none" && !skipFocus.transform.endsWith("-180%"), "workspace: skip link focus treatment is not visible");
     assertCondition(capture.errors.length === 0, `workspace: browser errors: ${capture.errors.join("; ")}`);
     return { viewport: { width: 390, height: 844 }, status: response.status(), result, errors: capture.errors };
   } finally {
