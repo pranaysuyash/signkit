@@ -163,3 +163,9 @@ as dated records.
 
 The live reconciliation record is maintained in
 `docs/RECONCILIATION_STATUS_2026-08-13.md`. No remote push has occurred.
+
+Integrated local regression checkpoint: the current `main` checkout passed
+`170 passed in 9.14s` with the canonical `.venv`, isolated SQLite database,
+and offscreen Qt. This is S1 evidence only. Hosted migration and recovery,
+public deployment, provider activation, signed packaging, browser/device
+coverage, remote CI, and agent-start retrieval health remain open tasks.
