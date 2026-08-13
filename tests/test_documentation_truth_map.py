@@ -51,4 +51,6 @@ def test_operator_state_task_points_to_current_runtime_evidence() -> None:
     assert "disposable source-to-ready observation" in matrix
     assert "QA-28" in qa
     assert "QA-30" in qa
+    assert "QA-31" in qa
     assert "local companion outage copy binding" in matrix
+    assert "malformed-input recovery binding" in matrix

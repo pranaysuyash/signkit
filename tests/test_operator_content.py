@@ -27,6 +27,13 @@ def test_failure_copy_does_not_leak_raw_paths_or_exception_text() -> None:
     assert raw not in message
 
 
+def test_malformed_input_copy_requires_review_without_retry_claim() -> None:
+    message = outcome_message("ERR_INPUT_INVALID", WorkflowState.NEEDS_REVIEW)
+
+    assert message == "The input is not a readable PDF. Choose a valid PDF or review the source."
+    assert "retry" not in message.lower()
+
+
 def test_terminal_and_recovery_copy_follows_state_contract() -> None:
     assert outcome_message(None, WorkflowState.COMPLETED) == "Completed successfully."
     assert outcome_message("ERR_SIGNING_FAILED", WorkflowState.RETRY) == (

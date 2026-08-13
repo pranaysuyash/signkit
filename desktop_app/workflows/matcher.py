@@ -65,18 +65,19 @@ def evaluate_match(recipe: models.ControlledSigningRecipe, pdf_path: str) -> Mat
     try:
         pikepdf = _get_pikepdf()
         pdf = pikepdf.open(str(doc_path))
-    except Exception as exc:
-        return MatchResult(models.MatchClass.REVIEW_ONLY.value, 0.0, {"error": f"pdf_open_failed:{exc}"})
+    except Exception:
+        return MatchResult(models.MatchClass.REVIEW_ONLY.value, 0.0, {"error": "pdf_open_failed"})
 
     try:
         page_count = len(pdf.pages)
         first = pdf.pages[0]
         media_box = list(first.MediaBox)
         if len(media_box) < 4:
-            raise ValueError("invalid_media_box")
+            return MatchResult(models.MatchClass.REVIEW_ONLY.value, 0.0, {"error": "pdf_geometry_invalid"})
         width = float(media_box[2]) - float(media_box[0])
         height = float(media_box[3]) - float(media_box[1])
-        metadata = dict(pdf.docinfo) if pdf.docinfo else {}
+        if width <= 0 or height <= 0:
+            return MatchResult(models.MatchClass.REVIEW_ONLY.value, 0.0, {"error": "pdf_geometry_invalid"})
     finally:
         pdf.close()
 

@@ -98,3 +98,16 @@ Targeted evidence: `tests/test_operator_content.py` and
 `tests/test_topology_experience_contract.py` passed as QA-30. This binds the
 copy contract but does not prove process restart, stale companion recovery,
 assistive-technology behavior, or packaged-runtime outage observation.
+
+## Addendum (2026-08-13): malformed-input recovery binding
+
+The workflow matcher and engine now classify missing, non-PDF, unreadable, and
+invalid-geometry inputs as `NEEDS_REVIEW` with the typed code
+`ERR_INPUT_INVALID`. The transition does not consume a retry attempt because
+the safe next action is to choose or repair the source, not to repeat the same
+invalid request. Parser details remain bounded technical evidence, while the
+primary operator copy tells the user to choose a readable PDF or review the
+source.
+
+Targeted evidence: `desktop_app/tests/test_workflow_engine.py` and
+`tests/test_operator_content.py` passed as QA-31.

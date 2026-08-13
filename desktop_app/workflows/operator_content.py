@@ -25,6 +25,7 @@ _OUTCOME_COPY = {
     "ERR_AUTH_EXPIRED": "The execution grant has expired. Request a new grant before retrying.",
     "ERR_AUTH_REVOKED": "The execution grant was revoked. Request a new grant before retrying.",
     "ERR_WORKFLOW_INVALID": "The workflow configuration or input is not valid.",
+    "ERR_INPUT_INVALID": "The input is not a readable PDF. Choose a valid PDF or review the source.",
     "ERR_WORKFLOW_STATE": "This action is not valid for the current workflow state.",
     "ERR_WORKFLOW_PAUSED": "The local workflow engine is paused. Resume it before continuing.",
     "ERR_MATCH_NONE": "The document did not match an approved recipe and needs review.",

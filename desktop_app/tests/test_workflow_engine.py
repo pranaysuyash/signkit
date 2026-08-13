@@ -179,6 +179,31 @@ def test_workflow_engine_routes_review_class_to_review(monkeypatch, tmp_path: Pa
     assert result.last_error_code == "ERR_MATCH_NONE"
 
 
+def test_workflow_engine_routes_malformed_input_to_bounded_review_state(monkeypatch, tmp_path: Path) -> None:
+    _configure_store_path(monkeypatch, tmp_path)
+    recipe = store.save_recipe(_create_recipe(tmp_path))
+    grant = authorization.create_grant(
+        recipe.recipe_id,
+        policy={"matcher_modes": ["exact"], "allowed_assets": []},
+        runner="operator@example.com",
+    )
+    store.save_grant(grant)
+
+    input_file = tmp_path / "in" / "notes.txt"
+    input_file.parent.mkdir(parents=True, exist_ok=True)
+    input_file.write_text("not a PDF", encoding="utf-8")
+
+    engine = WorkflowEngine()
+    engine.start()
+    job = engine.enqueue_path(str(input_file), recipe_id=recipe.recipe_id)
+    result = engine.run_job(job.job_id, actor="operator", action_subject="operator@example.com")
+
+    assert result.state == models.WorkflowState.NEEDS_REVIEW
+    assert result.last_error_code == "ERR_INPUT_INVALID"
+    assert result.attempts == 0
+    assert result.last_error_message == "input_requires_review"
+
+
 def test_workflow_engine_rejects_run_without_valid_grant(monkeypatch, tmp_path: Path) -> None:
     _configure_store_path(monkeypatch, tmp_path)
     recipe = store.save_recipe(_create_recipe(tmp_path))

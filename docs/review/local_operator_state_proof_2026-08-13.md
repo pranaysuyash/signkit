@@ -50,3 +50,13 @@ bounded messages that preserve the local-work recovery path without exposing
 raw endpoints or exception text in primary UI. QA-30 records the focused
 contract evidence. This is a copy-binding result, not a runtime process
 restart, stale-state, packaged outage, or assistive-technology observation.
+
+## Addendum: malformed-input contract
+
+The workflow engine now treats missing, non-PDF, unreadable, and invalid
+geometry inputs as reviewable source problems. `ERR_INPUT_INVALID` maps to
+`NEEDS_REVIEW` without consuming a retry attempt, and the primary message
+directs the operator to choose a readable PDF or inspect the source. QA-31
+records the focused workflow and content evidence. Timeout, partial-export,
+cleanup, companion process recovery, and accessibility observations remain
+open.

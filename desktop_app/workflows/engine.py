@@ -21,6 +21,7 @@ FAILURE_CODES = {
     "auth_expired": "ERR_AUTH_EXPIRED",
     "auth_revoked": "ERR_AUTH_REVOKED",
     "invalid": "ERR_WORKFLOW_INVALID",
+    "input_invalid": "ERR_INPUT_INVALID",
     "invalid_state": "ERR_WORKFLOW_STATE",
     "paused": "ERR_WORKFLOW_PAUSED",
     "match_none": "ERR_MATCH_NONE",
@@ -340,13 +341,21 @@ class WorkflowEngine:
 
         try:
             match = matcher.evaluate_match(recipe, job.input_path_ref)
-        except Exception as exc:
+        except Exception:
             return self._fail_job(
-                job, actor=actor, code=FAILURE_CODES["match_ambiguous"], message=f"matcher_failed:{exc}"
+                job, actor=actor, code=FAILURE_CODES["input_invalid"], message="matcher_input_invalid"
             )
 
         if match.match_class == models.MatchClass.REVIEW_ONLY.value:
             job = self._update_job_match_class(job, models.MatchClass.REVIEW_ONLY, match)
+            if _is_invalid_input_match(match):
+                return self._transition_job(
+                    job,
+                    models.WorkflowState.NEEDS_REVIEW,
+                    actor=self._audit_actor,
+                    code=FAILURE_CODES["input_invalid"],
+                    message="input_requires_review",
+                )
             return self._transition_job(
                 job,
                 models.WorkflowState.NEEDS_REVIEW,
@@ -652,6 +661,15 @@ def _reason_code(code: str) -> str:
     if code.startswith("ERR_"):
         return code
     return FAILURE_CODES["invalid"]
+
+
+def _is_invalid_input_match(match: matcher.MatchResult) -> bool:
+    """Classify parser and file-shape failures as reviewable input problems."""
+
+    error = str(match.evidence.get("error") or "").lower()
+    return error in {"input_missing", "input_not_pdf", "pdf_open_failed", "pdf_geometry_invalid"} or error.startswith(
+        "pdf_open_failed"
+    )
 
 
 def _pick_recipe(recipe_id: Optional[str], *, active_only: bool) -> Optional[models.ControlledSigningRecipe]:
