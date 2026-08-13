@@ -1,0 +1,41 @@
+name: Test Data Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test-data:
+    name: Project venv, manifest, and extractor corpus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Create project environment
+        run: python -m venv .venv
+      - name: Install project runtime dependencies
+        run: |
+          ./.venv/bin/python -m pip install --upgrade pip
+          ./.venv/bin/python -m pip install -r desktop_app/requirements.txt
+      - name: Enforce project interpreter and imports
+        run: ./.venv/bin/python tools/validate_test_data_environment.py --repo-root .
+      - name: Validate test-data manifest
+        run: ./.venv/bin/python tools/validate_test_data_manifest.py --manifest docs/test_data_manifest.md --repo-root .
+      - name: Validate signature corpus annotations
+        run: ./.venv/bin/python tools/validate_signature_corpus.py --repo-root .
+      - name: Run extractor corpus checks
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ./.venv/bin/pytest -q desktop_app/tests/test_extractor.py desktop_app/tests/test_signature_edge_cases.py
+      - name: Run labeled-corpus metric checks
+        run: ./.venv/bin/pytest -q tests/test_signature_corpus_evaluation.py tests/test_signature_corpus_validation.py

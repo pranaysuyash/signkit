@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import mimetypes
+import hashlib
+import json
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any, Tuple
@@ -104,10 +106,16 @@ class ApiClient:
             raise ApiValidationError("Upload file exceeds 50MB limit")
 
         mime_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        upload_idempotency_key = f"upload-{hashlib.sha256(path.read_bytes()).hexdigest()}"
         with path.open("rb") as f:
             files = {"file": (path.name, f, mime_type)}
             try:
-                resp = requests.post(url, files=files, headers=self._headers(), timeout=120)
+                resp = requests.post(
+                    url,
+                    files=files,
+                    headers=self._headers({"Idempotency-Key": upload_idempotency_key}),
+                    timeout=120,
+                )
             except requests.Timeout as exc:
                 raise BackendUnavailable("Backend timed out during upload") from exc
             except requests.RequestException as exc:
@@ -160,8 +168,16 @@ class ApiClient:
             "color": color,
             "threshold": threshold,
         }
+        selection_idempotency_key = "select-" + hashlib.sha256(
+            json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
         try:
-            resp = requests.post(url, data=data, headers=self._headers(), timeout=30)
+            resp = requests.post(
+                url,
+                data=data,
+                headers=self._headers({"Idempotency-Key": selection_idempotency_key}),
+                timeout=30,
+            )
         except requests.Timeout as exc:
             raise BackendUnavailable("Backend timed out while selecting region") from exc
         except requests.RequestException as exc:
@@ -209,8 +225,16 @@ class ApiClient:
             "color": color,
             "threshold": threshold,
         }
+        process_idempotency_key = "process-" + hashlib.sha256(
+            json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
         try:
-            resp = requests.post(url, data=data, headers=self._headers(), timeout=120)
+            resp = requests.post(
+                url,
+                data=data,
+                headers=self._headers({"Idempotency-Key": process_idempotency_key}),
+                timeout=120,
+            )
         except requests.Timeout as exc:
             raise BackendUnavailable("Backend timed out during processing") from exc
         except requests.RequestException as exc:

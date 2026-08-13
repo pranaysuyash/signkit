@@ -10,7 +10,16 @@ export AGENT_MOTTO_SOURCE="/Users/pranay/Downloads/motto_v5.md"
 # attestation for the current full motto_v5.md content.
 if [ "${PWD#"/Users/pranay/Projects/"}" != "${PWD}" ]; then
   _motto_file="motto_v5.md"
-  _attestation_file=".git/projects_agent_motto_attestation.env"
+  _git_dir="$(git rev-parse --git-dir 2>/dev/null || true)"
+  if [ -z "$_git_dir" ]; then
+    echo "prepare-commit-msg: unable to resolve gitdir for attestation." >&2
+    exit 1
+  fi
+  case "$_git_dir" in
+    /*) _git_dir_abs="$_git_dir" ;;
+    *) _git_dir_abs="$(pwd)/$_git_dir" ;;
+  esac
+  _attestation_file="$_git_dir_abs/projects_agent_motto_attestation.env"
   _attestation_tool="/Users/pranay/Projects/workspace_memory/scripts/attest_motto.py"
   _max_age_secs="${PROJECTS_AGENT_MOTTO_ATTEST_MAX_AGE_SECS:-43200}"
 

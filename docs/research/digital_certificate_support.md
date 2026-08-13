@@ -4,9 +4,21 @@
 **Category:** Security & Compliance  
 **Priority:** CRITICAL  
 **Complexity:** High  
-**Status:** Research Phase  
+**Status:** Local PAdES baseline implemented; production trust and legal-operational integration remain open  
 **Estimated Effort:** 4-6 weeks  
 **Document Created:** April 10, 2026  
+
+## Addendum (2026-08-12)
+
+The first implementation stage is now complete locally. `desktop_app/pdf/digital_signer.py` loads a PKCS#12 certificate, creates a PAdES baseline detached PDF signature with `pyHanko`, verifies cryptographic validity and signed-revision integrity, records the certificate fingerprint and trust scope, promotes the output atomically, and writes a cryptographic artifact receipt. The explicit entry points are exposed through `desktop_app/pdf/signer.py` and `desktop_app/workflows/engine.py`.
+
+This does not close the production boundary. B-12 remains responsible for unified UI/export integration, key custody, public or enterprise trust-chain policy, revocation and timestamp/LTV requirements, retention/recovery, legal claim review, and Tier 3 production-like evidence. The older phase checklist below is preserved as historical planning; the current implementation and acceptance state are tracked in `docs/expansion/SIGNKIT_CONTRACTDESK_WEB_EXPANSION_AGENT_TRACKER_2026-08-12.md` and `docs/expansion/SIGNKIT_CONTRACTDESK_WEB_SIGNED_ARTIFACT_CONTRACT_2026-08-12.md`.
+
+The hardening pass also verifies that configured trust roots are enforced before output promotion. Current research confirms that pyHanko validates cryptographic integrity, certificate-chain trust, and incremental updates, but does not by itself establish every structural PAdES profile requirement. Timestamped and long-term profiles therefore require explicit RFC 3161, revocation, and retention decisions rather than being implied by a baseline signature.
+
+The credential boundary now includes a macOS Keychain adapter. Apple documents Keychain Services as encrypted storage for passwords, keys, and certificates; the adapter uses the system `security` tool with a fixed argument list and redacted failure handling. This is a safer passphrase retrieval boundary, not proof of hardware-backed private-key custody. That production decision remains B-14.
+
+Reference: [Apple Keychain Services](https://developer.apple.com/documentation/security/keychain-services)
 
 ---
 

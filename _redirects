@@ -1,5 +1,6 @@
 # Canonical public landing route. Legacy variants remain in the repository for
 # review/history only and must never become an effective production route.
+/index.html / 301
 /root / 301
 /root/ / 301
 /root.html / 301
@@ -15,13 +16,18 @@
 /test-variants / 301
 /test-variants/ / 301
 /test-variants.html / 301
+/new / 301
+/new/ / 301
 # Alternative landing and concept entrypoints are retained for review/assets,
 # but the root landing remains the only public acquisition surface.
 /web/live/ / 301
+/web/live / 301
 /web/live/index.html / 301
 /web/new_landing_page/ / 301
+/web/new_landing_page / 301
 /web/new_landing_page/index.html / 301
 /web/cloud_workspace/ / 301
+/web/cloud_workspace / 301
 /web/cloud_workspace/index.html / 301
 # Archive, backup, concept, and generated deploy trees are not public landing
 # surfaces. Keep them in the repository for review without serving stale claims.

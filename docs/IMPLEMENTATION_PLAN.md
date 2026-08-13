@@ -8,7 +8,7 @@
 - Desktop UI: Selection/pan toggle, EXIF rotation, zoom/fit/reset, crop preview, debounced live preview, status bar with session ID (main_window.py).
 - Export: Professional export dialog (PNG-24/PNG-8/JPEG, backgrounds, trim, quality) with docs (export_dialog.py, docs/EXPORT_OPTIONS.md).
 - Icons: Centralized icon manager using Qt standard icons + emoji (desktop_app/resources/icons.py) and applied in main window.
-- Backend: /extraction/upload and /extraction/process_image/ operational; uploads under /uploads/images; CORS and StaticFiles mount configured.
+- Backend: `/extraction/upload` and `/extraction/process_image/` operational; uploads kept under `uploads/images` for internal processing/sync.
 - Pricing/Docs: Updated pricing strategy, icons research, auto-detection plan, use cases, roadmap (docs/PRICING.md, ICON_OPTIONS.md, AUTO_DETECTION_ML.md, USE_CASES.md, ROADMAP.md).
 
 ## Gaps & Risks
@@ -17,7 +17,7 @@
 - Trial/licensing: Pricing/trial documented but no enforcement logic implemented.
 - API consistency: Commented/duplicated blocks in backend/app/main.py and routers cause maintenance risk.
 - Port/docs: Unify on port 8001 across all docs and examples.
-- Uploads path cohesion: Ensure writer paths and StaticFiles mount match consistently.
+- Uploads path cohesion: Ensure writer paths stay within user-writable storage and are not publicly exposed; document retention/deletion policy.
 - Shortcuts: Missing keyboard shortcuts (Ctrl+O, Ctrl+S, Delete, Esc).
 - Tests: No automated integration tests for upload→process; no GUI smoke tests.
 
@@ -55,8 +55,8 @@
 
 ## Backend Cleanup & Hardening
 - Consolidate backend/app/main.py to one canonical setup; remove commented/duplicated code blocks.
-- Normalize uploads: Validate content types; avoid forced .png renaming on upload (convert only when needed in process).
-- Per-session storage + cleanup: Store under uploads/images/{session}; add simple expiration/cleanup task.
+- Normalize uploads: validate content types; keep internal paths private; avoid forced .png renaming on upload (convert only when needed in process).
+- Local upload lifecycle: Keep validated files private, atomically persisted, and cleaned by the 24-hour default retention task (`SIGNKIT_UPLOAD_RETENTION_SECONDS`). The hosted extraction contract now adds authenticated owner/workspace scope, export/deletion/audit receipts, and durable database-backed idempotency; target-database migration and live rollout remain release prerequisites.
 - Imports: Unify tests/scripts to backend.app.* namespace.
 
 ## Research Spikes (External Validation)
@@ -71,7 +71,7 @@
   - PyInstaller baseline for macOS/Windows/Linux; signing/notarization notes.
 
 ## Quality & Observability
-- Integration tests: upload → process → response assertions; error-path coverage (404, 415, 500).
+- Integration tests: authenticated upload → select → process → export/delete/audit assertions; cross-owner/workspace denial; duplicate and concurrent retry convergence; malformed/oversized input and partial-failure recovery.
 - Logging: Structured request logging with durations around processing endpoints.
 - GUI smoke: Minimal pytest-qt or scripted sanity checks if feasible.
 
@@ -89,3 +89,6 @@
 - Clean startup (no noisy logs), consistent port/docs, and basic tests passing.
 - Clear, incremental feature adoption without regressing core flows.
 
+### Hosted extraction contract addendum (2026-08-12)
+
+The canonical route is `backend/app/routers/extraction.py`. Do not add a second upload or extraction route. Asset ownership is `Image.user_id`; workspace execution ownership is checked through `WorkspaceExecution.owner_user_id`. `ExtractionAuditEvent` is the durable receipt source. Apply migration `e42b7f8c91aa` before enabling hosted extraction and retain the `L0-09` live smoke gate.

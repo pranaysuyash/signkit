@@ -84,7 +84,7 @@ from desktop_app.pdf.stack_profile import stack_install_hint, signing_backend_re
 
 try:
     from desktop_app.pdf.viewer import PDFViewer
-    from desktop_app.pdf.signer import sign_pdf
+    from desktop_app.pdf.signer import read_signature_manifest
     from desktop_app.pdf.form_fields import PdfFormFieldEditor
     from desktop_app.pdf.annotations import PdfAnnotationEditor
     from desktop_app.pdf.document_session_store import load_document_session, save_document_session
@@ -479,7 +479,11 @@ class PdfTabMixin:
         
         load_sig_btn = _create_button("Load...", parent_widget)
         set_button_icon(load_sig_btn, "open", "Load signature from file", use_emoji=False)
-        load_sig_btn.setToolTip("Load signature image from file (Ctrl+Shift+L)")
+        load_sig_btn.setToolTip(
+            "Load signature image from file ("
+            + ("⌘⇧L" if sys.platform == "darwin" else "Ctrl+Shift+L")
+            + ")"
+        )
         load_sig_btn.clicked.connect(self._on_load_signature_clicked)
         lib_buttons.addWidget(load_sig_btn)
         
@@ -608,7 +612,9 @@ class PdfTabMixin:
             "3️⃣ Click on PDF to place signature<br>"
             "4️⃣ Navigate pages and add more if needed<br>"
             "5️⃣ <b>Save Signed PDF</b> when complete<br><br>"
-            "💡 Tip: Use Ctrl+Shift+V to paste from clipboard"
+            "💡 Tip: Use "
+            + ("⌘⇧V" if sys.platform == "darwin" else "Ctrl+Shift+V")
+            + " to paste from clipboard"
         )
         instructions.setObjectName("instructionsPanel")  # Let theme system style it
         instructions.setWordWrap(True)
@@ -738,6 +744,7 @@ class PdfTabMixin:
         # Load the visible viewer before mutating session state. This keeps a
         # failed open from leaving the app claiming that a blank document is
         # active.
+        self._clear_pdf_pending_signature_state()
         if not hasattr(self, "pdf_viewer") or not self.pdf_viewer.open_pdf(path):
             self.statusBar().showMessage(f"Unable to open PDF: {Path(path).name}", 4000)
             return
@@ -773,6 +780,8 @@ class PdfTabMixin:
         if not self.pdf_viewer:
             return
         placements = load_document_session(path)
+        if not placements:
+            placements = read_signature_manifest(path)
         if placements:
             self.pdf_viewer.restore_signature_placements(placements)
             if self.session.pdf_state:
@@ -849,6 +858,13 @@ class PdfTabMixin:
         self._set_signature_style_controls(self._coerce_pdf_signature_style({}))
         self._on_pdf_signature_style_changed()
 
+    def _clear_pdf_pending_signature_state(self) -> None:
+        self._pending_sig_path = None
+        if self.pdf_viewer:
+            clear_pending = getattr(self.pdf_viewer, "clear_signature_placement", None)
+            if callable(clear_pending):
+                clear_pending()
+
     def _reset_pdf_signature_selection_state(self, *, reset_controls: bool = False) -> None:
         self._selected_pdf_signature_index = -1
         self._selected_pdf_signature_style = self._signature_style_from_controls()
@@ -873,6 +889,8 @@ class PdfTabMixin:
         style = self.pdf_viewer.page_view.get_signature_style(index)
         self._selected_pdf_signature_style = style
         self._set_signature_style_controls(style)
+        if self._current_pdf_path and self.pdf_viewer:
+            save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
     
     def on_pdf_close(self):
         """Close the current PDF."""
@@ -880,7 +898,7 @@ class PdfTabMixin:
             self.pdf_viewer.close_pdf()
         self._current_pdf_path = None
         self._current_pdf_template_id = None
-        self._pending_sig_path = None
+        self._clear_pdf_pending_signature_state()
         self._clear_bulk_signature_state()
         self._reset_pdf_signature_selection_state(reset_controls=True)
         if self.session.pdf_state:
@@ -930,13 +948,53 @@ class PdfTabMixin:
         if not output_path:
             return
         
-        # Sign PDF
+        signing_choices = [
+            "Visual placement (not cryptographic)",
+            "Certificate-backed PAdES",
+        ]
+        signing_choice, choice_ok = QInputDialog.getItem(
+            self,
+            "Choose PDF signing semantics",
+            "Select how this PDF should be exported:",
+            signing_choices,
+            0,
+            False,
+        )
+        if not choice_ok:
+            return
+
+        signing_mode = "certificate" if signing_choice == signing_choices[1] else "visual"
+        certificate_path: str | None = None
+        certificate_passphrase: str | None = None
+        if signing_mode == "certificate":
+            certificate_path = self._native_open_file(
+                "Select signing certificate",
+                "PKCS#12 Certificates (*.p12 *.pfx)",
+            )
+            if not certificate_path:
+                return
+            certificate_passphrase, passphrase_ok = QInputDialog.getText(
+                self,
+                "Certificate passphrase",
+                "Enter the PKCS#12 passphrase:",
+                QLineEdit.EchoMode.Password,
+            )
+            if not passphrase_ok:
+                return
+
+        # Export through the canonical explicit signing seam.
         try:
-            success = sign_pdf(
+            from desktop_app.workflows.engine import export_pdf_artifact
+
+            export_result = export_pdf_artifact(
                 self.session.pdf_state.current_pdf_path,
                 output_path,
-                placed_sigs
+                signing_mode=signing_mode,
+                signatures=placed_sigs if signing_mode == "visual" else None,
+                pfx_path=certificate_path,
+                passphrase=certificate_passphrase,
             )
+            success = bool(export_result) if signing_mode == "visual" else True
             
             if success:
                 # Log save operation
@@ -946,11 +1004,20 @@ class PdfTabMixin:
                     save_document_session(self._current_pdf_path, placed_sigs)
                 save_document_session(output_path, placed_sigs)
 
-                QMessageBox.information(
-                    self, "Success",
-                    f"✅ Signed PDF saved to:\\n{output_path}\\n\\n"
-                    f"Signatures placed: {len(placed_sigs)}"
-                )
+                if signing_mode == "certificate":
+                    receipt_path = getattr(export_result, "receipt_path", None)
+                    receipt_line = f"\\nReceipt: {receipt_path}" if receipt_path else ""
+                    message = (
+                        f"Certificate-backed PDF saved to:\\n{output_path}\\n\\n"
+                        f"Cryptographic verification passed.{receipt_line}"
+                    )
+                else:
+                    message = (
+                        f"Visual-placement PDF saved to:\\n{output_path}\\n\\n"
+                        f"Signatures placed: {len(placed_sigs)}\\n"
+                        "This export is not a cryptographic signature."
+                    )
+                QMessageBox.information(self, "Success", message)
                 self.statusBar().showMessage(f"💾 Saved: {Path(output_path).name}")
             else:
                 QMessageBox.warning(self, "Error", "Failed to save signed PDF")
@@ -1311,6 +1378,7 @@ class PdfTabMixin:
         if self.pdf_viewer:
             self.pdf_viewer.open_pdf(output_path)
         self._current_pdf_path = output_path
+        self._clear_pdf_pending_signature_state()
         self._reset_pdf_signature_selection_state(reset_controls=True)
         self._form_fields_cache = []
         if self.session.pdf_state:
@@ -1810,6 +1878,7 @@ class PdfTabMixin:
                 if self._current_pdf_path and self.pdf_viewer:
                     save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
                 self._clear_bulk_signature_state()
+                self._clear_pdf_pending_signature_state()
 
                 self.pdf_viewer.goto_page(source_page)
                 if placed_count == len(target_pages):
@@ -1876,6 +1945,7 @@ class PdfTabMixin:
         if self._current_pdf_path and self.pdf_viewer:
             save_document_session(self._current_pdf_path, self.pdf_viewer.get_placed_signatures())
 
+        self._clear_pdf_pending_signature_state()
         self.statusBar().showMessage(f"✅ Signature placed on page {page + 1}")
 
     def _build_bulk_signature_geometry(self, x: int, y: int, width: int, height: int) -> Optional[dict]:

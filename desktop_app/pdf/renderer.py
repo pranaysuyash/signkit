@@ -6,6 +6,7 @@ from pathlib import Path
 import pypdfium2 as pdfium  # type: ignore[import-untyped]
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtCore import Qt
+from desktop_app.pdf.pdfium_runtime import pdfium_operation
 
 
 class PDFRenderer:
@@ -26,7 +27,8 @@ class PDFRenderer:
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
         
         try:
-            self.pdf = pdfium.PdfDocument(pdf_path)
+            with pdfium_operation():
+                self.pdf = pdfium.PdfDocument(pdf_path)
         except Exception as e:
             raise ValueError(f"Failed to open PDF: {e}")
         
@@ -34,7 +36,8 @@ class PDFRenderer:
     
     def page_count(self) -> int:
         """Get total number of pages."""
-        return len(self.pdf)
+        with pdfium_operation():
+            return len(self.pdf)
     
     def get_page_size(self, page_num: int) -> Tuple[float, float]:
         """
@@ -46,13 +49,14 @@ class PDFRenderer:
         Returns:
             Tuple of (width, height) in points
         """
-        if page_num < 0 or page_num >= len(self.pdf):
-            return (0.0, 0.0)
-        
-        page = self.pdf[page_num]
-        width = page.get_width()
-        height = page.get_height()
-        return (width, height)
+        with pdfium_operation():
+            if page_num < 0 or page_num >= len(self.pdf):
+                return (0.0, 0.0)
+
+            page = self.pdf[page_num]
+            width = page.get_width()
+            height = page.get_height()
+            return (width, height)
     
     def render_page(self, page_num: int, scale: float = 1.0, 
                     dpi: int = 150) -> Optional[QPixmap]:
@@ -67,44 +71,47 @@ class PDFRenderer:
         Returns:
             QPixmap or None if rendering fails
         """
-        if page_num < 0 or page_num >= len(self.pdf):
-            return None
-        
-        try:
-            page = self.pdf[page_num]
-            
-            # Render to bitmap
-            bitmap = page.render(
-                scale=scale * dpi / 72,
-                rotation=0,
-                crop=(0, 0, 0, 0),
-            )
-            
-            # Convert to PIL Image then QImage
-            pil_image = bitmap.to_pil()
-            
-            # Convert PIL to QImage
-            data = pil_image.tobytes("raw", "RGB")
-            qimage = QImage(
-                data,
-                pil_image.width,
-                pil_image.height,
-                pil_image.width * 3,
-                QImage.Format.Format_RGB888
-            )
-            
-            # Convert to QPixmap
-            return QPixmap.fromImage(qimage)
-            
-        except Exception as e:
-            print(f"Error rendering page {page_num}: {e}")
-            return None
+        with pdfium_operation():
+            if page_num < 0 or page_num >= len(self.pdf):
+                return None
+
+            try:
+                page = self.pdf[page_num]
+
+                # Render to bitmap
+                bitmap = page.render(
+                    scale=scale * dpi / 72,
+                    rotation=0,
+                    crop=(0, 0, 0, 0),
+                )
+
+                # Convert to PIL Image then QImage
+                pil_image = bitmap.to_pil()
+
+                # Convert PIL to QImage
+                data = pil_image.tobytes("raw", "RGB")
+                qimage = QImage(
+                    data,
+                    pil_image.width,
+                    pil_image.height,
+                    pil_image.width * 3,
+                    QImage.Format.Format_RGB888
+                )
+
+                # Convert to QPixmap
+                return QPixmap.fromImage(qimage)
+
+            except Exception as e:
+                print(f"Error rendering page {page_num}: {e}")
+                return None
     
     def close(self) -> None:
         """Close the PDF document."""
-        if hasattr(self, 'pdf'):
+        if hasattr(self, 'pdf') and self.pdf is not None:
             try:
-                self.pdf.close()
+                with pdfium_operation():
+                    self.pdf.close()
+                    self.pdf = None
             except Exception:
                 pass
     

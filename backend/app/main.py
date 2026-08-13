@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from backend.app.routers import auth, extraction, workspace
 from backend.app.database import Base, engine
 from backend.app.paths import LOG_DIR, UPLOADS_DIR
+from backend.app.services.upload_lifecycle import cleanup_expired_uploads
 import os
 import logging
 import sys
@@ -57,14 +58,12 @@ app = FastAPI(
 # Ensure uploads directory exists in a user-writable location
 os.makedirs(str(UPLOADS_DIR), exist_ok=True)
 logger.info(f"Uploads directory configured at: {UPLOADS_DIR}")
-
-# Mount static files (for serving uploaded images and signatures)
-try:
-    app.mount("/uploads/images", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
-    logger.info("Successfully mounted uploads directory")
-except Exception as e:
-    logger.error(f"Failed to mount uploads directory: {str(e)}")
-    raise
+_expired_uploads_removed = cleanup_expired_uploads(
+    UPLOADS_DIR,
+    UPLOADS_DIR / "regions",
+)
+if _expired_uploads_removed:
+    logger.info("Removed %d expired private extraction artifacts", _expired_uploads_removed)
 
 # Configure CORS with all necessary origins
 origins = [

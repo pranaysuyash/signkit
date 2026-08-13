@@ -312,6 +312,20 @@ header {
   font-size: 0.95rem;
 }
 
+.topology-section {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.35), rgba(11, 15, 25, 0));
+}
+
+.topology-intro { display: flex; align-items: end; justify-content: space-between; gap: 48px; }
+.topology-intro .lead { margin: 0; }
+.topology-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+.topology-card { min-height: 220px; padding: 32px; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: rgba(17, 24, 39, 0.62); }
+.topology-card-current { border-color: #818cf8; box-shadow: var(--shadow-glow); }
+.topology-status { color: #a5b4fc; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.topology-card h3 { margin: 28px 0 12px; font-size: 1.75rem; }
+.topology-card p, .topology-footnote { color: var(--text-muted); font-size: 0.95rem; }
+.topology-footnote { max-width: 760px; margin: 28px 0 0; }
+
 /* Steps Section */
 .steps {
   position: relative;
@@ -447,6 +461,9 @@ footer {
     grid-template-columns: 1fr;
     gap: 48px;
   }
+
+  .topology-intro, .topology-grid { display: grid; grid-template-columns: 1fr; }
+  .topology-intro { gap: 16px; }
   
   .hero {
     padding-top: 120px;

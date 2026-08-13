@@ -91,7 +91,7 @@ Yes! Save signatures to your library and reuse them anytime. Each saved signatur
 
 **Q: How do I clear everything and start over?**
 
-Click **"Clean Viewport"** to reset the entire workspace, or **"Clear Selection"** to just remove the current selection.
+Click **"Clean Viewport"** to reset the entire workspace, **"Clear Selection"** to remove only the current selection, or press `Delete` / `Esc` while working.
 
 ## Keyboard Shortcuts
 
@@ -100,11 +100,27 @@ See **Help → Keyboard Shortcuts** for the complete list, including:
 - `Ctrl+O` — Open image
 - `Ctrl+C` — Copy result
 - `Ctrl+E` — Export
+- `Delete` (or `Ctrl/Cmd+D`) — Clear selection
+- `Esc` — Clear current selection / cancel transient input
 - `Ctrl+0` — Reset viewport
 - `Ctrl+1` — Fit to view
 - `Ctrl+[` / `Ctrl+]` — Rotate
 
+## Legal and Policy
+
+- Privacy policy: `legal/PRIVACY_POLICY.md`
+- Terms of service: `legal/TERMS_OF_SERVICE.md`
+- EULA: `legal/EULA.md`
+- Third-party notices: `legal/THIRD_PARTY_LICENSES.md`
+- Refund policy: 30-day money-back guarantee is documented in Terms of Service. For support, email `support@signkit.work`.
+
 ## Need More Help?
 
-- Check the **Keyboard Shortcuts** in the Help menu
-- Report issues with screenshots of the footer information
+- Check the Help menu:
+  - Quick Start
+  - Export Options
+  - Keyboard Shortcuts
+  - Privacy, Terms, and EULA
+- For app health checks, use **Help → Check for Updates…**
+- For refund questions, use **Help → Request a Refund…**
+- For issue reports with diagnostics, use **Help → Report Issue / Send Diagnostics…**

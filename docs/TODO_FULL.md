@@ -2,7 +2,7 @@
 
 This document mirrors the full backlog we've been tracking. It's grouped by area and uses statuses: [x] done • [~] in progress • [ ] pending • [s] skip/later.
 
-**Progress: 18 done / 6 in-progress / 13 pending / 3 skip-for-now**
+**Progress: 18 done / 7 in-progress / 12 pending / 3 skip-for-now**
 
 Legend:
 
@@ -57,7 +57,7 @@ Legend:
 ## Backend (3)
 
 - [ ] Clean up commented/duplicate code
-- [ ] Confirm port 8001 across docs, tests, and desktop client
+- [~] Confirm port 8001 across docs, tests, and desktop client
 - [ ] Smoke tests: /health, upload, process round-trip
 
 ## Packaging and distribution (3)
@@ -78,7 +78,7 @@ Legend:
 - [ ] Local license storage UX polish (Enter/Change license; no hard gate)
 - [ ] Export gating: Block Export/Save when unlicensed; show friendly Upgrade dialog with CTA
 - [ ] Add status bar message when unlicensed: “Evaluation mode — Export locked”
-- [ ] Add “Check for Updates…” in Help; fetch `UPDATES_URL` JSON and compare version
+- [x] Add “Check for Updates…” in Help; fetch `UPDATES_URL` JSON and compare version
 - [ ] Background weekly update check; store cache in `~/.signature_extractor/update_cache.json`
 - [ ] Align provider selection (Gumroad vs Paddle/Lemon) across docs and code
 - [ ] License verification stub: optional online check if `LICENSE_VERIFY_URL` set; cache `last_validation_at`

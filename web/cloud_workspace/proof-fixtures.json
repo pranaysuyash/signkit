@@ -1,0 +1,74 @@
+{
+  "scenario_id": "contractdesk-stage1-proof-20260812",
+  "scenario_version": "1.0.0",
+  "scenario_name": "ContractDesk Synthetic Proof Surface",
+  "generated_at": "2026-08-12T00:00:00Z",
+  "output": {
+    "artifact": "contractdesk_stage1_audit_manifest.json",
+    "format": "json",
+    "status": "ready_for_review",
+    "scope": "control-plane metadata",
+    "notes": "No document files are stored by this synthetic fixture"
+  },
+  "input": {
+    "fixture_name": "contractdesk_proof_input_01.pdf",
+    "fixture_seed": "contractdesk-proof-v1",
+    "source_hash": "9f5f7fef0f8f1ca3f9b1d3a5f7a0cbf17e4d5fd2f4a9e2f8d5b6f0c3a9b7d2c1",
+    "redaction_profile": "metadata-only"
+  },
+  "executions": [
+    {
+      "id": "proof-contractdesk-stage1-20260812",
+      "template_code": "contractdesk-proof-core",
+      "template_version": 1,
+      "topology": "local",
+      "status": "received",
+      "title": "ContractDesk proof packet · Acme Retail",
+      "participant_name": "Jordan Example",
+      "participant_email": "jordan.example@acmeretail.com",
+      "reviewer_name": "Maya Controls",
+      "reviewer_email": "maya.controls@acmeretail.com",
+      "effective_date": "2026-08-12",
+      "notes": "Deterministic Stage 1 synthetic packet for operator proof only.",
+      "created_at": "2026-08-12T00:00:00.000Z",
+      "updated_at": "2026-08-12T00:01:00.000Z",
+      "events": [
+        {
+          "id": "proof-contractdesk-stage1-20260812-event-001",
+          "sequence": 1,
+          "event_type": "execution_created",
+          "status_from": null,
+          "status_to": "pending_review",
+          "idem_key": null,
+          "summary": "Deterministic proof packet seeded from local fixture",
+          "created_at": "2026-08-12T00:00:00.000Z"
+        },
+        {
+          "id": "proof-contractdesk-stage1-20260812-event-002",
+          "sequence": 2,
+          "event_type": "mark_received",
+          "status_from": "pending_review",
+          "status_to": "received",
+          "idem_key": "fixture-seed-received",
+          "summary": "Packet marked received in control-plane simulation mode",
+          "created_at": "2026-08-12T00:01:00.000Z"
+        }
+      ],
+      "manifest": {
+        "workflow": "contractdesk-stage1",
+        "input_hash": "9f5f7fef0f8f1ca3f9b1d3a5f7a0cbf17e4d5fd2f4a9e2f8d5b6f0c3a9b7d2c1",
+        "stages": [
+          "intake",
+          "normalize",
+          "review",
+          "exception_or_approve",
+          "sign_marker",
+          "export_receipt"
+        ],
+        "intake_actor": "proof-seed",
+        "decision_rules": "record_review_or_exception_only",
+        "replay_policy": "idem_key_optional_for_ui_transitions"
+      }
+    }
+  ]
+}

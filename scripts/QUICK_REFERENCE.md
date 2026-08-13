@@ -104,7 +104,7 @@ pip install PySide6
 ```
 
 **Assets:**
-- ✅ `512px-Mohammad_Rafiquzzaman_signature.jpg` (present)
+- ✅ `desktop_app/resources/signature_template_synthetic_512.jpg` (present)
 - ✅ `assets/demo_document.pdf` (present)
 
 ---

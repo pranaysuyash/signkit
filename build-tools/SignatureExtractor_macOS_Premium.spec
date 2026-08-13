@@ -27,7 +27,7 @@ datas_list = [
     (str(SRC_DIR / "desktop_app" / "resources"), "desktop_app/resources") if (SRC_DIR / "desktop_app" / "resources").exists() else None,
 
     # Include the canonical real signature used by the first-run sample flow.
-    (str(SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg"), "desktop_app/resources") if (SRC_DIR / "512px-Mohammad_Rafiquzzaman_signature.jpg").exists() else None,
+    (str(SRC_DIR / "desktop_app/resources/signature_template_synthetic_512.jpg"), "desktop_app/resources") if (SRC_DIR / "desktop_app/resources/signature_template_synthetic_512.jpg").exists() else None,
 
     # Include app assets (icons)
     (str(SRC_DIR / "assets" / "files"), "assets/files") if (SRC_DIR / "assets" / "files").exists() else None,

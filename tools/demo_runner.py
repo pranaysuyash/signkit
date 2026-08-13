@@ -29,8 +29,8 @@ except Exception as exc:  # pragma: no cover
 
 # App imports
 try:
-from desktop_app.views.main_window import MainWindow
-from desktop_app.state.session import SessionState
+    from desktop_app.views.main_window import MainWindow
+    from desktop_app.state.session import SessionState
 except Exception as exc:  # pragma: no cover
     print("Failed to import MainWindow:", exc, file=sys.stderr)
     sys.exit(2)

@@ -18,11 +18,26 @@ class WorkspaceTopology(str, Enum):
 class WorkspaceExecutionStatus(str, Enum):
     PENDING_REVIEW = "pending_review"
     AWAITING_PARTICIPANT = "awaiting_participant"
+    RECEIVED = "received"
+    NEEDS_CORRECTION = "needs_correction"
+    READY_FOR_REVIEW = "ready_for_review"
+    APPROVED = "approved"
+    SIGNED = "signed"
+    EXPORTED = "exported"
+    EXCEPTION = "exception"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
 
 class WorkspaceTransitionAction(str, Enum):
+    MARK_RECEIVED = "mark_received"
+    REQUEST_REVIEW = "request_review"
+    REQUEST_CORRECTION = "request_correction"
+    APPROVE = "approve"
+    SIGN = "sign"
+    EXPORT = "export"
+    RECORD_EXCEPTION = "record_exception"
+    RETRY_REVIEW = "retry_review"
     RECORD_REVIEW = "record_review"
     RECORD_PARTICIPANT_CONFIRMATION = "record_participant_confirmation"
     CANCEL = "cancel"
@@ -48,6 +63,7 @@ class WorkflowTemplateResponse(BaseModel):
 
 class WorkspaceExecutionCreate(BaseModel):
     template_code: str = Field(..., min_length=3, max_length=80)
+    topology: WorkspaceTopology = WorkspaceTopology.CLOUD
     participant_name: str = Field(..., min_length=2, max_length=160)
     participant_email: EmailStr
     reviewer_name: str = Field(..., min_length=2, max_length=160)
@@ -58,6 +74,7 @@ class WorkspaceExecutionCreate(BaseModel):
 
 class WorkspaceExecutionTransition(BaseModel):
     action: WorkspaceTransitionAction
+    idem_key: str | None = Field(default=None, min_length=6, max_length=80)
 
 
 class WorkspaceExecutionEventResponse(BaseModel):
@@ -68,8 +85,45 @@ class WorkspaceExecutionEventResponse(BaseModel):
     event_type: str
     status_from: str | None
     status_to: str
+    idem_key: str | None = None
     summary: str
     created_at: datetime
+
+
+class ExecutionPassportEvidenceResponse(BaseModel):
+    sequence: int
+    code: str
+    state_from: str | None
+    state_to: str
+    actor: str
+    occurred_at: str
+    message: str | None = None
+
+
+class ExecutionPassportResponse(BaseModel):
+    """API binding for the shared dependency-light Execution Passport contract."""
+
+    passport_version: str
+    execution_id: str
+    topology: WorkspaceTopology
+    source_of_truth: str
+    owner_role: str
+    template_code: str
+    template_version: int
+    aggregate_status: str
+    child_job_id: str | None = None
+    child_job_status: str | None = None
+    correlation_id: str | None = None
+    idempotency_key: str | None = None
+    input_fingerprint: str | None = None
+    output_reference: str | None = None
+    attempt: int | None = None
+    max_attempts: int | None = None
+    evidence: list[ExecutionPassportEvidenceResponse] = Field(default_factory=list)
+    recovery_action: str
+    data_boundary: str
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class WorkspaceExecutionResponse(BaseModel):
@@ -90,3 +144,17 @@ class WorkspaceExecutionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     events: list[WorkspaceExecutionEventResponse] = Field(default_factory=list)
+    passport: ExecutionPassportResponse
+
+
+class DocumentInspectionResponse(BaseModel):
+    execution_id: UUID
+    event_type: str
+    runtime_mode: str
+    retained: bool
+    input_sha256: str
+    receipt_id: UUID
+    page_index: int
+    pages_processed: int
+    candidates: list[dict[str, object]] = Field(default_factory=list)
+    replayed: bool = False

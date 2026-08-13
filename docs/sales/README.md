@@ -20,12 +20,14 @@ decisions close to the product source of truth.
 
 1. [`SALES_OPERATING_SYSTEM.md`](SALES_OPERATING_SYSTEM.md) — current thesis, ICP,
    qualification rules, funnel stages, and operating cadence.
-2. [`PROSPECT_PIPELINE.csv`](PROSPECT_PIPELINE.csv) — one row per organization or
+2. [`SIGNKIT_SALES_EXECUTION_BRIEF_2026-08-12.md`](SIGNKIT_SALES_EXECUTION_BRIEF_2026-08-12.md): current agent handoff for turning one workflow into a proof pack, purchase path, or paid pilot.
+3. [`../expansion/SIGNKIT_CONTRACTDESK_WEB_EXPANSION_AGENT_SPEC_2026-08-12.md`](../expansion/SIGNKIT_CONTRACTDESK_WEB_EXPANSION_AGENT_SPEC_2026-08-12.md): code-inspection and staged web-expansion specification for the ContractDesk workflow slice.
+4. [`PROSPECT_PIPELINE.csv`](PROSPECT_PIPELINE.csv) — one row per organization or
    contact under active research or follow-up.
-3. [`OUTREACH_TEMPLATES.md`](OUTREACH_TEMPLATES.md) — approved message patterns;
+5. [`OUTREACH_TEMPLATES.md`](OUTREACH_TEMPLATES.md) — approved message patterns;
    personalize before sending.
-4. [`RESEARCH_LOG.md`](RESEARCH_LOG.md) — source-backed market and prospect findings.
-5. [`DECISIONS.md`](DECISIONS.md) — dated commercial decisions and what would cause
+6. [`RESEARCH_LOG.md`](RESEARCH_LOG.md) — source-backed market and prospect findings.
+7. [`DECISIONS.md`](DECISIONS.md) — dated commercial decisions and what would cause
    them to change.
 
 ## Evidence and privacy rules

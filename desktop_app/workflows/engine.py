@@ -47,6 +47,22 @@ def sign_pdf(input_pdf_path: str, output_pdf_path: str, signatures: List[Dict[st
         raise RuntimeError(f"signer_unavailable:{exc}") from exc
 
 
+def sign_pdf_with_certificate(input_pdf_path: str, output_pdf_path: str, pfx_path: str | None = None, **kwargs):
+    """Route explicit certificate-backed signing through the canonical PDF module."""
+    try:
+        from importlib import import_module
+
+        signer_module = import_module("desktop_app.pdf.signer")
+        return signer_module.sign_pdf_with_certificate(
+            input_pdf_path,
+            output_pdf_path,
+            pfx_path,
+            **kwargs,
+        )
+    except Exception as exc:  # pragma: no cover - environment-specific integration edge
+        raise RuntimeError(f"digital_signer_unavailable:{exc}") from exc
+
+
 class _MissingVaultFallback:
     def retrieve_signature(self, signature_ref: str) -> bytes:
         raise RuntimeError(
@@ -730,3 +746,34 @@ def _copy_review_candidate(
     target = review_dir / f"{source.stem}_{job_id}_{uuid4().hex[:8]}{source.suffix}"
     shutil.copy2(source, target)
     return str(target)
+def export_pdf_artifact(
+    input_pdf_path: str,
+    output_pdf_path: str,
+    *,
+    signing_mode: str,
+    signatures: list[dict[str, object]] | None = None,
+    pfx_path: str | None = None,
+    **certificate_options: object,
+) -> object:
+    """Export through one explicit seam while preserving signing semantics."""
+
+    if signing_mode == "visual":
+        if signatures is None:
+            raise ValueError("visual signing requires signatures")
+        if pfx_path is not None or certificate_options:
+            raise ValueError("visual signing does not accept certificate options")
+        return sign_pdf(input_pdf_path, output_pdf_path, signatures)
+
+    if signing_mode == "certificate":
+        if pfx_path is None and "credential_provider" not in certificate_options:
+            raise ValueError("certificate signing requires pfx_path")
+        if signatures is not None:
+            raise ValueError("certificate signing does not accept visual signatures")
+        return sign_pdf_with_certificate(
+            input_pdf_path,
+            output_pdf_path,
+            pfx_path,
+            **certificate_options,
+        )
+
+    raise ValueError(f"unsupported signing_mode: {signing_mode}")

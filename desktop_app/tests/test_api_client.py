@@ -109,9 +109,11 @@ def test_upload_image_returns_typed_response(tmp_path, monkeypatch):
     client = ApiClient("http://127.0.0.1:8001", SessionState())
     image_path = tmp_path / "sample.png"
     image_path.write_bytes(b"fake image bytes")
+    captured = {}
 
     def fake_post(url, files=None, headers=None, timeout=None):
-        return _FakeResponse(payload={"id": "session-123", "filename": "sample.png", "file_path": "/uploads/images/sample.png"})
+        captured["headers"] = headers
+        return _FakeResponse(payload={"id": "session-123", "filename": "sample.png", "file_path": None})
 
     monkeypatch.setattr(requests, "post", fake_post)
 
@@ -120,7 +122,8 @@ def test_upload_image_returns_typed_response(tmp_path, monkeypatch):
     assert isinstance(result, UploadResponse)
     assert result.session_id == "session-123"
     assert result.filename == "sample.png"
-    assert result.file_path == "/uploads/images/sample.png"
+    assert result.file_path is None
+    assert captured["headers"]["Idempotency-Key"].startswith("upload-")
 
 
 def test_process_image_validates_selection_before_network():
@@ -153,8 +156,10 @@ def test_process_image_maps_missing_session(monkeypatch):
 
 def test_process_image_returns_typed_response(monkeypatch):
     client = ApiClient("http://127.0.0.1:8001", SessionState())
+    captured = {}
 
     def fake_post(url, data=None, headers=None, timeout=None):
+        captured["headers"] = headers
         return _FakeResponse(
             payload=None,
             content=b"png-bytes",
@@ -168,6 +173,7 @@ def test_process_image_returns_typed_response(monkeypatch):
     assert isinstance(result, ProcessResponse)
     assert result.png_bytes == b"png-bytes"
     assert result.content_type == "image/png"
+    assert captured["headers"]["Idempotency-Key"].startswith("process-")
 
 
 def test_select_region_validates_input():
@@ -194,15 +200,17 @@ def test_select_region_maps_missing_session(monkeypatch):
 
 def test_select_region_returns_typed_response(monkeypatch):
     client = ApiClient("http://127.0.0.1:8001", SessionState())
+    captured = {}
 
     def fake_post(url, data=None, headers=None, timeout=None):
+        captured["headers"] = headers
         return _FakeResponse(
             payload={
                 "message": "Region selected",
                 "session_id": "session-123",
                 "selection": {"x1": 1, "y1": 2, "x2": 3, "y2": 4},
                 "image": {"width": 20, "height": 10},
-                "file_path": "/uploads/images/session-123.png",
+                "file_path": None,
             }
         )
 
@@ -214,6 +222,7 @@ def test_select_region_returns_typed_response(monkeypatch):
     assert result.selection == {"x1": 1, "y1": 2, "x2": 3, "y2": 4}
     assert result.image == {"width": 20, "height": 10}
     assert result.payload["session_id"] == "session-123"
+    assert captured["headers"]["Idempotency-Key"].startswith("select-")
 
 
 def test_health_check_recovers_after_transient_failure(monkeypatch):

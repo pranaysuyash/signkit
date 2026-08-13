@@ -1,11 +1,13 @@
 """PDF viewer widget with page navigation, zoom, and field detection."""
 
 import logging
+import base64
 from typing import Optional, List, Dict, Any, Tuple, Callable
 from colorsys import hsv_to_rgb, rgb_to_hsv
 from collections import OrderedDict
 from pathlib import Path
 import sys
+import os
 
 from PySide6.QtCore import Qt, Signal, QRectF, QPointF, QPoint
 from PySide6.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QFont, QTransform, QImage
@@ -16,6 +18,8 @@ from PySide6.QtWidgets import (
 
 from desktop_app.pdf.renderer import PDFRenderer
 from desktop_app.pdf.field_detection import SignatureFieldDetector
+from desktop_app.pdf.document_runtime import IsolatedDocumentRuntime
+from desktop_app.library import storage as signature_library
 from desktop_app.widgets.modern_mac_button import ModernMacButton
 from desktop_app.widgets.async_utils import AsyncRunner, dispatch
 
@@ -438,10 +442,82 @@ class PDFPageView(QWidget):
         """Show context menu for signature."""
         menu = QMenu(self)
         remove_action = menu.addAction("🗑️ Remove Signature")
+        rotate_cw_action = menu.addAction("↻ Rotate +90°")
+        rotate_ccw_action = menu.addAction("↺ Rotate -90°")
+        menu.addSeparator()
+
+        appearance_menu = menu.addMenu("Adjust Appearance")
+        brightness_up_action = appearance_menu.addAction("Increase Brightness (+0.1)")
+        brightness_down_action = appearance_menu.addAction("Decrease Brightness (-0.1)")
+        contrast_up_action = appearance_menu.addAction("Increase Contrast (+0.1)")
+        contrast_down_action = appearance_menu.addAction("Decrease Contrast (-0.1)")
+        saturation_up_action = appearance_menu.addAction("Increase Saturation (+0.1)")
+        saturation_down_action = appearance_menu.addAction("Decrease Saturation (-0.1)")
+
+        menu.addSeparator()
+        reset_style_action = menu.addAction("Reset Appearance")
         
         action = menu.exec(global_pos)
         if action == remove_action:
             self.remove_signature(index)
+            return
+
+        if action == rotate_cw_action:
+            self._apply_signature_style_delta(index, "rotation_deg", 90.0)
+            return
+
+        if action == rotate_ccw_action:
+            self._apply_signature_style_delta(index, "rotation_deg", -90.0)
+            return
+
+        if action == reset_style_action:
+            if self.update_signature_style(index, _coerce_signature_style({})):
+                self.signature_clicked.emit(index)
+            return
+
+        if action == brightness_up_action:
+            self._apply_signature_style_delta(index, "brightness", 0.1)
+            return
+
+        if action == brightness_down_action:
+            self._apply_signature_style_delta(index, "brightness", -0.1)
+            return
+
+        if action == contrast_up_action:
+            self._apply_signature_style_delta(index, "contrast", 0.1)
+            return
+
+        if action == contrast_down_action:
+            self._apply_signature_style_delta(index, "contrast", -0.1)
+            return
+
+        if action == saturation_up_action:
+            self._apply_signature_style_delta(index, "saturation", 0.1)
+            return
+
+        if action == saturation_down_action:
+            self._apply_signature_style_delta(index, "saturation", -0.1)
+
+    @staticmethod
+    def _clamp_signature_style_value(value: float, min_value: float = 0.0, max_value: float = 3.0) -> float:
+        """Clamp signature style values to editable, safe ranges."""
+        return max(min_value, min(max_value, value))
+
+    def _apply_signature_style_delta(self, index: int, style_key: str, delta: float) -> None:
+        """Adjust one style dimension for an existing signature."""
+        if not (0 <= index < len(self.signatures)):
+            return
+
+        style = _coerce_signature_style(self.signatures[index].get("style", {}))
+        if style_key == "rotation_deg":
+            style[style_key] = (style.get(style_key, 0.0) + delta) % 360.0
+        else:
+            style[style_key] = self._clamp_signature_style_value(
+                style.get(style_key, 1.0) + delta
+            )
+
+        self.update_signature_style(index, style)
+        self.signature_clicked.emit(index)
     
     def _draw_resize_handles(self, painter: QPainter, sig: Dict[str, Any]) -> None:
         """Draw resize handles on selected signature."""
@@ -810,11 +886,7 @@ class PDFViewer(QWidget):
             # Default to showing the whole page on open
             self.zoom_combo.setCurrentText("Whole Page")
 
-            # Clear any stale placement preview carried over from a previous document.
-            self.pending_signature_pixmap = None
-            self.pending_signature_path = ""
-            self.pending_signature_style = _coerce_signature_style(None)
-            self.page_view.set_preview_signature(None)
+            self.clear_signature_placement()
 
             # Render first page
             self._render_current_page()
@@ -831,9 +903,7 @@ class PDFViewer(QWidget):
         if self.renderer:
             self.renderer.close()
             self.renderer = None
-        self.pending_signature_pixmap = None
-        self.pending_signature_path = ""
-        self.pending_signature_style = _coerce_signature_style(None)
+        self.clear_signature_placement()
         self.page_view.set_page(None)
         self.page_view.clear_signatures()
         self.page_view.clear_field_candidates()
@@ -841,6 +911,14 @@ class PDFViewer(QWidget):
         self.all_field_candidates.clear()
         self._page_render_cache.clear()
         self._update_controls()
+
+    def clear_signature_placement(self) -> None:
+        """Clear a pending signature selection and related preview cursor state."""
+        self.pending_signature_pixmap = None
+        self.pending_signature_path = ""
+        self.pending_signature_style = _coerce_signature_style(None)
+        self.page_view.set_preview_signature(None)
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
     
     def _render_current_page(self) -> None:
         """Render the current page, reusing a cached bitmap when available
@@ -911,6 +989,57 @@ class PDFViewer(QWidget):
                 self.page_view.signatures.append(sig.copy())
             self.page_view.update()
 
+    @staticmethod
+    def _resolve_signature_path(signature_path: str) -> str:
+        """Resolve a signature image path, including stable library fallback."""
+        if not signature_path:
+            return ""
+
+        try:
+            path = Path(signature_path)
+            if path.exists():
+                return str(path)
+        except Exception:
+            return signature_path
+
+        # Files can be moved after a PDF session is persisted.
+        # Resolve by basename from the configured signature library as fallback.
+        basename = Path(signature_path).name
+        if not basename:
+            return signature_path
+
+        try:
+            library_dir = Path(signature_library.library_dir())
+            fallback = library_dir / basename
+            if fallback.exists():
+                return str(fallback)
+        except Exception:
+            return signature_path
+
+        return signature_path
+
+    @staticmethod
+    def _coerce_manifest_text(value: Any, default: str) -> str:
+        if value is None:
+            return default
+        if isinstance(value, str):
+            text = value.strip()
+            return text if text else default
+        return default
+
+    @staticmethod
+    def _decode_signature_image_from_manifest(signature_data: str) -> Optional[QPixmap]:
+        """Decode a base64-encoded signature image from PDF metadata."""
+        try:
+            decoded = base64.b64decode(signature_data, validate=True)
+        except Exception:
+            return None
+
+        pixmap = QPixmap()
+        if pixmap.loadFromData(decoded, "PNG"):
+            return pixmap
+        return None
+
     def restore_signature_placements(self, signatures: List[Dict[str, Any]]) -> None:
         """Restore persisted signature placements into the in-memory viewer state."""
         self.all_signatures.clear()
@@ -922,7 +1051,8 @@ class PDFViewer(QWidget):
             restored["y"] = int(restored.get("y", 0))
             restored["width"] = max(1, int(restored.get("width", 1)))
             restored["height"] = max(1, int(restored.get("height", 1)))
-            restored["sig_path"] = str(restored.get("sig_path", ""))
+            resolved_sig_path = self._resolve_signature_path(str(restored.get("sig_path", "")))
+            restored["sig_path"] = resolved_sig_path
 
             style = _coerce_signature_style(
                 restored.get("style")
@@ -936,9 +1066,15 @@ class PDFViewer(QWidget):
             restored["style"] = style
 
             sig_path = restored.get("sig_path", "")
+            signature_data = self._coerce_manifest_text(restored.get("sig_image_data", ""), "")
             base_pixmap = restored.get("base_pixmap")
             if not isinstance(base_pixmap, QPixmap):
-                base_pixmap = QPixmap(str(sig_path)) if sig_path else QPixmap()
+                if signature_data:
+                    base_pixmap = self._decode_signature_image_from_manifest(signature_data)
+                if not isinstance(base_pixmap, QPixmap):
+                    base_pixmap = QPixmap()
+                if base_pixmap.isNull() and sig_path:
+                    base_pixmap = QPixmap(str(sig_path))
             if base_pixmap.isNull():
                 # Keep a deterministic empty pixmap so rendering code is always safe.
                 base_pixmap = QPixmap(1, 1)
@@ -1353,6 +1489,7 @@ class PDFViewer(QWidget):
         self,
         page_indices: List[int],
         on_complete: Callable[[Dict[int, List[Dict[str, Any]]]], None],
+        runtime_mode: str | None = None,
     ) -> None:
         """Detect signature fields for multiple pages in a single background pass.
 
@@ -1380,6 +1517,10 @@ class PDFViewer(QWidget):
             return
 
         detector = self.detector
+        selected_runtime = (runtime_mode or os.environ.get("SIGNKIT_PDF_DOCUMENT_RUNTIME", "in_process")).lower()
+        if selected_runtime not in {"in_process", "isolated"}:
+            raise ValueError(f"unsupported_document_runtime:{selected_runtime}")
+        isolated_runtime = IsolatedDocumentRuntime() if selected_runtime == "isolated" else None
         pdf_path = self.renderer.pdf_path
         # De-duplicate while preserving order: a caller may legitimately
         # pass the same page twice (e.g. a page selected by both a
@@ -1390,7 +1531,10 @@ class PDFViewer(QWidget):
             results: Dict[int, List[Any]] = {}
             for page_index in unique_pages:
                 try:
-                    results[page_index] = detector.detect_page(pdf_path, page_index)
+                    if isolated_runtime is not None:
+                        results[page_index] = isolated_runtime.detect_page(pdf_path, page_index)
+                    else:
+                        results[page_index] = detector.detect_page(pdf_path, page_index)
                 except Exception as exc:
                     LOG.warning("Batch field detection failed for page %s: %s", page_index, exc)
                     results[page_index] = []
@@ -1399,7 +1543,9 @@ class PDFViewer(QWidget):
         def _on_batch_finished(results: Dict[int, List[Any]]) -> None:
             for page_index, candidates in results.items():
                 self.all_field_candidates[page_index] = [
-                    c.as_dict() for c in candidates if c.page_index == page_index
+                    c if isinstance(c, dict) else c.as_dict()
+                    for c in candidates
+                    if isinstance(c, dict) or c.page_index == page_index
                 ]
             if self.current_page in results:
                 self._load_page_field_candidates()
@@ -1458,10 +1604,7 @@ class PDFViewer(QWidget):
             self.pending_signature_style,
         )
         self.signature_placed.emit(self.current_page, x, y, width, height, dict(self.pending_signature_style))
-        self.pending_signature_pixmap = None
-        self.pending_signature_path = ""
-        self.page_view.set_preview_signature(None)
-        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.clear_signature_placement()
         return True
 
     def place_signature_in_rect(self, x: int, y: int, width: int, height: int) -> bool:
@@ -1481,10 +1624,7 @@ class PDFViewer(QWidget):
             self.pending_signature_style,
         )
         self.signature_placed.emit(self.current_page, x, y, width, height, dict(self.pending_signature_style))
-        self.pending_signature_pixmap = None
-        self.pending_signature_path = ""
-        self.page_view.set_preview_signature(None)
-        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.clear_signature_placement()
         return True
 
     def build_field_anchor_signature_rect(self, field: Dict[str, Any], x_ratio: float, y_ratio: float) -> Optional[Tuple[int, int, int, int]]:
@@ -1628,10 +1768,7 @@ class PDFViewer(QWidget):
         self.signature_placed.emit(self.current_page, x, y, width, height, dict(self.pending_signature_style))
         
         # Clear pending signature and preview
-        self.pending_signature_pixmap = None
-        self.pending_signature_path = ""
-        self.page_view.set_preview_signature(None)  # Disable preview
-        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.clear_signature_placement()
     
     def _on_signature_clicked(self, index: int) -> None:
         """Handle click on existing signature."""

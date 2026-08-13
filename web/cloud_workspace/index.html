@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#14342f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2314342f'/%3E%3Ctext x='10' y='42' font-family='monospace' font-size='23' font-weight='700' fill='%23cbe56f'%3ESK%3C/text%3E%3C/svg%3E" />
     <title>SignKit Workspace</title>
-    <link rel="stylesheet" href="/workspace-app/styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="paper-grain" aria-hidden="true"></div>
-    <main class="auth-shell" id="auth-shell">
+    <section class="auth-shell" id="auth-shell" aria-labelledby="auth-title">
       <section class="auth-story">
         <p class="eyebrow">SIGNKIT WORKSPACE</p>
         <h1>Document work deserves a visible chain of care.</h1>
@@ -21,12 +21,16 @@
         <div class="topology-card">
           <span class="topology-dot"></span>
           <div>
-            <strong>Cloud topology</strong>
-            <p>Browser workspace with no local app requirement.</p>
+            <strong>local-companion document proof</strong>
+            <p>Local records can inspect one PDF transiently through the isolated worker. Cloud records remain metadata-only.</p>
           </div>
         </div>
         <p class="fine-print">
-          This foundation stores workflow metadata, not documents or signature files.
+          This foundation stores workflow metadata. Local inspection deletes source bytes after the result; it does not host document signing.
+        </p>
+        <p class="fine-print">
+          Local is the current signing boundary. Cloud and Hybrid are planned
+          directions, not available execution modes in this workspace.
         </p>
       </section>
       <section class="auth-card" aria-labelledby="auth-title">
@@ -35,24 +39,36 @@
         <h2 id="auth-title">Enter your workspace</h2>
         <p class="auth-copy">Use an account to protect your private workflow register.</p>
         <div class="tab-row" role="tablist" aria-label="Account action">
-          <button class="tab is-active" id="login-tab" type="button" role="tab">Sign in</button>
-          <button class="tab" id="register-tab" type="button" role="tab">Create account</button>
+          <button class="tab is-active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-form" tabindex="0">Sign in</button>
+          <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-form" tabindex="-1">Create account</button>
         </div>
-        <form id="login-form" class="auth-form">
-          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
-          <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required /></label>
+        <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="login-tab" aria-hidden="false" tabindex="0">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" required />
+          </div>
           <button class="primary-button" type="submit">Open workspace <span>→</span></button>
         </form>
-        <form id="register-form" class="auth-form is-hidden">
-          <label>Email<input name="email" type="email" autocomplete="email" required /></label>
-          <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <form id="register-form" class="auth-form is-hidden" role="tabpanel" aria-labelledby="register-tab" aria-hidden="true" tabindex="0">
+          <div class="field">
+            <label for="register-email">Email</label>
+            <input id="register-email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="register-password">Password</label>
+            <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+          </div>
           <button class="primary-button" type="submit">Create workspace <span>→</span></button>
         </form>
         <p id="auth-message" class="form-message" role="status"></p>
       </section>
-    </main>
+    </section>
 
-    <main class="app-shell is-hidden" id="app-shell">
+    <main class="app-shell is-hidden" id="app-shell" aria-labelledby="workspace-title">
       <aside class="rail">
         <a class="brand-lockup" href="#top"><span>SK</span> SignKit</a>
         <div class="workspace-label">YOUR WORKSPACE</div>
@@ -63,8 +79,8 @@
         </nav>
         <section class="topology-rail-card">
           <p class="eyebrow">ACTIVE TOPOLOGY</p>
-          <strong>Cloud</strong>
-          <p>Browser-native control plane. No desktop sync is enabled.</p>
+          <strong>metadata-first control plane</strong>
+          <p>Local companion inspection is explicit and transient. Cloud records keep document bytes outside this surface.</p>
         </section>
         <button class="sign-out" id="sign-out" type="button">Sign out</button>
       </aside>
@@ -73,16 +89,28 @@
         <header class="workspace-header">
           <div>
             <p class="eyebrow">EXECUTION REGISTER</p>
-            <h1>Make the next responsible action obvious.</h1>
+            <h1 id="workspace-title">Make the next responsible action obvious.</h1>
           </div>
-          <button class="primary-button" id="new-execution" type="button">New execution <span>+</span></button>
+          <button class="primary-button" id="new-execution" type="button">New workflow record <span>+</span></button>
         </header>
 
-        <section class="status-banner" id="trust-boundary">
+        <section class="status-banner" id="trust-boundary" role="note" aria-labelledby="trust-boundary-title">
           <div class="status-marker">01</div>
           <div>
-            <strong>Workflow control, not a signing claim.</strong>
-            <p>SignKit records owner-entered reviews and confirmations. It does not yet send documents, verify identity, or create a legal signing certificate.</p>
+            <strong id="trust-boundary-title">Workflow control and local inspection, not a signing claim.</strong>
+            <p>SignKit can inspect a local PDF in an isolated worker and record evidence metadata. It does not send documents to cloud storage, verify identity, or create a legal signing certificate.</p>
+          </div>
+        </section>
+
+        <section class="topology-switchboard" aria-labelledby="topology-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">PRODUCT TOPOLOGY</p><h2 id="topology-title">Trust boundary at a glance.</h2></div>
+            <p class="topology-switchboard-note">Metadata-first control plane with an explicit local inspection boundary.</p>
+          </div>
+          <div class="topology-options">
+            <article class="topology-option topology-option-current"><span>Available now</span><strong>Local</strong><p>Companion execution can inspect transient PDFs; source bytes and recovery stay on the device.</p></article>
+            <article class="topology-option"><span>Planned direction</span><strong>Cloud</strong><p>Hosted coordination, storage, recovery, and shared access.</p></article>
+            <article class="topology-option"><span>Planned direction</span><strong>Hybrid</strong><p>Local execution plus explicit, inspectable coordination.</p></article>
           </div>
         </section>
 
@@ -95,12 +123,17 @@
         <section class="content-grid">
           <div class="execution-panel">
             <div class="section-heading">
-              <div><p class="eyebrow">LIVE WORK</p><h2>Execution register</h2></div>
-              <span id="execution-count" class="count-badge">0 packets</span>
+            <div><p class="eyebrow">METADATA WORK</p><h2 id="execution-register-title">Execution register</h2></div>
+              <div class="header-actions">
+                <button class="secondary-button" id="load-proof-fixture" type="button">Load proof packet</button>
+                <span id="execution-count" class="count-badge">0 packets</span>
+              </div>
             </div>
+            <p id="proof-message" class="form-message proof-message" role="status"></p>
             <div id="execution-list" class="execution-list" aria-live="polite"></div>
           </div>
-          <aside class="passport-panel" aria-live="polite">
+          <aside class="passport-panel" aria-labelledby="passport-panel-label" aria-live="polite">
+            <h2 id="passport-panel-label" class="visually-hidden">Execution passport</h2>
             <div id="passport-empty" class="empty-passport">
               <p class="eyebrow">EXECUTION PASSPORT</p>
               <h2>Select a packet</h2>
@@ -117,30 +150,99 @@
           <div id="template-list" class="template-list"></div>
         </section>
       </section>
-    </main>
+    </section>
 
     <dialog id="execution-dialog" aria-labelledby="execution-dialog-title">
       <form id="execution-form" class="execution-form">
         <div class="dialog-heading">
-          <div><p class="eyebrow">NEW CLOUD EXECUTION</p><h2 id="execution-dialog-title">Prepare onboarding control</h2></div>
+          <div><p class="eyebrow">NEW WORKFLOW RECORD</p><h2 id="execution-dialog-title">Prepare onboarding control</h2></div>
           <button class="close-button" id="close-dialog" type="button" aria-label="Close form">×</button>
         </div>
         <p id="template-description" class="dialog-copy"></p>
         <input id="template-code" name="template_code" type="hidden" />
         <div class="field-grid">
-          <label>Participant name<input name="participant_name" maxlength="160" required /></label>
-          <label>Participant email<input name="participant_email" type="email" required /></label>
-          <label>Reviewer name<input name="reviewer_name" maxlength="160" required /></label>
-          <label>Reviewer email<input name="reviewer_email" type="email" required /></label>
-          <label>Effective date<input name="effective_date" type="date" /></label>
+          <div class="field">
+            <label for="execution-topology">Execution topology</label>
+            <select id="execution-topology" name="topology" autocomplete="off"><option value="local" selected>Local companion</option><option value="cloud">Cloud metadata-only</option></select>
+          </div>
+          <div class="field">
+            <label for="participant-name">Participant name</label>
+            <input id="participant-name" name="participant_name" autocomplete="name" maxlength="160" required />
+          </div>
+          <div class="field">
+            <label for="participant-email">Participant email</label>
+            <input id="participant-email" name="participant_email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="reviewer-name">Reviewer name</label>
+            <input id="reviewer-name" name="reviewer_name" autocomplete="name" maxlength="160" required />
+          </div>
+          <div class="field">
+            <label for="reviewer-email">Reviewer email</label>
+            <input id="reviewer-email" name="reviewer_email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="effective-date">Effective date</label>
+            <input id="effective-date" name="effective_date" type="date" autocomplete="off" />
+          </div>
         </div>
-        <label>Operator note <span class="optional">optional</span><textarea name="notes" rows="3" maxlength="2000" placeholder="Keep this to the minimum needed for the workflow."></textarea></label>
-        <p class="privacy-inline">The register keeps names, emails, date, and your note. It does not store the packet itself.</p>
-        <div class="dialog-actions"><button class="secondary-button" id="cancel-dialog" type="button">Cancel</button><button class="primary-button" type="submit">Create execution <span>→</span></button></div>
+        <div class="field">
+          <label for="operator-notes">Operator note <span class="optional">optional</span></label>
+          <textarea id="operator-notes" name="notes" autocomplete="off" rows="3" maxlength="2000" placeholder="Keep this to the minimum needed for the workflow."></textarea>
+        </div>
+        <p class="privacy-inline">Local companion inspection accepts a PDF transiently, runs the isolated worker, records hash and result metadata, then deletes the source. Cloud records remain metadata-only.</p>
+        <div class="dialog-actions"><button class="secondary-button" id="cancel-dialog" type="button">Cancel</button><button class="primary-button" type="submit">Create workflow record <span>→</span></button></div>
         <p id="execution-message" class="form-message" role="status"></p>
       </form>
     </dialog>
 
-    <script src="/workspace-app/app.js" defer></script>
+    <script>
+      (() => {
+        const tablist = document.querySelector('[role="tablist"]');
+        const tabs = Array.from(tablist?.querySelectorAll('[role="tab"]') || []);
+        if (!tablist || !tabs.length) return;
+
+        const syncTabState = () => {
+          tabs.forEach((tab) => {
+            const active = tab.classList.contains("is-active");
+            const panel = document.getElementById(tab.getAttribute("aria-controls"));
+            tab.setAttribute("aria-selected", String(active));
+            tab.tabIndex = active ? 0 : -1;
+            if (panel) panel.setAttribute("aria-hidden", String(!active));
+          });
+        };
+
+        const moveFocus = (direction) => {
+          const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.classList.contains("is-active")));
+          const nextIndex = (activeIndex + direction + tabs.length) % tabs.length;
+          tabs[nextIndex].focus();
+          tabs[nextIndex].click();
+        };
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+              event.preventDefault();
+              moveFocus(1);
+            } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+              event.preventDefault();
+              moveFocus(-1);
+            } else if (event.key === "Home") {
+              event.preventDefault();
+              tabs[0].focus();
+              tabs[0].click();
+            } else if (event.key === "End") {
+              event.preventDefault();
+              tabs[tabs.length - 1].focus();
+              tabs[tabs.length - 1].click();
+            }
+          });
+        });
+
+        new MutationObserver(syncTabState).observe(tablist, { attributes: true, subtree: true, attributeFilter: ["class"] });
+        syncTabState();
+      })();
+    </script>
+    <script src="./app.js" defer></script>
   </body>
 </html>

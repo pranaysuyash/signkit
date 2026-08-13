@@ -4,7 +4,7 @@ PyQt/PySide6 desktop client for signature extraction. Connects to the FastAPI ba
 
 ## Features
 
-- Direct image upload (no login required by default)
+- Local image upload and extraction without login; authenticated backend sync uses the JWT session and idempotent extraction requests
 - Interactive region selection with rubber band
 - One-click auto-detect for likely signature regions
 - Real-time threshold and color controls with auto-threshold and auto-clean modes
@@ -82,7 +82,7 @@ desktop_app/
 
 ## Notes
 
-- Login/authentication is optional and currently disabled
+- Local desktop extraction remains usable offline. Backend extraction endpoints require authentication, owner scope, and an `Idempotency-Key`; the desktop client adds stable keys for upload, region selection, and processing when backend sync is enabled.
 - Requires running FastAPI backend
 - Color format must include leading # (e.g., #000000 for black)
 - Selection coordinates are automatically clamped to image bounds

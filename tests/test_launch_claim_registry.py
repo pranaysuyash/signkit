@@ -15,6 +15,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INDEX_PATH = PROJECT_ROOT / "index.html"
 REGISTRY_PATH = PROJECT_ROOT / "docs" / "launch_claims" / "registry.md"
+REDIRECTS_PATH = PROJECT_ROOT / "_redirects"
+SERVER_PATH = PROJECT_ROOT / "serve.py"
 
 CLAIM_IDS = {
     "job_local_pdf",
@@ -29,7 +31,38 @@ CLAIM_IDS = {
     "recurring_workflow_enquiry",
     "operator_context",
     "product_evidence",
+    "public_surface_boundary",
 }
+
+LEGACY_PUBLIC_PATHS = (
+    "/index.html",
+    "/root",
+    "/root/",
+    "/root.html",
+    "/buy",
+    "/buy/",
+    "/buy.html",
+    "/purchase",
+    "/purchase/",
+    "/purchase.html",
+    "/gum",
+    "/gum/",
+    "/gum.html",
+    "/test-variants",
+    "/test-variants/",
+    "/test-variants.html",
+    "/new",
+    "/new/",
+    "/web/live",
+    "/web/live/",
+    "/web/live/index.html",
+    "/web/new_landing_page",
+    "/web/new_landing_page/",
+    "/web/new_landing_page/index.html",
+    "/web/cloud_workspace",
+    "/web/cloud_workspace/",
+    "/web/cloud_workspace/index.html",
+)
 
 
 def _index() -> str:
@@ -182,6 +215,35 @@ def test_product_preview_is_not_marketed_as_benchmark() -> None:
     assert "product preview" in page
     assert "live preview" not in page
     assert "benchmark" not in page
+
+
+def test_public_surface_is_canonical() -> None:
+    """Every retained acquisition path is governed as a root redirect."""
+
+    page = _index()
+    redirects = REDIRECTS_PATH.read_text(encoding="utf-8")
+    server = SERVER_PATH.read_text(encoding="utf-8")
+
+    assert '<link rel="canonical" href="https://signkit.work" />' in page
+    assert "CANONICAL_ROUTE = \"/\"" in server
+    for path in LEGACY_PUBLIC_PATHS:
+        assert f"{path} / 301" in redirects, path
+        assert f'"{path}"' in server, path
+    assert "web/live/js/checkout.js" in page
+    assert "web/live/js/checkout-config.js" in page
+    checkout = (PROJECT_ROOT / "web" / "live" / "js" / "checkout.js").read_text(encoding="utf-8")
+    assert "entry_path" in checkout
+    assert "utm_source" in checkout
+
+
+def test_canonical_surface_has_accessibility_primitives() -> None:
+    page = _index()
+    assert re.search(r"<main(?:\s[^>]*)?>", page)
+    assert 'aria-label="SignKit on X"' in page
+    assert 'aria-label="SignKit on GitHub"' in page
+    checkout = (PROJECT_ROOT / "web" / "live" / "js" / "checkout.js").read_text(encoding="utf-8")
+    assert "link.href = '';" in checkout
+    assert "setAttribute('role', 'button')" in checkout
 
 
 def test_root_has_no_public_variant_redirect_logic() -> None:

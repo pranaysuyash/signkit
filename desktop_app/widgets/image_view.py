@@ -1,4 +1,5 @@
 import logging
+from math import ceil, floor
 from typing import Optional, Tuple
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QFrame, QApplication
 from PySide6.QtCore import Qt, Signal, QPointF, QRectF, QRect, QByteArray, QBuffer, QIODevice, QMimeData
@@ -204,32 +205,69 @@ class ImageView(QGraphicsView):
 
     def get_selection(self) -> Optional[Tuple[int, int, int, int]]:
         """Get selection coordinates (x1, y1, x2, y2) relative to image."""
+        return self._selection_image_rect()
+
+    def has_selection(self) -> bool:
+        """Return True if the current image selection has non-zero area."""
+        return self.get_selection() is not None
+
+    def _selection_image_rect(self) -> Optional[Tuple[int, int, int, int]]:
+        """Return current selection in image coordinates with stable rounding."""
         rect = self._selection_rect_in_scene_bounds()
-        if rect is None:
+        if rect is None or self.pixmap_item is None:
             return None
 
         img_rect = self.pixmap_item.boundingRect()
-        x1 = max(0, int(rect.left()))
-        y1 = max(0, int(rect.top()))
-        x2 = min(int(img_rect.width()), int(rect.right()))
-        y2 = min(int(img_rect.height()), int(rect.bottom()))
-
-        if x2 <= x1 or y2 <= y1:
+        img_w = int(img_rect.width())
+        img_h = int(img_rect.height())
+        if img_w <= 0 or img_h <= 0:
             return None
 
-        return (x1, y1, x2, y2)
+        x1 = max(0.0, min(float(img_w), rect.left()))
+        y1 = max(0.0, min(float(img_h), rect.top()))
+        x2 = max(0.0, min(float(img_w), rect.right()))
+        y2 = max(0.0, min(float(img_h), rect.bottom()))
+
+        left = min(x1, x2)
+        top = min(y1, y2)
+        right = max(x1, x2)
+        bottom = max(y1, y2)
+
+        x1_i = max(0, min(img_w, floor(left)))
+        y1_i = max(0, min(img_h, floor(top)))
+        x2_i = max(0, min(img_w, ceil(right)))
+        y2_i = max(0, min(img_h, ceil(bottom)))
+
+        # Guard against sub-pixel selections that collapse after rounding.
+        if x2_i <= x1_i and (right - left) > 0:
+            if x2_i < img_w:
+                x2_i = x1_i + 1
+            else:
+                x1_i = max(0, x2_i - 1)
+
+        if y2_i <= y1_i and (bottom - top) > 0:
+            if y2_i < img_h:
+                y2_i = y1_i + 1
+            else:
+                y1_i = max(0, y2_i - 1)
+
+        if x1_i < 0 or y1_i < 0:
+            return None
+        if x2_i > img_w or y2_i > img_h:
+            return None
+
+        if x2_i <= x1_i or y2_i <= y1_i:
+            return None
+
+        return (x1_i, y1_i, x2_i, y2_i)
 
     def selected_rect_image_coords(self) -> Tuple[int, int, int, int]:
         """Get selection as (x1, y1, x2, y2) image coordinates. Returns (0,0,0,0) if no selection."""
-        rect = self._selection_rect_in_scene_bounds()
+        rect = self._selection_image_rect()
         if rect is None:
             return (0, 0, 0, 0)
 
-        img_rect = self.pixmap_item.boundingRect()
-        x1 = max(0, int(rect.left()))
-        y1 = max(0, int(rect.top()))
-        x2 = min(int(img_rect.width()), int(rect.right()))
-        y2 = min(int(img_rect.height()), int(rect.bottom()))
+        x1, y1, x2, y2 = rect
         return (x1, y1, x2, y2)
 
     def _selection_rect_in_scene_bounds(self) -> Optional[QRectF]:

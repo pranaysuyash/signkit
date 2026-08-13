@@ -8,7 +8,7 @@ import sys
 from uuid import uuid4
 from tempfile import NamedTemporaryFile
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Protocol, Tuple, cast
 
 import numpy as np
 from PIL import Image as PILImage
@@ -414,28 +414,30 @@ class ExtractionTabMixin:
     def _on_pane_context_menu(self, view: 'ImageView', pane_name: str, pos: QPoint) -> None:
         """Show smart context menu based on the current pane and state."""
         menu = QMenu(cast(QWidget, self))
+        def _shortcut(mac: str, other: str) -> str:
+            return mac if sys.platform == "darwin" else other
 
         if pane_name == "source":
             # Source pane: image-related actions
             if hasattr(self, 'rotate_cw_btn') and self.rotate_cw_btn.isEnabled():
                 rotate_cw_action = menu.addAction("↻ Rotate 90° CW")
                 rotate_cw_action.triggered.connect(lambda: self.on_rotate(90))
-                rotate_cw_action.setShortcut(QKeySequence("Ctrl+R"))
+                rotate_cw_action.setShortcut(QKeySequence(_shortcut("Meta+]", "Ctrl+]")))
 
                 rotate_ccw_action = menu.addAction("↺ Rotate 90° CCW")
                 rotate_ccw_action.triggered.connect(lambda: self.on_rotate(-90))
-                rotate_ccw_action.setShortcut(QKeySequence("Ctrl+Shift+R"))
+                rotate_ccw_action.setShortcut(QKeySequence(_shortcut("Meta+[", "Ctrl+[")))
 
                 menu.addSeparator()
 
             if hasattr(self, 'fit_btn') and self.fit_btn.isEnabled():
                 fit_action = menu.addAction("⛶ Fit to View")
                 fit_action.triggered.connect(self._on_fit)
-                fit_action.setShortcut(QKeySequence("Ctrl+0"))
+                fit_action.setShortcut(QKeySequence(_shortcut("Meta+0", "Ctrl+0")))
 
                 reset_action = menu.addAction("⟲ Reset Viewport")
                 reset_action.triggered.connect(self._on_reset_zoom)
-                reset_action.setShortcut(QKeySequence("Ctrl+1"))
+                reset_action.setShortcut(QKeySequence(_shortcut("Meta+1", "Ctrl+1")))
 
             menu.addSeparator()
 
@@ -454,7 +456,7 @@ class ExtractionTabMixin:
                 # Add processing actions
                 process_action = menu.addAction("⚡ Process Selection")
                 process_action.triggered.connect(self.on_preview)
-                process_action.setShortcut(QKeySequence("Ctrl+P"))
+                process_action.setShortcut(QKeySequence(_shortcut("Meta+P", "Ctrl+P")))
 
                 menu.addSeparator()
 
@@ -473,17 +475,17 @@ class ExtractionTabMixin:
             if hasattr(self, '_last_result_png') and self._last_result_png:
                 export_action = menu.addAction("💾 Export PNG...")
                 export_action.triggered.connect(self.on_export)
-                export_action.setShortcut(QKeySequence("Ctrl+E"))
+                export_action.setShortcut(QKeySequence(_shortcut("Meta+E", "Ctrl+E")))
 
                 copy_action = menu.addAction("📋 Copy to Clipboard")
                 copy_action.triggered.connect(self._copy_result_to_clipboard)
-                copy_action.setShortcut(QKeySequence("Ctrl+C"))
+                copy_action.setShortcut(QKeySequence(QKeySequence.StandardKey.Copy))
 
                 menu.addSeparator()
 
                 save_lib_action = menu.addAction("📚 Save to Library")
                 save_lib_action.triggered.connect(self.on_save_to_library)
-                save_lib_action.setShortcut(QKeySequence("Ctrl+S"))
+                save_lib_action.setShortcut(QKeySequence(QKeySequence.StandardKey.Save))
 
         # Common actions for all panes
         menu.addSeparator()
@@ -492,11 +494,11 @@ class ExtractionTabMixin:
         if hasattr(self, 'zoom_in_btn'):
             zoom_in_action = menu.addAction("🔍+ Zoom In")
             zoom_in_action.triggered.connect(self._on_zoom_in)
-            zoom_in_action.setShortcut(QKeySequence("Ctrl++"))
+            zoom_in_action.setShortcut(QKeySequence(_shortcut("Meta++", "Ctrl++")))
 
             zoom_out_action = menu.addAction("🔍- Zoom Out")
             zoom_out_action.triggered.connect(self._on_zoom_out)
-            zoom_out_action.setShortcut(QKeySequence("Ctrl+-"))
+            zoom_out_action.setShortcut(QKeySequence(_shortcut("Meta+-", "Ctrl+-")))
 
         # Show the menu
         menu.exec(view.mapToGlobal(pos))
@@ -1429,23 +1431,23 @@ class ExtractionTabMixin:
         parent_widget.setTabOrder(self.clean_session_btn, self.source_coord_tooltips_cb)
 
         parent_qobject = cast(QObject, self)
+        def _shortcut(mac: str, other: str) -> str:
+            return mac if sys.platform == "darwin" else other
+
         shortcut_specs: list[tuple[ShortcutKey, Callable[[], None]]] = [
             (QKeySequence.StandardKey.Open, self.on_open),
             (QKeySequence.StandardKey.Copy, self.on_copy),
             (QKeySequence.StandardKey.ZoomIn, self._on_zoom_in),
             (QKeySequence.StandardKey.ZoomOut, self._on_zoom_out),
-            ("Ctrl+0", self._on_reset_zoom),
-            ("Meta+0", self._on_reset_zoom),
-            ("Ctrl+1", self._on_fit),
-            ("Meta+1", self._on_fit),
-            ("Ctrl+Shift+C", self.on_capture_signature),
-            ("Ctrl+E", self.on_export),
-            ("Meta+E", self.on_export),
-            ("Ctrl+D", self.on_clear_selection),
-            ("Ctrl+Shift+X", self.on_clean_session),
-            ("Ctrl+T", self.on_toggle_mode),
-            ("Ctrl+Shift+A", self._auto_detect_current_region),
-            ("Ctrl+L", self.on_save_to_library),
+            (_shortcut("Meta+0", "Ctrl+0"), self._on_reset_zoom),
+            (_shortcut("Meta+1", "Ctrl+1"), self._on_fit),
+            (_shortcut("Meta+Shift+C", "Ctrl+Shift+C"), self.on_capture_signature),
+            (_shortcut("Meta+E", "Ctrl+E"), self.on_export),
+            (_shortcut("Meta+D", "Ctrl+D"), self.on_clear_selection),
+            (_shortcut("Meta+Shift+X", "Ctrl+Shift+X"), self.on_clean_session),
+            (_shortcut("Meta+T", "Ctrl+T"), self.on_toggle_mode),
+            (_shortcut("Meta+Shift+A", "Ctrl+Shift+A"), self._auto_detect_current_region),
+            (_shortcut("Meta+L", "Ctrl+L"), self.on_save_to_library),
         ]
         self._shortcuts: list[QShortcut] = []
         for key_spec, handler in shortcut_specs:
@@ -1501,7 +1503,7 @@ class ExtractionTabMixin:
                 return
             # Immediately flip health indicator to offline on upload failure
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("Backend: Offline")
+                self.backend_status_label.setText("Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
             self._handle_backend_exception(e, context="Upload failed")
             self.status_bar.showMessage("Upload failed", 3000)
@@ -1929,7 +1931,7 @@ class ExtractionTabMixin:
         except Exception as e:
             # Immediately flip health indicator to offline on upload failure
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("Backend: Offline")
+                self.backend_status_label.setText("Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
             self._handle_backend_exception(e, context="Upload failed")
             self.status_bar.showMessage("Upload failed", 3000)
@@ -1950,7 +1952,7 @@ class ExtractionTabMixin:
 
         # Immediately flip health indicator to offline on upload failure
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("Backend: Offline")
+            self.backend_status_label.setText("Local service: Offline")
             self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
         self._handle_backend_exception(error, context="Upload failed")
         self.status_bar.showMessage("Upload failed", 3000)
@@ -1991,16 +1993,20 @@ class ExtractionTabMixin:
             self._set_backend_session_id(session_id)
             LOG.info("Backend upload session synced: %s", session_id)
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("● Backend: Online")
+                self.backend_status_label.setText("● Local service: Online")
                 self.backend_status_label.setStyleSheet("color: #2e7d32; padding: 2px 8px;")
-                self.backend_status_label.setToolTip(f"Cloud-sync active for session {session_id[:8]}...")
+                self.backend_status_label.setToolTip(
+                    f"Local processing service active for session {session_id[:8]}..."
+                )
         except Exception as exc:
             LOG.warning("Backend session sync failed: %s", exc)
             self._set_backend_session_id(None)
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("○ Backend: Offline")
+                self.backend_status_label.setText("○ Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
-                self.backend_status_label.setToolTip("Running in offline mode. Core features remain available.")
+                self.backend_status_label.setToolTip(
+                    "Local companion service unavailable. Core document work remains available locally."
+                )
 
     def _persist_selection_to_backend(
         self,
@@ -2133,13 +2139,25 @@ class ExtractionTabMixin:
         # Trigger downstream preview/update like a user selection
         self.on_selection_changed(self.src_view._last_rect)
 
+    def _get_source_selection(self, *, require_selection: bool = True) -> Tuple[int, int, int, int]:
+        """Return the current source-image selection and validate it when required."""
+        x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+        if x1 == x2 or y1 == y2:
+            if require_selection:
+                raise ValueError("No selection")
+            return 0, 0, 0, 0
+        if x1 > x2 or y1 > y2:
+            raise ValueError(f"Invalid selection ({x1},{y1})→({x2},{y2})")
+        return x1, y1, x2, y2
+
     def demo_generate_local_result(self) -> None:
         """Generate a PNG result locally from the current selection (no backend)."""
         from PySide6.QtCore import QBuffer, QIODevice
         if not self.src_view.has_image():
             raise RuntimeError("No source image")
-        x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
-        if x1 == x2 or y1 == y2:
+        try:
+            x1, y1, x2, y2 = self._get_source_selection()
+        except ValueError:
             raise RuntimeError("No selection")
         cropped = self.src_view.crop_selection()
         if not cropped or cropped.isNull():
@@ -2233,7 +2251,12 @@ class ExtractionTabMixin:
             QMessageBox.warning(cast(QWidget, self), "No image uploaded", "Please open & upload an image first")
             return
         # Selection
-        x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+        try:
+            x1, y1, x2, y2 = self._get_source_selection()
+        except ValueError:
+            self.status_bar.showMessage("Select an area on the source image to extract signature", 4000)
+            LOG.warning("on_preview called with zero-size/invalid selection")
+            return
 
         # Debug logging
         LOG.debug("on_preview called")
@@ -2413,7 +2436,7 @@ class ExtractionTabMixin:
             LOG.error("Processing failed: %s", e, exc_info=True)
             # Immediately flip health indicator to offline on processing failure
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("Backend: Offline")
+                self.backend_status_label.setText("Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
             self._handle_backend_exception(e, context="Process failed")
             self.status_bar.showMessage("Processing failed", 3000)
@@ -2423,10 +2446,21 @@ class ExtractionTabMixin:
         LOG.error("Processing failed: %s", error, exc_info=True)
         # Immediately flip health indicator to offline on processing failure
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("Backend: Offline")
+            self.backend_status_label.setText("Local service: Offline")
             self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
         self._handle_backend_exception(error, context="Process failed")
         self.status_bar.showMessage("Processing failed", 3000)
+
+    def _handle_escape_cancel(self) -> None:
+        """Cancel transient interaction state and clear source selection."""
+        self.on_clear_selection()
+        if hasattr(self, "pdf_viewer") and self.pdf_viewer:
+            resetter = getattr(self.pdf_viewer, "clear_signature_placement", None)
+            if callable(resetter):
+                resetter()
+        if hasattr(self, "_reset_pdf_signature_selection_state"):
+            self._reset_pdf_signature_selection_state(reset_controls=True)
+        self.status_bar.showMessage("Selection cleared", 1200)
 
     def on_clear_selection(self):
         self.src_view.clear_selection()
@@ -2483,11 +2517,11 @@ class ExtractionTabMixin:
         self._backend_online = True
         
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("● Backend: Online")
+            self.backend_status_label.setText("● Local service: Online")
             self.backend_status_label.setStyleSheet("color: #2e7d32; padding: 2px 8px;")
             self.backend_status_label.setToolTip(
-                "Backend is running - cloud features enabled\n"
-                "Core features use local processing for better performance"
+                "Local companion service is running.\n"
+                "Document processing remains local by default."
             )
         
         # Enable cloud features if any
@@ -2498,12 +2532,12 @@ class ExtractionTabMixin:
         self._backend_online = False
         
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("○ Backend: Offline")
+            self.backend_status_label.setText("○ Local service: Offline")
             self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
             self.backend_status_label.setToolTip(
-                f"Running in offline mode - {reason}\n"
-                "Core signature extraction features are fully available\n"
-                "Cloud features (sync, updates) are disabled"
+                f"Local companion service unavailable - {reason}\n"
+                "Core signature extraction and PDF work remain available locally.\n"
+                "Connected coordination is disabled."
             )
         
         # Disable cloud features but keep core functionality
@@ -2511,7 +2545,7 @@ class ExtractionTabMixin:
         
         # Show user-friendly message about offline mode
         if hasattr(self, 'status_bar'):
-            self.status_bar.showMessage("Running in offline mode - core features available", 3000)
+            self.status_bar.showMessage("Local mode - core document work available", 3000)
     
     def _update_cloud_features_availability(self, available: bool) -> None:
         """Update availability of cloud-dependent features.
@@ -2540,7 +2574,7 @@ class ExtractionTabMixin:
                 # Extract version if available
                 version = payload.get("version", "unknown") if isinstance(payload, dict) else "unknown"
 
-                self.backend_status_label.setText("● Backend: Online")
+                self.backend_status_label.setText("● Local service: Online")
                 self.backend_status_label.setStyleSheet("color: #2e7d32; padding: 2px 8px;")
                 self.backend_status_label.setToolTip(
                     f"Connected to {self.api_client.base_url}\n"
@@ -2570,7 +2604,7 @@ class ExtractionTabMixin:
                     # Max attempts reached - mark as offline
                     error_msg = payload.get("error", "Unknown error") if isinstance(payload, dict) else str(payload)
 
-                    self.backend_status_label.setText("● Backend: Offline")
+                    self.backend_status_label.setText("● Local service: Offline")
                     self.backend_status_label.setStyleSheet("color: #c62828; padding: 2px 8px;")
                     self.backend_status_label.setToolTip(
                         f"Cannot reach {self.api_client.base_url}\n"
@@ -2652,7 +2686,7 @@ class ExtractionTabMixin:
 
     def on_selection_changed(self, _rect) -> None:
         # Update selection info and crop preview
-        x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+        x1, y1, x2, y2 = self._get_source_selection(require_selection=False)
         w, h = max(0, x2 - x1), max(0, y2 - y1)
         if w > 0 and h > 0:
             self.sel_info.setText(f"Selection: {w}×{h} at ({x1},{y1})")
@@ -2722,7 +2756,7 @@ class ExtractionTabMixin:
             LOG.warning(f"schedule_preview blocked: no session id - self.session.session_id is: {repr(self.session.session_id)}")
             self.status_bar.showMessage("Preview not scheduled - no session", 1500)
             return
-        x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+        x1, y1, x2, y2 = self._get_source_selection(require_selection=False)
         if x1 == x2 or y1 == y2:
             LOG.warning(f"schedule_preview blocked: zero size selection ({x1},{y1})→({x2},{y2})")
             self.status_bar.showMessage("Make a selection to see preview", 1500)
@@ -2857,16 +2891,12 @@ class ExtractionTabMixin:
         """Open the export dialog with professional options."""
         if not self._last_result_png:
             return
-        
-        # Check license before allowing export
-        from desktop_app.license import check_and_enforce_export_license
-        if not check_and_enforce_export_license(self):
-            self.status_bar.showMessage("Export requires a license", 2000)
+        if not self._require_export_gate("Export"):
             return
         
         # Define SVG generator callback
         def svg_generator() -> str:
-            x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+            x1, y1, x2, y2 = self._get_source_selection()
             return self.local_extractor.process_selection_svg(
                 session_id=self.session.session_id,
                 x1=x1, y1=y1, x2=x2, y2=y2,
@@ -2941,7 +2971,7 @@ class ExtractionTabMixin:
     def on_export_json(self):
         """Export basic metadata as JSON (selection, color, threshold, session, image size)."""
         try:
-            x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+            x1, y1, x2, y2 = self._get_source_selection()
             img = self.src_view.image()
             meta = {
                 "session_id": self.session.session_id or "",
@@ -2965,6 +2995,8 @@ class ExtractionTabMixin:
     
     def on_save_to_library(self):
         """Quick save to library with default PNG format and metadata."""
+        if not self._require_export_gate("Save to Library"):
+            return
         if getattr(self, "tab_widget", None) and self.tab_widget.currentIndex() != getattr(self, "_extraction_tab_index", 0):
             return
         if not self._last_result_png:
@@ -2974,7 +3006,7 @@ class ExtractionTabMixin:
             # Collect metadata from current extraction
             metadata = None
             try:
-                x1, y1, x2, y2 = self.src_view.selected_rect_image_coords()
+                x1, y1, x2, y2 = self._get_source_selection()
                 img = self.src_view.image()
                 metadata = {
                     "session_id": self.session.session_id or "",
@@ -3108,7 +3140,7 @@ class ExtractionTabMixin:
             self.status_bar.showMessage("Loaded into Source from library", 3000)
         except Exception as e:
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("Backend: Offline")
+                self.backend_status_label.setText("Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
             self._handle_backend_exception(e, context="Open failed")
             self.status_bar.showMessage("Upload failed", 3000)
@@ -3116,7 +3148,7 @@ class ExtractionTabMixin:
     def _on_library_upload_error(self, tmp_path: str, error) -> None:
         """Handle error in async library item upload."""
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("Backend: Offline")
+            self.backend_status_label.setText("Local service: Offline")
             self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
         self._handle_backend_exception(error, context="Open failed")
         self.status_bar.showMessage("Upload failed", 3000)
@@ -3366,7 +3398,7 @@ class ExtractionTabMixin:
                 delattr(self, '_rotation_backup')
                 LOG.warning("Rotation upload failed, reverted to previous state: %s", e)
             if hasattr(self, "backend_status_label"):
-                self.backend_status_label.setText("Backend: Offline")
+                self.backend_status_label.setText("Local service: Offline")
                 self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
             self._handle_backend_exception(e, context="Rotate failed")
             self.status_bar.showMessage("Rotate failed - state reverted", 3000)
@@ -3388,7 +3420,7 @@ class ExtractionTabMixin:
             delattr(self, '_rotation_backup')
             LOG.warning("Rotation upload failed, reverted to previous state: %s", error)
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("Backend: Offline")
+            self.backend_status_label.setText("Local service: Offline")
             self.backend_status_label.setStyleSheet("color: #cc0000; padding: 2px 8px;")
         self._handle_backend_exception(error, context="Rotate failed")
         self.status_bar.showMessage("Rotate failed - state reverted", 3000)
@@ -3495,15 +3527,19 @@ class ExtractionTabMixin:
     def _update_action_states(self, preview_ready: bool = False):
         """Enable or disable actions based on whether a processed preview exists."""
         has_preview = bool(preview_ready or self._last_result_png)
-        self.export_btn.setEnabled(has_preview)
+        from desktop_app.license import is_export_allowed
+        export_allowed = bool(is_export_allowed())
+        self.export_btn.setEnabled(has_preview and export_allowed)
         self.export_json_btn.setEnabled(True)  # Allow exporting metadata even without preview
-        self.save_to_library_btn.setEnabled(has_preview)
+        self.save_to_library_btn.setEnabled(has_preview and export_allowed)
         if hasattr(self, 'save_to_vault_btn'):
             self.save_to_vault_btn.setEnabled(has_preview)
-        self.copy_btn.setEnabled(has_preview)
+        self.copy_btn.setEnabled(has_preview and export_allowed)
         if hasattr(self, 'sign_pdf_btn'):
             self.sign_pdf_btn.setEnabled(has_preview)
         self._update_export_tooltips()  # Update tooltips based on license status
+        if hasattr(self, "_update_trial_notice"):
+            self._update_trial_notice(export_allowed=export_allowed)
         self._update_view_actions_enabled()
         self._adjust_pane_layout()  # Dynamically adjust layout based on content
         if hasattr(self, "_refresh_toolbar_action_states"):
@@ -3517,10 +3553,20 @@ class ExtractionTabMixin:
             # Licensed - show normal tooltips
             self.export_btn.setToolTip("Export with advanced options (background, trim, format) - Ctrl/Cmd E")
             self.copy_btn.setToolTip("Copy result to clipboard (preserves transparency) - Ctrl/Cmd C")
+            self.save_to_library_btn.setToolTip("Quick save as PNG to local library")
         else:
             # Trial mode - indicate license required
             self.export_btn.setToolTip("Export with advanced options - Requires License")
             self.copy_btn.setToolTip("Copy result to clipboard - Requires License")
+            self.save_to_library_btn.setToolTip("Save to library - Requires License")
+
+    def _require_export_gate(self, action_label: str) -> bool:
+        """Return True if the current session is allowed to perform premium export actions."""
+        from desktop_app.license import check_and_enforce_export_license
+        if check_and_enforce_export_license(self):
+            return True
+        self.status_bar.showMessage(f"Evaluation mode — {action_label} is locked", 2500)
+        return False
 
     def _adjust_pane_layout(self):
         """Intelligently resize panes: minimize source, maximize result when extraction active.
@@ -3583,6 +3629,8 @@ class ExtractionTabMixin:
         self.clean_session_btn.setEnabled(has_any)
 
     def on_copy(self):
+        if not self._require_export_gate("Copy to clipboard"):
+            return
         if not self._last_result_png:
             return
         try:
@@ -3605,7 +3653,7 @@ class ExtractionTabMixin:
         if dlg.exec():
             self._licensed = is_licensed()
             self.status_bar.showMessage("Thanks! License saved.", 3000)
-            # No gating; just keep a record for future features
+            # Refresh entitlement-driven UI states after license changes
             self._update_action_states(preview_ready=bool(self._last_result_png))
 
     def on_buy_license(self):
@@ -4028,6 +4076,10 @@ class ExtractionTabMixin:
         shortcut_result.activated.connect(lambda: self._on_pane_clicked("result"))
 
         # Action shortcuts
+        shortcut_escape = QShortcut(QKeySequence(Qt.Key.Key_Escape), cast(QWidget, self))
+        shortcut_escape.activated.connect(self._handle_escape_cancel)
+        self._shortcuts.append(shortcut_escape)
+
         shortcut_clear = QShortcut(QKeySequence("Delete"), cast(QWidget, self))
         shortcut_clear.activated.connect(self.on_clear_selection)
 
@@ -4046,6 +4098,9 @@ class ExtractionTabMixin:
 
     def _setup_screen_reader_announcements(self) -> None:
         """Configure announcements for screen readers."""
+        def _shortcut(mac: str, other: str) -> str:
+            return mac if sys.platform == "darwin" else other
+
         # Update pane descriptions to be more descriptive
         if hasattr(self, 'src_view'):
             self.src_view.setAccessibleDescription(
@@ -4063,7 +4118,8 @@ class ExtractionTabMixin:
         if hasattr(self, 'res_view'):
             self.res_view.setAccessibleDescription(
                 "Result pane. Displays the final processed signature ready for export. "
-                "Press Ctrl+E to export or Ctrl+C to copy to clipboard."
+                f"Press {_shortcut('⌘E', 'Ctrl+E')} to export or "
+                f"{_shortcut('⌘C', 'Ctrl+C')} to copy to clipboard."
             )
 
     def _enhance_focus_indicators(self) -> None:
@@ -4100,19 +4156,22 @@ class ExtractionTabMixin:
         """Show accessibility help dialog."""
         from PySide6.QtWidgets import QMessageBox
 
+        def _shortcut(mac: str, other: str) -> str:
+            return mac if sys.platform == "darwin" else other
+
         help_text = """
         <h3>Accessibility Help</h3>
 
         <h4>Keyboard Navigation</h4>
         <ul>
-        <li><b>Ctrl+1/2/3</b> - Switch between Source/Preview/Result panes</li>
+        <li><b>{pane_shortcut}</b> - Switch between Source/Preview/Result panes</li>
         <li><b>Tab</b> - Navigate between controls</li>
         <li><b>Arrow Keys</b> - Navigate within images (when focused)</li>
         <li><b>Enter</b> - Activate buttons or start selection mode</li>
         <li><b>Delete</b> - Clear current selection</li>
-        <li><b>Ctrl+O</b> - Open new image</li>
-        <li><b>Ctrl+E</b> - Export result</li>
-        <li><b>Ctrl+C</b> - Copy result to clipboard</li>
+        <li><b>{open_shortcut}</b> - Open new image</li>
+        <li><b>{export_shortcut}</b> - Export result</li>
+        <li><b>{copy_shortcut}</b> - Copy result to clipboard</li>
         </ul>
 
         <h4>Screen Reader Support</h4>
@@ -4125,12 +4184,19 @@ class ExtractionTabMixin:
 
         <h4>Getting Started</h4>
         <ol>
-        <li>Press Ctrl+O to open an image</li>
-        <li>Press Ctrl+1 to focus the Source pane</li>
+        <li>Press {open_shortcut} to open an image</li>
+        <li>Press {source_shortcut} to focus the Source pane</li>
         <li>Press Enter, then use arrow keys to select signature area</li>
-        <li>Press Ctrl+E to export the result</li>
+        <li>Press {export_shortcut} to export the result</li>
         </ol>
         """
+        help_text = help_text.format(
+            pane_shortcut=_shortcut("⌘+1/2/3", "Ctrl+1/2/3"),
+            open_shortcut=_shortcut("⌘O", "Ctrl+O"),
+            export_shortcut=_shortcut("⌘E", "Ctrl+E"),
+            copy_shortcut=_shortcut("⌘C", "Ctrl+C"),
+            source_shortcut=_shortcut("⌘1", "Ctrl+1"),
+        )
 
         msg = QMessageBox(cast(QWidget, self))
         msg.setWindowTitle("Accessibility Help")
@@ -4251,28 +4317,7 @@ class ExtractionTabMixin:
 
     def _copy_result_to_clipboard(self) -> None:
         """Copy the result image to clipboard."""
-        if not hasattr(self, '_last_result_png') or not self._last_result_png:
-            return
-
-        # Check license before allowing clipboard copy
-        from desktop_app.license import check_and_enforce_export_license
-        if not check_and_enforce_export_license(self):
-            if hasattr(self, 'statusBar'):
-                self.statusBar().showMessage("Copy to clipboard requires a license", 2000)
-            return
-
-        from PySide6.QtGui import QClipboard
-        clipboard = QApplication.clipboard()
-
-        # Create QPixmap from PNG data
-        from PySide6.QtGui import QPixmap
-        pixmap = QPixmap()
-        if pixmap.loadFromData(self._last_result_png):
-            clipboard.setPixmap(pixmap)
-
-            # Show brief status message
-            if hasattr(self, 'statusBar'):
-                self.statusBar().showMessage("📋 Result copied to clipboard", 2000)
+        self.on_copy()
 
     # Rotation Coordinate Mapping Helper Methods
 

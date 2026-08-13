@@ -12,7 +12,16 @@ if [ "${PWD#"/Users/pranay/Projects/"}" != "${PWD}" ]; then
   _msg_file="${1:-}"
   _msg="$(cat "$_msg_file" 2>/dev/null || true)"
   _motto_file="motto_v5.md"
-  _attestation_file=".git/projects_agent_motto_attestation.env"
+  _git_dir="$(git rev-parse --git-dir 2>/dev/null || true)"
+  if [ -z "$_git_dir" ]; then
+    echo "commit-msg: unable to resolve gitdir for attestation." >&2
+    exit 1
+  fi
+  case "$_git_dir" in
+    /*) _git_dir_abs="$_git_dir" ;;
+    *) _git_dir_abs="$(pwd)/$_git_dir" ;;
+  esac
+  _attestation_file="$_git_dir_abs/projects_agent_motto_attestation.env"
   _current_sha=""
   if [ -f "$_motto_file" ]; then
     if command -v shasum >/dev/null 2>&1; then
@@ -60,7 +69,7 @@ EOF
     fi
   fi
   # >>> SECTION-LEVEL ATTESTATION GATE >>>
-  _motto_commitgate=".git/projects_agent_motto_commitgate.env"
+  _motto_commitgate="$_git_dir_abs/projects_agent_motto_commitgate.env"
   _commitgate_script="/Users/pranay/Projects/workspace_memory/scripts/attest_motto_commit.py"
   if [ -x "$_commitgate_script" ]; then
     _verify_flags="--verify"

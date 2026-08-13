@@ -54,6 +54,13 @@ class WorkspaceExecutionEvent(Base):
     __tablename__ = "workspace_execution_events"
     __table_args__ = (
         UniqueConstraint("execution_id", "sequence", name="uq_workspace_event_sequence"),
+        UniqueConstraint(
+            "execution_id",
+            "actor_user_id",
+            "event_type",
+            "idem_key",
+            name="uq_workspace_event_idempotent_replay",
+        ),
     )
 
     id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
@@ -73,5 +80,8 @@ class WorkspaceExecutionEvent(Base):
     event_type = Column(String(80), nullable=False)
     status_from = Column(String(48), nullable=True)
     status_to = Column(String(48), nullable=False)
+    idem_key = Column(String(80), nullable=True, index=True)
+    request_hash = Column(String(64), nullable=True, index=True)
+    result_json = Column(Text, nullable=True)
     summary = Column(String(320), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

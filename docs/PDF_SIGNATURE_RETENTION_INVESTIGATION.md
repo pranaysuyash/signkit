@@ -393,3 +393,21 @@ After fixes:
 **Date:** November 2, 2025
 **Status:** 🔍 INVESTIGATING - Awaiting test results with enhanced logging
 **Next:** User to test with logging enabled and report findings
+
+## Addendum (2026-08-12)
+
+- Scope for this session: restore editable signature placement when reopening signed PDFs by embedding placement metadata directly into the output PDF.
+- Current fixes:
+  - `desktop_app/pdf/signer.py`
+    - `_apply_signature_manifest` now writes to a temp PDF and replaces the target atomically.
+    - `sign_pdf` now calls `signer.save(...)` before metadata embedding and closes signer via `finally`.
+    - Manifest embedding warning now includes the exception text.
+  - `desktop_app/pdf/viewer.py`
+    - Manifest image decode path uses the instance helper correctly.
+    - Restoration safely handles missing/invalid manifest image data.
+- Validation run:
+  - `uv run pytest desktop_app/tests/test_pdf_features.py desktop_app/tests/test_pdf_improvements.py`
+  - Result: `41 passed`
+- Status:
+  - ✅ Manifests are now written and preserved through reopen workflow.
+  - ✅ Restored signatures can round-trip style and remain editable in viewer integration tests.

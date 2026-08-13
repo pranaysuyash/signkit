@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Deploy only after the canonical public-surface gate passes.
+# This script never stages, commits, resets, or rewrites repository state.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+if [[ "${DEPLOY_CONFIRM:-}" != "signkit-landing" ]]; then
+  echo "Refusing deployment. Set DEPLOY_CONFIRM=signkit-landing after reviewing the release record." >&2
+  exit 2
+fi
+
+command -v wrangler >/dev/null 2>&1 || {
+  echo "Wrangler is required for Cloudflare Pages deployment." >&2
+  exit 2
+}
+
+cd "$PROJECT_ROOT"
+python3 tools/audit_public_surface.py --strict
+python3 -m pytest tests/test_launch_claim_registry.py tests/test_public_surface_audit.py -q
+python3 -m py_compile serve.py tools/audit_public_surface.py tools/test_deployed_surface.py
+node --check web/live/js/checkout.js
+
+echo "Deploying canonical SignKit surface to Cloudflare Pages project signkit-landing."
+wrangler pages deploy "$PROJECT_ROOT" --project-name signkit-landing --branch "${DEPLOY_BRANCH:-landing-page}"
+
+python3 tools/test_deployed_surface.py --base-url "${DEPLOY_BASE_URL:-https://signkit.work}"

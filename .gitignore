@@ -112,6 +112,8 @@ ehthumbs.db
 
 # Trash
 .trash/
+.codex-test-tmp/
+.wrangler/
 
 # Distribution packages
 *.dmg

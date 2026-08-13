@@ -2,18 +2,27 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from backend.app.database import get_db
 from backend.app.models.user import User
 from backend.app.models.workspace import WorkspaceExecution
 from backend.app.schemas.workspace import (
+    DocumentInspectionResponse,
     WorkspaceExecutionCreate,
     WorkspaceExecutionResponse,
     WorkspaceExecutionTransition,
     WorkflowTemplateResponse,
 )
+from backend.app.services.document_inspection import (
+    MAX_DOCUMENT_BYTES,
+    DocumentInspectionConflict,
+    DocumentInspectionError,
+    DocumentInspectionTopologyError,
+    inspect_local_document,
+)
+from backend.app.services.passport import project_workspace_execution
 from backend.app.services.workspace import (
     WorkspaceCatalogError,
     WorkspaceTransitionError,
@@ -30,6 +39,7 @@ router = APIRouter(tags=["Workspace"])
 
 
 def _as_response(db: Session, execution: WorkspaceExecution) -> WorkspaceExecutionResponse:
+    events = execution_events(db, execution.id)
     return WorkspaceExecutionResponse.model_validate(
         {
             "id": execution.id,
@@ -46,7 +56,8 @@ def _as_response(db: Session, execution: WorkspaceExecution) -> WorkspaceExecuti
             "notes": execution.notes,
             "created_at": execution.created_at,
             "updated_at": execution.updated_at,
-            "events": execution_events(db, execution.id),
+            "events": events,
+            "passport": project_workspace_execution(execution, events).to_payload(),
         }
     )
 
@@ -111,7 +122,7 @@ def create_workspace_execution(
         execution = create_execution(db, current_user, payload)
         return _as_response(db, execution)
     except WorkspaceCatalogError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
 
 
 @router.get("/executions/{execution_id}", response_model=WorkspaceExecutionResponse)
@@ -132,7 +143,47 @@ def transition_workspace_execution(
 ):
     execution = _get_owned_execution(db, execution_id, current_user)
     try:
-        updated_execution = transition_execution(db, execution, current_user, payload.action)
+        updated_execution = transition_execution(
+            db,
+            execution,
+            current_user,
+            payload.action,
+            idem_key=payload.idem_key,
+        )
         return _as_response(db, updated_execution)
     except WorkspaceTransitionError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post(
+    "/executions/{execution_id}/document-inspections",
+    response_model=DocumentInspectionResponse,
+)
+def inspect_execution_document(
+    execution_id: str,
+    file: UploadFile = File(...),
+    page_index: int = Form(0),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    execution = _get_owned_execution(db, execution_id, current_user)
+    try:
+        return inspect_local_document(
+            db,
+            execution,
+            current_user,
+            filename=file.filename or "",
+            document_bytes=file.file.read(MAX_DOCUMENT_BYTES + 1),
+            page_index=page_index,
+            idem_key=idempotency_key.strip() if idempotency_key else None,
+        )
+    except DocumentInspectionConflict as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except DocumentInspectionTopologyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except DocumentInspectionError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc

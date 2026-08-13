@@ -1,0 +1,313 @@
+{
+  "schema_version": "1.0.0",
+  "seed": 20260813,
+  "generator": "tools/generate_signature_benchmark.py",
+  "privacy": "synthetic only; procedurally generated strokes; no production or human data",
+  "annotation_schema": "ground_truth boxes are [x1, y1, x2, y2] in source-image pixels",
+  "split_policy": "subject-disjoint train/validation/test; subject_id must occur in one split only",
+  "cases": [
+    {
+      "name": "synthetic-subject-00-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-00-page-01.png",
+      "subject_id": "synthetic-subject-00",
+      "split": "train",
+      "ground_truth": [],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:none"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "7235c9a91b9a0a734b61adbf4ad082c7d5116c8e7cc0ee104033fa1f734105ee"
+    },
+    {
+      "name": "synthetic-subject-01-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-01-page-01.png",
+      "subject_id": "synthetic-subject-01",
+      "split": "train",
+      "ground_truth": [
+        [
+          170,
+          201,
+          338,
+          312
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:single"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "108feb78dde4463e4531070e34bb126229c3641cadec6e2632768b6156b23308"
+    },
+    {
+      "name": "synthetic-subject-02-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-02-page-01.png",
+      "subject_id": "synthetic-subject-02",
+      "split": "train",
+      "ground_truth": [
+        [
+          50,
+          134,
+          218,
+          245
+        ],
+        [
+          293,
+          258,
+          461,
+          369
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:multiple"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "11ff5349f928d7f08207f676519bae469c64b76fadb6946da408675581a01ada"
+    },
+    {
+      "name": "synthetic-subject-03-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-03-page-01.png",
+      "subject_id": "synthetic-subject-03",
+      "split": "train",
+      "ground_truth": [
+        [
+          174,
+          192,
+          342,
+          303
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:single"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "c182a0d2de5b1a2f3862197369c675984e78cd8fac14368435205e9fa3daaa6c"
+    },
+    {
+      "name": "synthetic-subject-04-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-04-page-01.png",
+      "subject_id": "synthetic-subject-04",
+      "split": "train",
+      "ground_truth": [],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:none"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "cbce17b066c6dd3b6fdbe08bb27d4060af04e1d57f97e32fec53c7cc9f199907"
+    },
+    {
+      "name": "synthetic-subject-05-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-05-page-01.png",
+      "subject_id": "synthetic-subject-05",
+      "split": "train",
+      "ground_truth": [
+        [
+          45,
+          142,
+          213,
+          253
+        ],
+        [
+          288,
+          267,
+          456,
+          378
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:multiple"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "1d6ad4df24be0c415c189822df3d4ea0ac23f96bd03a2e0624ec5844315bf2e5"
+    },
+    {
+      "name": "synthetic-subject-06-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-06-page-01.png",
+      "subject_id": "synthetic-subject-06",
+      "split": "validation",
+      "ground_truth": [
+        [
+          168,
+          204,
+          336,
+          315
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:single"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "0ccc2772192fb0bd980753f80f441b831f8e6d436a7905aceaa9edfab53e2ca3"
+    },
+    {
+      "name": "synthetic-subject-07-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-07-page-01.png",
+      "subject_id": "synthetic-subject-07",
+      "split": "validation",
+      "ground_truth": [
+        [
+          47,
+          138,
+          215,
+          249
+        ],
+        [
+          292,
+          265,
+          460,
+          376
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:multiple"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "a0d95ad775b9ddfd4a16d9e318468cf6a329b42214bbab0963abf93006472e28"
+    },
+    {
+      "name": "synthetic-subject-08-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-08-page-01.png",
+      "subject_id": "synthetic-subject-08",
+      "split": "validation",
+      "ground_truth": [],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:none"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "d4d1e87c056ac615bdd9c9a903e274fa77aefc7a807e3e51bd18505da8d0574a"
+    },
+    {
+      "name": "synthetic-subject-09-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-09-page-01.png",
+      "subject_id": "synthetic-subject-09",
+      "split": "test",
+      "ground_truth": [
+        [
+          173,
+          200,
+          341,
+          311
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:single"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "6cf08ac6e7e9ad8319224094e17b95143328c85ac58a05319693826a98d3ad0c"
+    },
+    {
+      "name": "synthetic-subject-10-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-10-page-01.png",
+      "subject_id": "synthetic-subject-10",
+      "split": "test",
+      "ground_truth": [
+        [
+          46,
+          138,
+          214,
+          249
+        ],
+        [
+          293,
+          264,
+          461,
+          375
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:multiple"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "51d39e2b6e9d90b046725a16190929b268ad0b49a3f081d15efade75bea575e5"
+    },
+    {
+      "name": "synthetic-subject-11-page-01",
+      "file": "desktop_app/tests/fixtures/signature_benchmark_v1/synthetic-subject-11-page-01.png",
+      "subject_id": "synthetic-subject-11",
+      "split": "test",
+      "ground_truth": [
+        [
+          171,
+          192,
+          339,
+          303
+        ]
+      ],
+      "tags": [
+        "synthetic",
+        "ink:blue",
+        "split:subject-disjoint",
+        "signature_count:single"
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "78f256e07e9a2403ab0f7fe1c6cbf4eab3ff77b249d2b2bc8a768a18e8bf214b"
+    }
+  ]
+}

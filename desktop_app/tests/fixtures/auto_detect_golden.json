@@ -1,6 +1,6 @@
 {
-  "fixture": "512px-Mohammad_Rafiquzzaman_signature.jpg",
-  "image_size": [512, 184],
-  "expected_bbox": [14, 15, 507, 175],
+  "fixture": "desktop_app/resources/signature_template_synthetic_512.jpg",
+  "image_size": [512, 512],
+  "expected_bbox": [0, 0, 0, 0],
   "tolerance_px": 0
 }

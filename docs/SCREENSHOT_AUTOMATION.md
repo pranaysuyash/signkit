@@ -246,7 +246,7 @@ pip install PySide6
 ```
 
 **Error:** `Signature image not found`
-- Check `512px-Mohammad_Rafiquzzaman_signature.jpg` exists
+- Check `desktop_app/resources/signature_template_synthetic_512.jpg` exists
 - Or update script with your test image path
 
 **Error:** `PDF not found`
@@ -286,7 +286,7 @@ pip install PySide6
 ### Required Assets
 
 1. **Signature Image**
-   - Path: `512px-Mohammad_Rafiquzzaman_signature.jpg`
+   - Path: `desktop_app/resources/signature_template_synthetic_512.jpg`
    - Format: JPG/PNG
    - Content: Sample signature for extraction
 
@@ -302,7 +302,7 @@ If assets are missing:
 ```bash
 # Create demo signature image
 # Use any signature image (scanned or digital)
-cp /path/to/your/signature.jpg 512px-Mohammad_Rafiquzzaman_signature.jpg
+cp /path/to/your/signature.jpg desktop_app/resources/signature_template_synthetic_512.jpg
 
 # Create demo PDF
 # Use any PDF document

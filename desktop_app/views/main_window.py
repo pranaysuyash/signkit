@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 import sys
+from urllib.parse import quote
 from typing import Optional, cast, TYPE_CHECKING
 
-from PySide6.QtCore import QSettings, QTimer
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtCore import QSettings, QTimer, QUrl
+from PySide6.QtGui import QAction, QDesktopServices, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -20,7 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from desktop_app.api.client import ApiClient
-from desktop_app.config import WORKFLOW_REVIEW_URL, get_pricing_plan
+from desktop_app.config import APP_VERSION, WORKFLOW_REVIEW_URL, get_pricing_plan
 from desktop_app.processing import SignatureExtractor
 from desktop_app.resources.icons import get_icon
 from desktop_app.state.session import SessionState
@@ -43,6 +45,8 @@ from desktop_app.views.main_window_parts.workflow_console import WorkflowConsole
 from desktop_app.workflows.workflow_utils import resolve_operator_subject
 
 LOG = logging.getLogger(__name__)
+APP_DATA_ROOT = os.path.join(os.path.expanduser("~"), ".signature_extractor")
+SUPPORT_EMAIL = "support@signkit.work"
 
 if TYPE_CHECKING:
     from desktop_app.backend_manager import BackendManager
@@ -321,18 +325,18 @@ class MainWindow(
             if is_available and not self._backend_online:
                 # Backend just came online
                 self._backend_online = True
-                self.backend_status_label.setText("Backend: Online")
+                self.backend_status_label.setText("Local service: Online")
                 self.backend_status_label.setStyleSheet("color: #00cc00; padding: 2px 8px;")
                 LOG.info("Backend is now online")
             elif not is_available and self._backend_online:
                 # Backend went offline
                 self._backend_online = False
-                self.backend_status_label.setText("Backend: Checking...")
+                self.backend_status_label.setText("Local service: Checking...")
                 self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
                 LOG.info("Backend connection lost, will keep checking")
             elif not is_available and not self._backend_online:
                 # Still waiting for backend to start
-                self.backend_status_label.setText("Backend: Starting...")
+                self.backend_status_label.setText("Local service: Starting...")
                 self.backend_status_label.setStyleSheet("color: #0066cc; padding: 2px 8px;")
         except Exception as e:
             LOG.debug(f"Backend health check failed: {e}")
@@ -599,11 +603,55 @@ class MainWindow(
         self.open_help_action.triggered.connect(lambda: self._open_document("docs/HELP.md"))
         help_menu.addAction(self.open_help_action)
 
+        self.open_quick_start_action = QAction("Quick Start", self)
+        self.open_quick_start_action.triggered.connect(
+            lambda: self._open_document("docs/QUICK_START.md")
+        )
+        help_menu.addAction(self.open_quick_start_action)
+
+        self.open_export_options_action = QAction("Export Options", self)
+        self.open_export_options_action.triggered.connect(
+            lambda: self._open_document("docs/EXPORT_OPTIONS.md")
+        )
+        help_menu.addAction(self.open_export_options_action)
+
         self.open_shortcuts_action = QAction("Keyboard Shortcuts", self)
         self.open_shortcuts_action.triggered.connect(lambda: self._open_document("docs/SHORTCUTS.md"))
         help_menu.addAction(self.open_shortcuts_action)
 
         help_menu.addSeparator()
+
+        self.open_privacy_action = QAction("Privacy Policy", self)
+        self.open_privacy_action.triggered.connect(
+            lambda: self._open_document("legal/PRIVACY_POLICY.md")
+        )
+        help_menu.addAction(self.open_privacy_action)
+
+        self.open_terms_action = QAction("Terms of Service", self)
+        self.open_terms_action.triggered.connect(
+            lambda: self._open_document("legal/TERMS_OF_SERVICE.md")
+        )
+        help_menu.addAction(self.open_terms_action)
+
+        self.open_eula_action = QAction("End User License Agreement", self)
+        self.open_eula_action.triggered.connect(
+            lambda: self._open_document("legal/EULA.md")
+        )
+        help_menu.addAction(self.open_eula_action)
+
+        self.open_third_party_action = QAction("Third-Party Notices", self)
+        self.open_third_party_action.triggered.connect(
+            lambda: self._open_document("legal/THIRD_PARTY_LICENSES.md")
+        )
+        help_menu.addAction(self.open_third_party_action)
+
+        self.open_refund_action = QAction("Request a Refund…", self)
+        self.open_refund_action.triggered.connect(self._open_refund_request)
+        help_menu.addAction(self.open_refund_action)
+
+        self.open_issue_action = QAction("Report Issue / Send Diagnostics…", self)
+        self.open_issue_action.triggered.connect(self._open_issue_request)
+        help_menu.addAction(self.open_issue_action)
 
         workflow_label = "Recurring Document Workflows (Premium)…" if not self.workflow_premium_enabled else "Recurring Document Workflows…"
         workflow_tip = (
@@ -699,12 +747,107 @@ class MainWindow(
         """Open the workflow upgrade flow."""
         self.on_buy_license()
 
+    def _open_refund_request(self) -> None:
+        self._open_url(f"mailto:{SUPPORT_EMAIL}?subject=SignKit%20Refund%20Request")
+
+    def _open_issue_request(self) -> None:
+        diagnostics_dir = self._resolve_diagnostics_dir()
+        snapshot_path = self._write_diagnostics_snapshot(diagnostics_dir)
+
+        self._open_local_folder(diagnostics_dir)
+
+        if not hasattr(self, "_backend_online"):
+            backend_status = "unknown"
+        elif self._backend_online:
+            backend_status = "online"
+        else:
+            backend_status = "offline"
+
+        body = (
+            "Hi SignKit Support,\n\n"
+            "I’m reporting an issue and have generated a diagnostic snapshot.\n\n"
+            f"App Version: {APP_VERSION}\n"
+            f"Backend status: {backend_status}\n"
+            f"Backend URL: {getattr(self.api_client, 'base_url', 'unknown')}\n"
+            f"User email: {self.session.user_email or 'N/A'}\n"
+            f"Session ID: {self.session.session_id or 'N/A'}\n"
+            f"Diagnostics folder: {diagnostics_dir}\n"
+            f"Snapshot file: {snapshot_path}\n"
+            "Operating system: " + self._build_os_info() + "\n\n"
+            "Steps to reproduce:\n1)\n2)\n3)\n\n"
+            "Current observed behavior:\n\n"
+            "Please attach the diagnostic files in this folder and reply with attachment instructions."
+        )
+        subject = quote("SignKit Support Request")
+        encoded_body = quote(body)
+        self._open_url(f"mailto:{SUPPORT_EMAIL}?subject={subject}&body={encoded_body}")
+
+    def _resolve_diagnostics_dir(self) -> str:
+        diagnostics_dir = os.path.join(APP_DATA_ROOT, "logs")
+        try:
+            os.makedirs(diagnostics_dir, exist_ok=True)
+        except Exception:
+            # Preserve existing behavior for UI continuity.
+            diagnostics_dir = APP_DATA_ROOT
+            os.makedirs(diagnostics_dir, exist_ok=True)
+        return diagnostics_dir
+
+    def _write_diagnostics_snapshot(self, diagnostics_dir: str) -> str:
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        filename = f"signkit_diagnostics_{timestamp}.txt"
+        snapshot_path = os.path.join(diagnostics_dir, filename)
+        payload = [
+            "SignKit Diagnostic Snapshot",
+            f"Generated: {datetime.now().isoformat()}",
+            "",
+            "App version: " + APP_VERSION,
+            "Backend status: " + ("online" if self._backend_online else "offline"),
+            "Backend URL: " + getattr(self.api_client, "base_url", "unknown"),
+            "Session ID: " + (self.session.session_id or "N/A"),
+            "User email: " + (self.session.user_email or "N/A"),
+            "Diagnostics folder: " + diagnostics_dir,
+            "",
+            "Notes:\n- Attach this file and any related crash/error screenshots with your email.",
+        ]
+
+        try:
+            with open(snapshot_path, "w", encoding="utf-8") as handle:
+                handle.write("\n".join(payload) + "\n")
+        except Exception:
+            return "not-created (permission error)"
+
+        return snapshot_path
+
+    def _build_os_info(self) -> str:
+        try:
+            import platform
+
+            return platform.platform()
+        except Exception:
+            return "unknown"
+
+    def _open_local_folder(self, path: str) -> None:
+        try:
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(path)):
+                self.status_bar.showMessage("Unable to open diagnostics folder", 3000)
+                return
+            self.status_bar.showMessage(f"Opened diagnostics folder: {path}", 2000)
+        except Exception as exc:
+            LOG.warning("Could not open diagnostics folder %s: %s", path, exc)
+            self.status_bar.showMessage("Unable to open diagnostics folder", 3000)
+
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
             self,
             "About SignKit",
             "SignKit is a native desktop workflow for extracting signatures and signing PDFs.\n\n"
-            "Designed to stay close to macOS conventions while keeping the processing surface local."
+            "Designed to stay close to macOS conventions while keeping the processing surface local.\n\n"
+            "Commercial & policy references:\n"
+            "• Privacy: legal/PRIVACY_POLICY.md\n"
+            "• Terms: legal/TERMS_OF_SERVICE.md\n"
+            "• EULA: legal/EULA.md\n"
+            "• Third-party notices: legal/THIRD_PARTY_LICENSES.md\n"
+            "• 30-day refund requests: support@signkit.work with purchase email/order reference."
         )
 
     def _show_preferences_dialog(self) -> None:

@@ -98,6 +98,32 @@ def test_detect_fields_for_pages_batches_all_pages_in_one_worker(multi_page_pdf,
     viewer.close_pdf()
 
 
+def test_detect_fields_for_pages_can_use_isolated_document_runtime(multi_page_pdf, monkeypatch):
+    viewer = PDFViewer()
+    assert viewer.open_pdf(multi_page_pdf)
+
+    calls = []
+
+    class FakeIsolatedRuntime:
+        def detect_page(self, pdf_path, page_index):
+            calls.append((pdf_path, page_index))
+            return [{"page_index": page_index, "x": 10, "y": 20, "width": 100, "height": 30}]
+
+    monkeypatch.setattr("desktop_app.pdf.viewer.IsolatedDocumentRuntime", FakeIsolatedRuntime)
+    results = []
+    viewer.detect_fields_for_pages(
+        [0, 1],
+        on_complete=results.append,
+        runtime_mode="isolated",
+    )
+    _wait_for(lambda: len(results) == 1)
+
+    assert [page_index for _, page_index in calls] == [0, 1]
+    assert viewer.all_field_candidates[0][0]["page_index"] == 0
+    assert viewer.all_field_candidates[1][0]["page_index"] == 1
+    viewer.close_pdf()
+
+
 def test_detect_fields_for_pages_isolates_per_page_failures(multi_page_pdf, monkeypatch):
     """One page's detection blowing up must not lose results for the others."""
     viewer = PDFViewer()

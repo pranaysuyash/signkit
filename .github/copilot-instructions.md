@@ -93,7 +93,7 @@ cd /Users/pranay/Projects
 
 - Desktop-first application with a PySide6 (Qt) GUI and a FastAPI backend used for optional cloud features.
 - Desktop frontend: `desktop_app/` (entry: `desktop_app/main.py`). Backend: `backend/app/` (entry: `backend/app/main.py`).
-- Backend provides authentication and image extraction APIs under `/auth` and `/extraction` and serves uploaded images under `/uploads/images`.
+- Backend provides authentication and image extraction APIs under `/auth` and `/extraction`; uploaded images are stored under `uploads/images` for internal backend processing and are not publicly mounted.
 
 ## High-level architecture & why it matters
 
@@ -123,7 +123,7 @@ cd /Users/pranay/Projects
 ## Project-specific code patterns and conventions
 
 - API endpoints in `backend/app/routers/` use FastAPI routers included in `backend/app/main.py`.
-- Uploads mount and path: backend creates a user-writable `uploads/images` directory and serves it under `/uploads/images`. See `UPLOADS_DIR` usage in `backend/app/routers/extraction.py`.
+- Uploads mount and path: backend creates a user-writable `uploads/images` directory for internal use; no public `StaticFiles` mount for image serving is configured. See `UPLOADS_DIR` usage in `backend/app/routers/extraction.py`.
 - Desktop backend management: `desktop_app/backend_manager.py` dynamically finds uvicorn or the backend script and starts it, falling back to an in-process server when packaged.
 - Client & session lifecycle: `desktop_app/api/client.py` stores `session_id` and `last_request` in `desktop_app/state/session.py` which is the single-session state object shared across the app.
 - Local processing implementation: `desktop_app/processing/extractor.py` is the offline extraction engine. Prefer it for offline-first behavior. It implements strong security checks (magic numbers, size/dimension limits, PIL validation) and robust session handling.

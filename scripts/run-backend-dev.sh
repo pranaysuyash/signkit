@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+find_python() {
+  if [ -x "venv/bin/python" ]; then
+    echo "venv/bin/python"
+    return
+  fi
+  if [ -x ".venv/bin/python" ]; then
+    echo ".venv/bin/python"
+    return
+  fi
+  return 1
+}
+
 PYTHON_BIN="${PYTHON_BIN:-}"
 if [ -z "$PYTHON_BIN" ]; then
-  if [ -x ".venv/bin/python" ]; then
-    PYTHON_BIN=".venv/bin/python"
-  else
-    echo "Expected root .venv virtualenv, but .venv/bin/python was not found."
-    echo "Create one with: uv venv .venv && uv pip install -r requirements.txt"
-    PYTHON_BIN="python3"
+  if ! PYTHON_BIN="$(find_python)"; then
+    echo "Expected a local virtualenv at ./venv or ./.venv but none was found."
+    echo "Create one with: uv venv venv && uv pip install -r requirements.venv.snapshot.txt"
+    echo "If you intentionally run with a custom interpreter, set PYTHON_BIN explicitly."
+    exit 1
   fi
 fi
 
@@ -18,4 +29,5 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 1
 fi
 
-exec "$PYTHON_BIN" -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+BACKEND_PORT="${BACKEND_PORT:-8001}"
+exec "$PYTHON_BIN" -m uvicorn backend.app.main:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload

@@ -6,6 +6,7 @@ from pathlib import Path
 import pypdfium2 as pdfium
 import pikepdf
 from PIL import Image
+from desktop_app.pdf.pdfium_runtime import pdfium_operation
 
 LOG = logging.getLogger(__name__)
 
@@ -27,9 +28,12 @@ class PdfEngine:
             Number of pages.
         """
         try:
-            self.current_pdf = pdfium.PdfDocument(path)
-            self.pdf_path = path
-            self.page_count = len(self.current_pdf)
+            with pdfium_operation():
+                if self.current_pdf is not None:
+                    self.current_pdf.close()
+                self.current_pdf = pdfium.PdfDocument(path)
+                self.pdf_path = path
+                self.page_count = len(self.current_pdf)
             LOG.info(f"Loaded PDF: {path} ({self.page_count} pages)")
             return self.page_count
         except Exception as e:
@@ -50,13 +54,30 @@ class PdfEngine:
             raise ValueError("No PDF loaded")
             
         try:
-            page = self.current_pdf[page_index]
-            bitmap = page.render(scale=scale, rotation=0)
-            pil_image = bitmap.to_pil()
-            return pil_image
+            with pdfium_operation():
+                page = self.current_pdf[page_index]
+                bitmap = page.render(scale=scale, rotation=0)
+                pil_image = bitmap.to_pil()
+                return pil_image
         except Exception as e:
             LOG.error(f"Failed to render page {page_index}: {e}")
             raise
+
+    def close(self) -> None:
+        """Close the native PDFium document explicitly."""
+
+        with pdfium_operation():
+            if self.current_pdf is not None:
+                self.current_pdf.close()
+                self.current_pdf = None
+            self.pdf_path = None
+            self.page_count = 0
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def save_signed_pdf(
         self, 

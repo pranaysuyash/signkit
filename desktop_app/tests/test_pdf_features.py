@@ -16,7 +16,7 @@ if not QApplication.instance():
 
 # Test imports
 from desktop_app.pdf.renderer import PDFRenderer
-from desktop_app.pdf.signer import PDFSigner, sign_pdf
+from desktop_app.pdf.signer import PDFSigner, sign_pdf, read_signature_manifest
 from desktop_app.pdf.storage import AuditLogger, save_signed_pdf, get_audit_logs_for_pdf
 from desktop_app.state.session import PDFState, SessionState
 
@@ -198,6 +198,89 @@ class TestPDFSigner:
         assert Path(output.name).exists()
         
         # Cleanup
+        os.unlink(output.name)
+
+    def test_sign_pdf_style_controls_applied(self, sample_pdf, sample_signature):
+        """Test signature style metadata is accepted by the PDF signer."""
+        output = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+
+        signatures = [
+            {
+                "page": 0,
+                "sig_path": sample_signature,
+                "x": 100,
+                "y": 600,
+                "width": 150,
+                "height": 50,
+                "rotation_deg": 45,
+                "brightness": 1.2,
+                "contrast": 1.1,
+                "saturation": 0.9,
+            },
+        ]
+
+        success = sign_pdf(sample_pdf, output.name, signatures)
+        assert success
+        assert Path(output.name).exists()
+        assert Path(output.name).stat().st_size > 0
+
+        os.unlink(output.name)
+
+    def test_sign_pdf_manifest_is_embedded(self, sample_pdf, sample_signature):
+        """Test that signed PDFs contain embedded signature placement metadata."""
+        output = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+
+        signatures = [
+            {
+                "page": 0,
+                "sig_path": sample_signature,
+                "x": 100,
+                "y": 600,
+                "width": 150,
+                "height": 50,
+                "rotation_deg": 15,
+                "brightness": 1.2,
+                "contrast": 1.1,
+                "saturation": 0.9,
+            },
+        ]
+
+        success = sign_pdf(sample_pdf, output.name, signatures)
+        assert success
+
+        manifest = read_signature_manifest(output.name)
+        assert isinstance(manifest, list)
+        assert len(manifest) == 1
+        assert manifest[0]["page"] == 0
+        assert manifest[0]["x"] == 100
+        assert manifest[0]["y"] == 600
+        assert manifest[0]["width"] == 150
+        assert manifest[0]["height"] == 50
+        assert manifest[0]["rotation_deg"] == 15.0
+        assert manifest[0]["sig_image_data"]
+
+        os.unlink(output.name)
+
+    def test_sign_pdf_handles_zero_x_coordinate(self, sample_pdf, sample_signature):
+        """Test PDF signing still works when X coordinate is zero."""
+        output = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+
+        signatures = [
+            {
+                "page": 0,
+                "sig_path": sample_signature,
+                "x": 0,
+                "y": 600,
+                "width": 150,
+                "height": 50,
+            },
+        ]
+
+        success = sign_pdf(sample_pdf, output.name, signatures)
+        assert success
+        assert Path(output.name).exists()
+        assert Path(output.name).stat().st_size > 0
+
         os.unlink(output.name)
 
 

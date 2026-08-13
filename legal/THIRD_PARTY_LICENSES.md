@@ -2,7 +2,7 @@
 
 SignKit uses the following open-source libraries and components. We are grateful to the developers and maintainers of these projects.
 
-**Last Updated:** November 15, 2025
+**Last Updated:** August 12, 2026
 
 ---
 
@@ -49,6 +49,48 @@ SignKit uses the following open-source libraries and components. We are grateful
 - **Website:** https://github.com/pikepdf/pikepdf
 - **Purpose:** PDF manipulation
 - **License Text:** https://www.mozilla.org/en-US/MPL/2.0/
+
+### pyHanko
+- **License:** MIT License
+- **Copyright:** Matthias Valvekens and contributors
+- **Website:** https://pyhanko.readthedocs.io/
+- **Purpose:** Certificate-backed PDF signatures and PAdES validation
+- **License Text:** https://github.com/MatthiasValvekens/pyHanko/blob/main/LICENSE
+
+### pyhanko-certvalidator
+- **License:** MIT License
+- **Copyright:** Matthias Valvekens and contributors
+- **Website:** https://github.com/MatthiasValvekens/pyHanko-certvalidator
+- **Purpose:** Certificate-chain and revocation validation for PDF signatures
+- **License Text:** https://github.com/MatthiasValvekens/pyHanko-certvalidator/blob/main/LICENSE
+
+### asn1crypto
+- **License:** MIT License
+- **Copyright:** Erik Moqvist and contributors
+- **Website:** https://github.com/wbond/asn1crypto
+- **Purpose:** ASN.1 and certificate serialization used by certificate-backed signing
+- **License Text:** https://github.com/wbond/asn1crypto/blob/master/LICENSE
+
+### oscrypto
+- **License:** MIT License
+- **Copyright:** Will Bond and contributors
+- **Website:** https://github.com/wbond/oscrypto
+- **Purpose:** Cryptographic backend support for certificate validation dependencies
+- **License Text:** https://github.com/wbond/oscrypto/blob/master/LICENSE
+
+### tzlocal
+- **License:** MIT License
+- **Copyright:** Lennart Regebro and contributors
+- **Website:** https://github.com/regebro/tzlocal
+- **Purpose:** Local timezone resolution used by signing and validation dependencies
+- **License Text:** https://github.com/regebro/tzlocal/blob/master/LICENSE.txt
+
+### uritools
+- **License:** MIT License
+- **Copyright:** Takeru Ohta and contributors
+- **Website:** https://github.com/tkem/uritools
+- **Purpose:** URI handling used by signing and validation dependencies
+- **License Text:** https://github.com/tkem/uritools/blob/master/LICENSE
 
 ### FastAPI
 - **License:** MIT License
@@ -264,5 +306,5 @@ We are grateful to the open-source community and all the developers who have con
 
 ---
 
-**Last Updated:** November 15, 2025  
+**Last Updated:** August 12, 2026  
 **SignKit Version:** 1.0

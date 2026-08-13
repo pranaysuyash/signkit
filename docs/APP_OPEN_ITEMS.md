@@ -2,11 +2,18 @@
 
 Use this list to track app-side tasks only (no web or backend infra beyond what’s surfaced in-app). Keep this aligned with LAUNCH_TOP_10_STATUS.md.
 
+Canonical backlog reference:
+`docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`
+
+Execution rule:
+- In-app item status here must match this list and `Docs/LAUNCH_TOP_10_STATUS.md`.
+- Every unresolved behavior mismatch (including licensing) gets an explicit status transition entry in the PO backlog.
+
 ## In‑App UX/Features
 
 - [x] Rotate 90° CW/CCW with re‑upload and selection reset (main_window.py:on_rotate)
 - [x] Clipboard Copy of PNG with alpha (Copy button + Ctrl/Cmd+C)
-- [~] Keyboard Shortcuts — Open/Export/Copy/Zoom/Rotate implemented; still add Delete (clear) + Esc (cancel) and document in Help
+- [x] Keyboard Shortcuts — Open/Export/Copy/Zoom/Rotate implemented; Delete (clear) + Esc (cancel) and documentation updates now complete
 - [x] Library MVP — auto-save, list, double-click open, context delete (library/storage.py + main_window)
 - [x] Export Metadata JSON saved alongside PNG (Export JSON button)
 - [x] Drag‑and‑drop to open image (implemented in widgets/image_view.py with fileDropped signal)
@@ -25,11 +32,11 @@ Use this list to track app-side tasks only (no web or backend infra beyond what�
 ## Licensing/Checkout (In‑App Surfaces)
 
 - [x] Wire Buy link (env‑configurable) and “Enter License” dialog to store key locally
-- [ ] Finalize Evaluation Mode strategy: either enforce hard gate (disable export/save until licensed) or intentionally ship soft gate with clear CTA copy
-- [ ] Surface 30‑day refund link in Help/About
-- [ ] Export gating in `on_export` and `on_save_to_library`: show Upgrade dialog when unlicensed
-- [ ] Status bar message when unlicensed: “Evaluation mode — Export locked”
-- [ ] Add “Check for Updates…” menu; implement static `updates.json` check
+- [x] Evaluation mode hard-gate strategy is active for export/copy/save-to-library in unlicensed mode
+- [x] Surface 30-day refund link in Help/About
+- [x] Export/copy/save gating aligned in `on_export`, `_copy_result_to_clipboard`, `on_save_to_library`
+- [x] Status bar now emits “Evaluation mode — <Action> is locked” for gated export/copy/save actions
+- [x] Add “Check for Updates…” menu; implement static `updates.json` check
 - [ ] Optional watermark overlay on preview in evaluation mode
 
 ## Platform Polish
@@ -40,8 +47,8 @@ Use this list to track app-side tasks only (no web or backend infra beyond what�
 
 ## Help & Docs (Accessed from App)
 
-- [ ] Help menu links: Quick Start, Export Options, Shortcuts, Troubleshooting, Privacy, Terms/EULA
-- [ ] “Report issue / Send diagnostics” opens logs folder + prefilled email template
+- [x] Help menu links: Quick Start, Export Options, Shortcuts, Troubleshooting, Privacy, Terms/EULA
+- [x] “Report issue / Send diagnostics” opens logs folder + prefilled email template
 
 ## Packaging/Release Touchpoints
 
@@ -54,8 +61,8 @@ Use this list to track app-side tasks only (no web or backend infra beyond what�
 
 ## Config & Consistency
 
-- [ ] Unify ports to 8001 across desktop docs and in‑app references (desktop_app/README still cites 8000)
-- [ ] Add .env.example (API_BASE_URL, JWT_SECRET, DATABASE_URL for SQLite)
+- [x] Unify ports to 8001 across desktop docs and in-app references (including local backend runner script)
+- [x] Add .env.example (API_BASE_URL, JWT_SECRET, DATABASE_URL for SQLite)
 
 ## Analytics (Opt‑In)
 
@@ -64,8 +71,8 @@ Use this list to track app-side tasks only (no web or backend infra beyond what�
 
 ## Legal/Policy Surfaces
 
-- [ ] Link Privacy Policy, Terms/EULA from Help
-- [ ] Third‑party notices from About
+- [x] Link Privacy Policy, Terms/EULA from Help
+- [x] Third‑party notices from About
 
 ## QA Matrix
 

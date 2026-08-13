@@ -108,7 +108,7 @@ def test_backend_health_updates_top_level_status_label(main_window):
 
     main_window._check_backend_health()
 
-    assert main_window.backend_status_label.text() == "Backend: Online"
+    assert main_window.backend_status_label.text() == "Local service: Online"
 
 
 def test_rotate_preview_updates_rotation_state(main_window):
@@ -216,6 +216,35 @@ def test_clear_selection_hides_preview(main_window):
 
     assert not main_window.preview_container.isVisible()
     assert not main_window.res_view.isVisible()
+
+
+def test_escape_clears_source_selection(main_window):
+    main_window.src_view.set_image(_make_image(120, 80))
+    _set_source_selection(main_window, QPointF(8, 8), QPointF(44, 40))
+
+    assert main_window.src_view.has_selection()
+
+    main_window._handle_escape_cancel()
+
+    assert not main_window.src_view.has_selection()
+    assert main_window.sel_info.text() == "Selection: –"
+
+
+def test_schedule_preview_blocks_zero_selection(main_window):
+    main_window.src_view.set_image(_make_image(120, 80))
+    main_window.session.set_extraction_session("demo-session")
+
+    # No selection
+    main_window.schedule_preview()
+
+    assert not main_window._preview_timer.isActive()
+
+
+def test_source_selection_guard_raises_on_empty(main_window):
+    main_window.src_view.set_image(_make_image(120, 80))
+
+    with pytest.raises(ValueError, match="No selection"):
+        main_window._get_source_selection()
 
 
 def test_clean_session_resets_views(main_window):

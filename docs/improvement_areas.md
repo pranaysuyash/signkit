@@ -4,7 +4,7 @@
 
 - ~~Implement `MainWindow.on_save_to_library` so the "Save to Library" button stops raising an `AttributeError` when clicked.~~ ✅ **COMPLETED** (Oct 2025)
 - ~~Add an `on_library_item_clicked` slot (or remove the signal hookup) to prevent crashes when the signature list is used.~~ ✅ **COMPLETED** (Oct 2025)
-- Unify the upload directory configuration so files written by `extraction.upload_image_endpoint` are actually served by the `/uploads/images/*` StaticFiles mount.
+- Unify the upload directory configuration so files written by `extraction.upload_image_endpoint` are consistently stored in `UPLOADS_DIR`, private to backend runtime, and lifecycle-managed.
 
 ## Desktop App UX & Features
 

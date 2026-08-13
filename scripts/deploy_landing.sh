@@ -5,6 +5,12 @@
 
 set -e
 
+# Retained filename for compatibility. The old body below is historical and
+# attempted to commit landing changes before deployment. Route all use through
+# the canonical, non-mutating deployment gate instead.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$SCRIPT_DIR/deploy_canonical_landing.sh" "$@"
+
 echo "🚀 SignKit Landing Page Deployment"
 echo "===================================="
 echo ""

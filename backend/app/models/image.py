@@ -37,11 +37,26 @@ class Image(Base):
     file_path = Column(String, nullable=False)
     content_type = Column(String, nullable=False)
     original_image_id = Column(GUID(), ForeignKey("images.id", ondelete="CASCADE"), nullable=True)
+    workspace_execution_id = Column(
+        GUID(),
+        ForeignKey("workspace_executions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    content_sha256 = Column(String(64), nullable=True, index=True)
+    selection_json = Column(String, nullable=True)
+    retention_expires_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    deleted_by_user_id = Column(
+        GUID(),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    user = relationship("User", backref="images")
+    user = relationship("User", foreign_keys=[user_id], backref="images")
     original_image = relationship("Image", remote_side=[id], backref="derived_images")
 
     def __repr__(self):

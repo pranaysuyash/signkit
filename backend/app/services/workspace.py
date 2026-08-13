@@ -93,6 +93,54 @@ class WorkspaceTransitionError(ValueError):
 _TRANSITIONS: Final[dict[tuple[WorkspaceExecutionStatus, WorkspaceTransitionAction], WorkspaceExecutionStatus]] = {
     (
         WorkspaceExecutionStatus.PENDING_REVIEW,
+        WorkspaceTransitionAction.MARK_RECEIVED,
+    ): WorkspaceExecutionStatus.RECEIVED,
+    (
+        WorkspaceExecutionStatus.PENDING_REVIEW,
+        WorkspaceTransitionAction.REQUEST_REVIEW,
+    ): WorkspaceExecutionStatus.READY_FOR_REVIEW,
+    (
+        WorkspaceExecutionStatus.RECEIVED,
+        WorkspaceTransitionAction.REQUEST_REVIEW,
+    ): WorkspaceExecutionStatus.READY_FOR_REVIEW,
+    (
+        WorkspaceExecutionStatus.READY_FOR_REVIEW,
+        WorkspaceTransitionAction.REQUEST_CORRECTION,
+    ): WorkspaceExecutionStatus.NEEDS_CORRECTION,
+    (
+        WorkspaceExecutionStatus.NEEDS_CORRECTION,
+        WorkspaceTransitionAction.REQUEST_REVIEW,
+    ): WorkspaceExecutionStatus.READY_FOR_REVIEW,
+    (
+        WorkspaceExecutionStatus.READY_FOR_REVIEW,
+        WorkspaceTransitionAction.APPROVE,
+    ): WorkspaceExecutionStatus.APPROVED,
+    (
+        WorkspaceExecutionStatus.APPROVED,
+        WorkspaceTransitionAction.SIGN,
+    ): WorkspaceExecutionStatus.SIGNED,
+    (
+        WorkspaceExecutionStatus.SIGNED,
+        WorkspaceTransitionAction.EXPORT,
+    ): WorkspaceExecutionStatus.EXPORTED,
+    (
+        WorkspaceExecutionStatus.READY_FOR_REVIEW,
+        WorkspaceTransitionAction.RECORD_EXCEPTION,
+    ): WorkspaceExecutionStatus.EXCEPTION,
+    (
+        WorkspaceExecutionStatus.NEEDS_CORRECTION,
+        WorkspaceTransitionAction.RECORD_EXCEPTION,
+    ): WorkspaceExecutionStatus.EXCEPTION,
+    (
+        WorkspaceExecutionStatus.APPROVED,
+        WorkspaceTransitionAction.RECORD_EXCEPTION,
+    ): WorkspaceExecutionStatus.EXCEPTION,
+    (
+        WorkspaceExecutionStatus.EXCEPTION,
+        WorkspaceTransitionAction.RETRY_REVIEW,
+    ): WorkspaceExecutionStatus.READY_FOR_REVIEW,
+    (
+        WorkspaceExecutionStatus.PENDING_REVIEW,
         WorkspaceTransitionAction.RECORD_REVIEW,
     ): WorkspaceExecutionStatus.AWAITING_PARTICIPANT,
     (
@@ -105,6 +153,26 @@ _TRANSITIONS: Final[dict[tuple[WorkspaceExecutionStatus, WorkspaceTransitionActi
     ): WorkspaceExecutionStatus.CANCELLED,
     (
         WorkspaceExecutionStatus.AWAITING_PARTICIPANT,
+        WorkspaceTransitionAction.CANCEL,
+    ): WorkspaceExecutionStatus.CANCELLED,
+    (
+        WorkspaceExecutionStatus.RECEIVED,
+        WorkspaceTransitionAction.CANCEL,
+    ): WorkspaceExecutionStatus.CANCELLED,
+    (
+        WorkspaceExecutionStatus.READY_FOR_REVIEW,
+        WorkspaceTransitionAction.CANCEL,
+    ): WorkspaceExecutionStatus.CANCELLED,
+    (
+        WorkspaceExecutionStatus.NEEDS_CORRECTION,
+        WorkspaceTransitionAction.CANCEL,
+    ): WorkspaceExecutionStatus.CANCELLED,
+    (
+        WorkspaceExecutionStatus.APPROVED,
+        WorkspaceTransitionAction.CANCEL,
+    ): WorkspaceExecutionStatus.CANCELLED,
+    (
+        WorkspaceExecutionStatus.SIGNED,
         WorkspaceTransitionAction.CANCEL,
     ): WorkspaceExecutionStatus.CANCELLED,
 }
@@ -138,6 +206,14 @@ def resolve_transition(
 def _event_summary(action: WorkspaceTransitionAction | None) -> str:
     summaries = {
         None: "Workflow execution created from the versioned template catalog.",
+        WorkspaceTransitionAction.MARK_RECEIVED: "Packet marked as received in control plane.",
+        WorkspaceTransitionAction.REQUEST_REVIEW: "Execution review requested by workspace owner.",
+        WorkspaceTransitionAction.REQUEST_CORRECTION: "Correction requested and exception state opened for reroute.",
+        WorkspaceTransitionAction.APPROVE: "Execution marked approved by owner after review.",
+        WorkspaceTransitionAction.SIGN: "Execution signature stage completed in local desktop workflow.",
+        WorkspaceTransitionAction.EXPORT: "Execution exported with audit-ready manifest.",
+        WorkspaceTransitionAction.RECORD_EXCEPTION: "Execution entered exception state for operator recovery.",
+        WorkspaceTransitionAction.RETRY_REVIEW: "Execution returned from exception to review-ready state.",
         WorkspaceTransitionAction.RECORD_REVIEW: "Reviewer approval recorded by workspace owner.",
         WorkspaceTransitionAction.RECORD_PARTICIPANT_CONFIRMATION: (
             "Participant confirmation recorded by workspace owner."
@@ -156,6 +232,7 @@ def _record_event(
     status_from: str | None,
     status_to: str,
     summary: str,
+    idem_key: str | None = None,
 ) -> WorkspaceExecutionEvent:
     sequence = (
         db.query(func.coalesce(func.max(WorkspaceExecutionEvent.sequence), 0))
@@ -169,10 +246,31 @@ def _record_event(
         event_type=event_type,
         status_from=status_from,
         status_to=status_to,
+        idem_key=idem_key,
         summary=summary,
     )
     db.add(event)
     return event
+
+
+def _find_replay_event(
+    db: Session,
+    execution: WorkspaceExecution,
+    actor: User,
+    action: WorkspaceTransitionAction,
+    idem_key: str,
+) -> WorkspaceExecutionEvent | None:
+    return (
+        db.query(WorkspaceExecutionEvent)
+        .filter(
+            WorkspaceExecutionEvent.execution_id == execution.id,
+            WorkspaceExecutionEvent.actor_user_id == actor.id,
+            WorkspaceExecutionEvent.event_type == action.value,
+            WorkspaceExecutionEvent.idem_key == idem_key,
+        )
+        .order_by(WorkspaceExecutionEvent.id.desc())
+        .first()
+    )
 
 
 def create_execution(
@@ -186,7 +284,7 @@ def create_execution(
         owner_user_id=owner.id,
         template_code=template.code,
         template_version=template.version,
-        topology="cloud",
+        topology=payload.topology.value,
         status=WorkspaceExecutionStatus.PENDING_REVIEW.value,
         title=f"{template.name}: {payload.participant_name}",
         participant_name=payload.participant_name.strip(),
@@ -217,8 +315,16 @@ def transition_execution(
     execution: WorkspaceExecution,
     actor: User,
     action: WorkspaceTransitionAction,
+    *,
+    idem_key: str | None = None,
 ) -> WorkspaceExecution:
     """Advance one owner-controlled execution through its explicitly allowed states."""
+    if idem_key:
+        replay_event = _find_replay_event(db, execution, actor, action, idem_key)
+        if replay_event is not None:
+            db.refresh(execution)
+            return execution
+
     current_status = WorkspaceExecutionStatus(execution.status)
     next_status = resolve_transition(current_status, action)
     execution.status = next_status.value
@@ -230,6 +336,7 @@ def transition_execution(
         status_from=current_status.value,
         status_to=next_status.value,
         summary=_event_summary(action),
+        idem_key=idem_key,
     )
     db.commit()
     db.refresh(execution)

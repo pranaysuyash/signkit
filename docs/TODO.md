@@ -2,6 +2,12 @@
 
 This mirrors the working list we’ve been tracking in chat. Status will be kept up to date here.
 
+Canonical backlog governance is now in:
+`docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`
+
+Update rule: any item with explicit acceptance or an unresolved risk stays explicitly in-progress/pending in
+`Docs/LAUNCH_TOP_10_STATUS.md` and is reflected as "in-progress" or "pending" in this list.
+
 Legend: [x] done • [~] in progress • [ ] pending
 
 Full backlog (34 items): see TODO_FULL.md
@@ -46,7 +52,7 @@ Full backlog (34 items): see TODO_FULL.md
 ## Backend
 
 - [ ] Clean up commented/duplicate code
-- [ ] Confirm port 8001 across docs, tests, and desktop client
+- [~] Confirm port 8001 across docs, tests, and desktop client
 - [ ] Smoke tests: /health, upload, process round-trip
 
 ## Packaging and distribution
@@ -54,7 +60,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] PyInstaller spec for macOS bundle
 - [ ] Unsigned DMG for early adopters; add Gatekeeper bypass notes
 - [ ] Code signing + notarization (post-early access)
-- [ ] Manual update check in-app (“Check for Updates…”) using static updates.json
+- [x] Manual update check in-app (“Check for Updates…”) using static updates.json
 
 ## Commerce (Gumroad first)
 

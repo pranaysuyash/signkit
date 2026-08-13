@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignKit - The Privacy-First Signature Tool</title>
-    <meta name="description" content="Extract signatures and sign PDFs offline. No cloud upload. $29 one-time payment.">
+    <title>SignKit - Local-first document signing</title>
+    <meta name="description" content="Extract signatures and place them in PDFs locally by default. One-time personal licence with no recurring charges.">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,15 +53,15 @@
       })(window, document, "clarity", "script", "u8zyh41jr0");
     </script>
 </head>
-<body>
+<body id="top">
     <header>
         <div class="container nav-content">
-            <a href="#" class="logo">
+            <a href="#top" class="logo">
                 <img src="../../assets/files/signkit_icon_64x64.png" alt="SignKit Logo">
                 <span>SignKit</span>
             </a>
-            <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary">
-                Get it for $29
+            <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary" data-checkout-provider="gumroad" data-checkout-placement="nav" data-checkout-primary-label="Buy SignKit through Gumroad - $29 one time" data-checkout-fallback-label="Prefer Gumroad? Buy there">
+                <span data-checkout-label>Get SignKit - $29 one time</span>
             </a>
         </div>
     </header>
@@ -72,36 +72,37 @@
             <div class="hero-bg-glow"></div>
             <div class="container hero-grid">
                 <div class="hero-content">
-                    <div class="badge">✨ New: Version 2.0 Available</div>
+                    <div class="badge">Local-first desktop signing</div>
                     <h1>
-                        Sign PDFs <span class="text-gradient">Offline</span>.<br>
-                        Keep Data <span class="text-gradient">Private</span>.
+                        Sign PDFs <span class="text-gradient">locally</span>.<br>
+                        Keep Sensitive Work <span class="text-gradient">Private</span>.
                     </h1>
                     <p class="lead">
-                        The desktop app that lets you extract signatures from images and sign documents without ever uploading them to the cloud.
+                        Extract signatures from images and place them in PDFs on your device. SignKit is built for private document workflows with no recurring charges.
                     </p>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; @media(min-width: 768px){justify-content: flex-start;}">
-                        <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary">
-                            Buy Now - $29
+                        <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary" data-checkout-provider="dodo" data-checkout-placement="hero" data-checkout-primary-label="Buy SignKit - $29 launch price" data-checkout-fallback-label="Buy SignKit through Gumroad - $29 one time" target="_blank" rel="noopener noreferrer">
+                            <span data-checkout-label>Buy SignKit - $29 launch price</span>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
                         </a>
                         <a href="#how-it-works" class="btn btn-secondary">
                             How it works
                         </a>
                     </div>
+                    <p class="text-muted checkout-note" data-checkout-configuration-note tabindex="-1">Checkout is handled by the configured provider. Review current delivery details before purchase.</p>
                     
                     <div class="hero-stats">
                         <div class="stat-item">
-                            <span class="stat-value">100%</span>
-                            <span class="stat-label">Offline</span>
+                            <span class="stat-value">Local</span>
+                            <span class="stat-label">by default</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-value">0</span>
-                            <span class="stat-label">Subscriptions</span>
+                            <span class="stat-label">recurring charges</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">∞</span>
-                            <span class="stat-label">Signatures</span>
+                            <span class="stat-value">1</span>
+                            <span class="stat-label">personal licence</span>
                         </div>
                     </div>
                 </div>
@@ -134,16 +135,16 @@
                         <div class="feature-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         </div>
-                        <h3 class="feature-title">Local Extraction</h3>
-                        <p class="feature-desc">Take a photo of your signature on paper. SignKit instantly removes the background and makes it transparent.</p>
+                        <h3 class="feature-title">Local extraction</h3>
+                        <p class="feature-desc">Take a photo of your signature on paper. SignKit removes the background on your device and makes the mark ready to use.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         </div>
-                        <h3 class="feature-title">Privacy First</h3>
-                        <p class="feature-desc">Your documents and signatures never leave your computer. Everything is processed locally on your device.</p>
+                        <h3 class="feature-title" id="privacy">Privacy boundary</h3>
+                        <p class="feature-desc">Document processing runs locally by default. Checkout is the explicit external boundary and receives the information needed to complete purchase and delivery.</p>
                     </div>
                     
                     <div class="feature-card">
@@ -151,7 +152,7 @@
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                         </div>
                         <h3 class="feature-title">PDF Support</h3>
-                        <p class="feature-desc">Open any PDF, drag and drop your signature, resize it perfectly, and save a new signed copy.</p>
+                        <p class="feature-desc">Open a PDF, place your signature, resize it precisely, and save a new signed copy for your workflow.</p>
                     </div>
                 </div>
             </div>
@@ -204,27 +205,58 @@
             </div>
         </section>
 
+        <!-- Product topology -->
+        <section class="section topology-section" id="topology">
+            <div class="container">
+                <div class="topology-intro">
+                    <div>
+                        <div class="badge">One product, three deliberate ways to run it</div>
+                        <h2>Choose how SignKit runs.</h2>
+                    </div>
+                    <p class="lead">The workflow stays coherent while the trust boundary matches the work. Local is the current desktop product; Cloud and Hybrid are planned directions, not hidden promises.</p>
+                </div>
+                <div class="topology-grid">
+                    <article class="topology-card topology-card-current">
+                        <span class="topology-status">Available now</span>
+                        <h3>Local</h3>
+                        <p>Extract, place, review, and export on this device. Documents, assets, and workflow records stay local unless you choose an explicit external boundary.</p>
+                    </article>
+                    <article class="topology-card">
+                        <span class="topology-status">Planned direction</span>
+                        <h3>Cloud</h3>
+                        <p>A complete browser-native workflow for customers who choose cloud execution, storage, recovery, and shared access as the operating model.</p>
+                    </article>
+                    <article class="topology-card">
+                        <span class="topology-status">Planned direction</span>
+                        <h3>Hybrid</h3>
+                        <p>Local execution with explicit connected coordination. Sync categories, authority, and recovery must be visible and reversible.</p>
+                    </article>
+                </div>
+                <p class="topology-footnote">The browser workspace is currently a metadata-only control-plane proof. It does not upload documents or replace the local signing engine.</p>
+            </div>
+        </section>
+
         <!-- Pricing -->
-        <section class="section">
+        <section class="section" id="pricing">
             <div class="container">
                 <div class="pricing-card">
                     <h3>Simple Pricing</h3>
-                    <p class="text-muted">No monthly fees. No hidden costs.</p>
+                    <p class="text-muted">One-time personal licence. No recurring charges.</p>
                     
                     <div class="price">
                         <span class="currency">$</span>
                         29
-                        <span class="period">/ lifetime</span>
+                        <span class="period">launch price</span>
                     </div>
                     
                     <ul class="pricing-features">
                         <li>
                             <svg class="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Unlimited signatures
+                            Signature extraction and PDF placement
                         </li>
                         <li>
                             <svg class="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Offline processing
+                            Local processing by default
                         </li>
                         <li>
                             <svg class="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -232,14 +264,15 @@
                         </li>
                         <li>
                             <svg class="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Free updates forever
+                            Minor updates within the purchased major version
                         </li>
                     </ul>
                     
-                    <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary" style="width: 100%;">
-                        Get SignKit Now
+                    <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-primary" style="width: 100%;" data-checkout-provider="dodo" data-checkout-placement="pricing" data-checkout-primary-label="Buy SignKit - $29 launch price" data-checkout-fallback-label="Buy SignKit through Gumroad - $29 one time" target="_blank" rel="noopener noreferrer">
+                        <span data-checkout-label>Buy SignKit - $29 launch price</span>
                     </a>
-                    <p style="margin-top: 16px; font-size: 0.8rem; color: var(--text-muted);">Secured by Gumroad</p>
+                    <a href="https://pranaysuyash.gumroad.com/l/signkit-v1" class="btn btn-secondary checkout-fallback" data-checkout-provider="gumroad" data-checkout-placement="pricing-fallback" data-checkout-primary-label="Buy SignKit through Gumroad - $29 one time" data-checkout-fallback-label="Prefer Gumroad? Buy there" target="_blank" rel="noopener noreferrer"><span data-checkout-label>Prefer Gumroad? Buy there</span></a>
+                    <p class="text-muted checkout-note" data-checkout-configuration-note tabindex="-1">Review the provider destination for current receipt, download, and licence-key delivery details.</p>
                 </div>
             </div>
         </section>
@@ -253,34 +286,37 @@
                         <img src="../../assets/files/signkit_icon_32x32.png" alt="Logo">
                         <span>SignKit</span>
                     </div>
-                    <p>The privacy-first tool for signing documents without the cloud.</p>
+                    <p>The local-first tool for private document workflows.</p>
                 </div>
                 
                 <div class="footer-links">
                     <h4>Product</h4>
                     <ul>
-                        <li><a href="#">Download</a></li>
-                        <li><a href="#">Changelog</a></li>
-                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#pricing">Get SignKit</a></li>
+                        <li><a href="#how-it-works">How it works</a></li>
+                        <li><a href="#privacy">Privacy boundary</a></li>
+                        <li><a href="#topology">Local, Cloud &amp; Hybrid</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-links">
-                    <h4>Legal</h4>
+                    <h4>Trust</h4>
                     <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li><a href="#privacy">Local processing boundary</a></li>
+                        <li><a href="#pricing">Purchase details</a></li>
+                        <li><a href="#top">Back to top</a></li>
                     </ul>
                 </div>
             </div>
             
             <div class="copyright">
-                &copy; 2025 SignKit. All rights reserved.
+                &copy; 2026 SignKit. Personal document workflows, designed local-first.
             </div>
         </div>
     </footer>
 
+    <script src="../../web/live/js/checkout-config.js"></script>
+    <script src="../../web/live/js/checkout.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

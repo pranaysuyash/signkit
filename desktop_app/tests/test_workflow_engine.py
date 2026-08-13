@@ -107,7 +107,7 @@ def test_workflow_engine_real_pdf_signing_preserves_direct_signature_asset(monke
     _configure_store_path(monkeypatch, tmp_path)
 
     project_root = Path(__file__).resolve().parents[2]
-    signature_path = project_root / "512px-Mohammad_Rafiquzzaman_signature.jpg"
+    signature_path = project_root / "desktop_app/resources/signature_template_synthetic_512.jpg"
     input_pdf = tmp_path / "in" / "packet.pdf"
     input_pdf.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(project_root / "desktop_app/tests/fixtures/sample.pdf", input_pdf)

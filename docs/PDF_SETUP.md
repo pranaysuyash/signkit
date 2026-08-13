@@ -90,7 +90,7 @@ python -m pip install pypdfium2 pikepdf
 
 The optional files keep non-default capabilities explicit and discoverable:
 - `requirements-pymupdf-optional.txt`: explicit `PyMuPDF` enablement
-- `requirements-pdf-optional.txt`: optional `pypdf` (annotations) and `pytesseract` (OCR hints)
+- `requirements-pdf-optional.txt`: optional `pypdf` (annotations), `pytesseract` (OCR hints), and `pyHanko` with its cryptographic dependencies for certificate-backed PAdES signing.
 - Scan/OCR heuristics:
   - `python -m pip install opencv-python pytesseract`
   - install system Tesseract binary (required by pytesseract)
@@ -100,6 +100,12 @@ The optional files keep non-default capabilities explicit and discoverable:
 
 - Rendering is split from signing because one library is not best-in-class for both.
 - Signing keeps a robust fallback (`pikepdf`) so the app remains operational when `fitz` is disabled.
+- Certificate-backed PAdES signing is explicit through `sign_pdf_with_certificate()` and requires a PKCS#12 credential; it is separate from visual image placement. The desktop Save Signed PDF action asks the operator to choose visual placement or certificate-backed PAdES semantics, and certificate mode reports the verified artifact receipt. `desktop_app/pdf/credentials.py` provides a provider boundary and macOS Keychain passphrase adapter. It remains opt-in until signer authorization, key custody, and trust policy are configured.
+- Timestamping is also explicit: pass `timestamp_url` for an HTTP RFC 3161 provider or inject a `timestamper`; baseline local signing does not contact a TSA. External TSA, revocation, DSS/VRI, and long-term validation requirements remain separate production gates.
+- PDFium rendering and field detection are serialized through `desktop_app/pdf/pdfium_runtime.py` because the native PDFium library is not thread-safe. Long-lived PDFium documents are explicitly closed; if a native crash recurs, the documented escalation is process isolation rather than relying on repeated in-process retries.
+- For unattended or arbitrary-document work, use `SIGNKIT_PDF_DOCUMENT_RUNTIME=isolated` or pass `runtime_mode="isolated"` to `PDFViewer.detect_fields_for_pages()`. This runs each operation in the disposable `desktop_app/pdf/document_worker.py` process through `desktop_app/pdf/document_runtime.py`.
+- `desktop_app/pdf/preflight.py` exposes optional qpdf `--check` structural inspection. qpdf is an early signal, not a sandbox; the isolated worker remains required for untrusted documents. qpdf is not installed in the current local environment, so deployment must make its availability policy explicit.
+- The local-companion workspace route `POST /workspace/executions/{execution_id}/document-inspections` accepts only explicit `local` topology, runs transient PDF inspection through the isolated worker, persists hash/result metadata, and does not retain source bytes. Hosted/cloud document execution remains gated separately.
 - OCR/scan preprocessing is explicitly opt-in because it adds runtime and dependency overhead.
 - This follows the long-term rule that each workflow may combine multiple engines, but each engine gets one explicit role.
 

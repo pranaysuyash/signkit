@@ -70,6 +70,7 @@
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://signkit.work" />
+    <!-- launch-claim: public_surface_boundary -->
 
     <!-- Google tag (gtag.js) -->
     <script
@@ -728,6 +729,108 @@
         scroll-behavior: smooth;
       }
 
+      :where(h1[id], h2[id], h3[id], section[id], div[id]) {
+        scroll-margin-top: 2rem;
+      }
+
+      .skip-link {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 10;
+        padding: 10px 14px;
+        border: 3px solid #111827;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111827;
+        box-shadow: 4px 4px 0 #111827;
+        transform: translateY(-160%);
+        transition: transform 0.16s ease;
+      }
+
+      .skip-link:focus-visible {
+        transform: translateY(0);
+      }
+
+      :where(a, button, [tabindex]):focus-visible {
+        outline: 3px solid #0f766e;
+        outline-offset: 4px;
+      }
+
+      .completion-preview {
+        margin-top: 20px;
+        padding: 18px;
+        border: 2px solid rgba(17, 24, 39, 0.16);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 12px 26px rgba(17, 24, 39, 0.06);
+      }
+
+      .completion-preview h2 {
+        margin-bottom: 6px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.1rem;
+      }
+
+      .completion-preview-intro,
+      .completion-preview-note {
+        color: #4b5563;
+        font-size: 0.82rem;
+        line-height: 1.5;
+      }
+
+      .completion-rail {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        margin: 14px 0 12px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .completion-rail li {
+        min-width: 0;
+      }
+
+      .completion-step {
+        width: 100%;
+        min-height: 44px;
+        padding: 8px 6px;
+        border: 2px solid #111827;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111827;
+        font: inherit;
+        font-size: 0.74rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .completion-step[aria-current='step'] {
+        background: var(--accent-3);
+        box-shadow: 3px 3px 0 #111827;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+
+        .btn-primary:hover,
+        .btn-ghost:hover {
+          transform: none;
+        }
+      }
+
       body {
         position: relative;
         background:
@@ -1047,6 +1150,8 @@
   <body>
     <div class="page">
       <div class="shell">
+        <a class="skip-link" href="#main-content">Skip to content</a>
+        <main id="main-content" tabindex="-1">
         <div class="accent-shape"></div>
         <div class="accent-shape-2"></div>
 
@@ -1057,6 +1162,10 @@
               <img
                 src="assets/files/signkit_icon_64x64.png"
                 alt="SignKit logo"
+                width="64"
+                height="64"
+                decoding="async"
+                loading="eager"
               />
             </div>
             <div>
@@ -1089,6 +1198,53 @@
               prepare.
             </p>
 
+            <div class="hero-actions">
+              <a
+                class="btn-primary"
+                data-checkout-provider="dodo"
+                data-checkout-placement="hero"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>Buy SignKit — $29 one time</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+
+              <a
+                class="btn-ghost"
+                href="#buy"
+              >
+                <span>See what is included</span>
+              </a>
+            </div>
+
+            <!-- launch-claim: checkout_provider_state -->
+            <p class="checkout-provider-note">
+              Secure checkout is available through the configured provider.
+              Gumroad is the current fallback while Dodo is not configured.
+            </p>
+
+            <section class="completion-preview" aria-labelledby="completion-preview-heading">
+              <h2 id="completion-preview-heading">A clear path to a finished PDF</h2>
+              <p class="completion-preview-intro">
+                A small preview of the current desktop workflow, from source
+                document to prepared output.
+              </p>
+              <ol class="completion-rail" aria-label="Document completion workflow">
+                <li><button class="completion-step" type="button" data-completion-step="source" aria-current="step" aria-controls="completion-step-description">Source</button></li>
+                <li><button class="completion-step" type="button" data-completion-step="mark" aria-controls="completion-step-description">Mark</button></li>
+                <li><button class="completion-step" type="button" data-completion-step="clean" aria-controls="completion-step-description">Clean</button></li>
+                <li><button class="completion-step" type="button" data-completion-step="place" aria-controls="completion-step-description">Place</button></li>
+                <li><button class="completion-step" type="button" data-completion-step="ready" aria-controls="completion-step-description">Ready</button></li>
+              </ol>
+              <p id="completion-step-description" class="completion-preview-note" role="status" aria-live="polite">
+                Start with the signed document or signature image you already have.
+              </p>
+              <p class="completion-preview-note">
+                This is a keyboard-operable workflow preview, not a live document processor.
+              </p>
+            </section>
+
             <ul>
               <li>
                 <div class="hero-bullet-icon">🔐</div>
@@ -1113,32 +1269,6 @@
                 >
               </li>
             </ul>
-
-            <div class="hero-actions">
-              <a
-                class="btn-primary"
-                data-checkout-provider="dodo"
-                data-checkout-placement="hero"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span>Buy SignKit — $29 one time</span>
-                <span>↗</span>
-              </a>
-
-              <a
-                class="btn-ghost"
-                href="#buy"
-              >
-                <span>See what is included</span>
-              </a>
-            </div>
-
-            <!-- launch-claim: checkout_provider_state -->
-            <p class="checkout-provider-note">
-              Secure checkout is available through the configured provider.
-              Gumroad is the current fallback while Dodo is not configured.
-            </p>
 
             <!-- Platform badges -->
             <div
@@ -1227,7 +1357,11 @@
                   web/live/assets/screenshots/step2-select-1200.webp 1200w
                 "
                 sizes="(max-width: 840px) 92vw, 520px"
+                width="1200"
+                height="767"
                 style="display: block; width: 100%; height: auto"
+                decoding="async"
+                loading="eager"
               />
             </div>
 
@@ -1292,7 +1426,10 @@
                 web/live/assets/screenshots/step3-clean-1200.webp 1200w
               "
               sizes="(max-width: 840px) 92vw, (max-width: 1100px) 31vw, 360px"
+              width="1200"
+              height="767"
               decoding="async"
+              loading="lazy"
               style="
                 width: 100%;
                 border-radius: 16px;
@@ -1309,7 +1446,10 @@
                 web/live/assets/screenshots/step2-select-1200.webp 1200w
               "
               sizes="(max-width: 840px) 92vw, (max-width: 1100px) 31vw, 360px"
+              width="1200"
+              height="767"
               decoding="async"
+              loading="lazy"
               style="
                 width: 100%;
                 border-radius: 16px;
@@ -1326,7 +1466,10 @@
                 web/live/assets/screenshots/step4-sign-1200.webp 1200w
               "
               sizes="(max-width: 840px) 92vw, (max-width: 1100px) 31vw, 360px"
+              width="1200"
+              height="767"
               decoding="async"
+              loading="lazy"
               style="
                 width: 100%;
                 border-radius: 16px;
@@ -1520,8 +1663,10 @@
           </div>
         </div>
 
+        </main>
+
         <!-- Footer -->
-        <div
+        <footer
           class="footer"
           style="
             margin-top: 48px;
@@ -1536,17 +1681,17 @@
             <!-- Brand -->
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                <img src="assets/files/signkit_icon_64x64.png" alt="SignKit" width="28" height="28" style="border-radius: 6px; border: 2px solid #111827;">
+                <img src="assets/files/signkit_icon_64x64.png" alt="SignKit" width="28" height="28" decoding="async" loading="lazy" style="border-radius: 6px; border: 2px solid #111827;">
                 <span style="font-weight: 700; font-size: 1.2rem;">SignKit</span>
               </div>
               <p style="font-size: 0.85rem; color: #4b5563; margin-bottom: 16px; line-height: 1.5;">
                 Extract signatures. Place them on PDFs. Local by default.
               </p>
               <div style="display: flex; gap: 8px;">
-                <a href="https://twitter.com/signkitwork" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid #111827; border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 #111827; transition: transform 0.08s;" onmouseover="this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.transform=''">
+                <a href="https://twitter.com/signkitwork" aria-label="SignKit on X" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid #111827; border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 #111827; transition: transform 0.08s;" onmouseover="this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.transform=''">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
                 </a>
-                <a href="https://github.com/pranaysuyash" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid #111827; border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 #111827; transition: transform 0.08s;" onmouseover="this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.transform=''">
+                <a href="https://github.com/pranaysuyash" aria-label="SignKit on GitHub" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid #111827; border-radius: 8px; background: #fff; box-shadow: 3px 3px 0 #111827; transition: transform 0.08s;" onmouseover="this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.transform=''">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
                 </a>
               </div>
@@ -1587,6 +1732,7 @@
               © 2025–2026 SignKit. All rights reserved.
             </p>
           </div>
+        </footer>
         </div>
       </div>
     </div>
@@ -1609,6 +1755,28 @@
               source: 'signkit',
               entry: 'landing'
             });
+          }
+        });
+      });
+
+      // The rail is a bounded preview of the documented current workflow. It
+      // does not process or upload a visitor's document.
+      const completionDescriptions = {
+        source: 'Start with the signed document or signature image you already have.',
+        mark: 'Prepare the signature mark for reuse in the local workflow.',
+        clean: 'Clean the mark for a transparent signature result.',
+        place: 'Place the prepared signature on a PDF.',
+        ready: 'Export the finished PDF from the desktop workflow.',
+      };
+      const completionDescription = document.querySelector('#completion-step-description');
+      document.querySelectorAll('[data-completion-step]').forEach((button) => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('[data-completion-step]').forEach((step) => {
+            step.removeAttribute('aria-current');
+          });
+          button.setAttribute('aria-current', 'step');
+          if (completionDescription) {
+            completionDescription.textContent = completionDescriptions[button.dataset.completionStep];
           }
         });
       });

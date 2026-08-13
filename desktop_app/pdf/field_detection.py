@@ -19,6 +19,7 @@ import pikepdf
 import pypdfium2 as pdfium
 import numpy as np
 from desktop_app.pdf.stack_profile import is_scan_preprocess_enabled
+from desktop_app.pdf.pdfium_runtime import pdfium_operation
 
 LOG = logging.getLogger(__name__)
 MAX_HEURISTIC_CANDIDATES_PER_PAGE = 3
@@ -186,18 +187,20 @@ class SignatureFieldDetector:
         pdf_path: str,
         page_index: int,
     ) -> List[SignatureFieldCandidate]:
-        pdf = pdfium.PdfDocument(pdf_path)
+        with pdfium_operation():
+            pdf = pdfium.PdfDocument(pdf_path)
         try:
             cv2_module = self._require_cv2()
             if cv2_module is None:
                 LOG.debug("OpenCV not available; skipping rendered heuristic candidate detection")
                 return []
 
-            page = pdf[page_index]
-            page_width_pt = float(page.get_width())
-            page_height_pt = float(page.get_height())
-            bitmap = page.render(scale=2.0, rotation=0)
-            image = np.array(bitmap.to_pil().convert("RGB"))
+            with pdfium_operation():
+                page = pdf[page_index]
+                page_width_pt = float(page.get_width())
+                page_height_pt = float(page.get_height())
+                bitmap = page.render(scale=2.0, rotation=0)
+                image = np.array(bitmap.to_pil().convert("RGB"))
             heuristics = self._detect_from_image(image, cv2_module)
 
             candidates: list[SignatureFieldCandidate] = []
@@ -218,24 +221,27 @@ class SignatureFieldDetector:
                 )
             return candidates
         finally:
-            pdf.close()
+            with pdfium_operation():
+                pdf.close()
 
     def _detect_ocr_candidate_hints(
         self,
         pdf_path: str,
         page_index: int,
     ) -> List[SignatureFieldCandidate]:
-        pdf = pdfium.PdfDocument(pdf_path)
+        with pdfium_operation():
+            pdf = pdfium.PdfDocument(pdf_path)
         try:
             cv2_module, pytesseract_module = self._require_scan_ocr_stack()
             if cv2_module is None or pytesseract_module is None:
                 return []
 
-            page = pdf[page_index]
-            page_width_pt = float(page.get_width())
-            page_height_pt = float(page.get_height())
-            bitmap = page.render(scale=2.0, rotation=0)
-            image = np.array(bitmap.to_pil().convert("RGB"))
+            with pdfium_operation():
+                page = pdf[page_index]
+                page_width_pt = float(page.get_width())
+                page_height_pt = float(page.get_height())
+                bitmap = page.render(scale=2.0, rotation=0)
+                image = np.array(bitmap.to_pil().convert("RGB"))
 
             gray = cv2_module.cvtColor(image, cv2_module.COLOR_RGB2GRAY)
             _, threshold = cv2_module.threshold(gray, 0, 255, cv2_module.THRESH_BINARY + cv2_module.THRESH_OTSU)
@@ -303,7 +309,8 @@ class SignatureFieldDetector:
 
             return candidates
         finally:
-            pdf.close()
+            with pdfium_operation():
+                pdf.close()
 
     def _looks_like_signature_ocr_text(self, text: str) -> bool:
         normalized = text.lower().strip()

@@ -76,6 +76,36 @@ def _stat_pdf(pdf_path: str) -> tuple[Optional[int], Optional[int]]:
         return None, None
 
 
+def _session_match_score(session: Dict[str, Any], pdf_path: str, file_size: Optional[int], modified_ns: Optional[int]) -> int:
+    """Compute how likely an existing session belongs to the opened pdf."""
+    if not isinstance(session, dict):
+        return 0
+
+    stored_path = session.get("pdf_path")
+    if stored_path == pdf_path:
+        return 100
+
+    stored_name = session.get("pdf_name")
+    if stored_name != Path(pdf_path).name:
+        return 0
+
+    score = 40
+    if file_size is not None and session.get("file_size") is not None:
+        if session.get("file_size") == file_size:
+            score += 20
+    if modified_ns is not None and session.get("modified_ns") is not None:
+        if session.get("modified_ns") == modified_ns:
+            score += 25
+    return score
+
+
+def _latest_session(session_items: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Pick the most recent valid session when multiple candidates exist."""
+    if not session_items:
+        return None
+    return sorted(session_items, key=lambda item: str(item.get("updated_at") or ""), reverse=True)[0]
+
+
 def save_document_session(pdf_path: str, placements: List[Dict[str, Any]]) -> DocumentPlacementSession:
     """Persist the current placement manifest for a PDF."""
     payload = _load_payload()
@@ -123,16 +153,31 @@ def load_document_session(pdf_path: str) -> List[Dict[str, Any]]:
     if not isinstance(documents, list):
         return []
 
+    file_size, modified_ns = _stat_pdf(pdf_path)
+    if not isinstance(documents, list):
+        return []
+
+    scored: List[tuple[int, Dict[str, Any]]] = []
     for item in documents:
         if not isinstance(item, dict):
             continue
-        if item.get("pdf_path") != pdf_path:
+        score = _session_match_score(item, pdf_path, file_size, modified_ns)
+        if score == 0:
             continue
+        scored.append((score, item))
 
-        placements = item.get("placements", [])
-        if isinstance(placements, list):
-            return [entry for entry in placements if isinstance(entry, dict)]
+    if not scored:
         return []
+
+    best_score = max(score for score, _ in scored)
+    matching = [item for score, item in scored if score == best_score]
+    best_session = _latest_session(matching)
+    if best_session is None:
+        return []
+
+    placements = best_session.get("placements", [])
+    if isinstance(placements, list):
+        return [entry for entry in placements if isinstance(entry, dict)]
 
     return []
 

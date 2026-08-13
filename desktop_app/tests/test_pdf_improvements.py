@@ -19,6 +19,7 @@ if not QApplication.instance():
 from desktop_app.pdf.viewer import PDFViewer, PDFPageView
 from desktop_app.pdf.signer import sign_pdf
 from desktop_app.pdf.renderer import PDFRenderer
+from desktop_app.library import storage as signature_library
 
 
 @pytest.fixture
@@ -302,6 +303,90 @@ class TestSignatureStyleEditing:
         assert placed[0]["rotation_deg"] == 270.0
 
         viewer.close_pdf()
+
+    def test_restored_signature_remains_editable(self, sample_pdf, color_signature):
+        viewer = PDFViewer()
+        viewer.open_pdf(sample_pdf)
+
+        viewer.restore_signature_placements(
+            [
+                {
+                    "page": 0,
+                    "sig_path": color_signature,
+                    "x": 120,
+                    "y": 220,
+                    "width": 150,
+                    "height": 50,
+                }
+            ]
+        )
+
+        viewer.goto_page(0)
+        assert len(viewer.page_view.signatures) == 1
+
+        viewer.page_view.selected_signature = 0
+        viewer.page_view.signatures[0]["x"] = 190
+        viewer.page_view.signatures[0]["y"] = 240
+
+        placed = viewer.get_placed_signatures()
+        assert len(placed) == 1
+        assert placed[0]["x"] == 190
+        assert placed[0]["y"] == 240
+
+        viewer.close_pdf()
+
+    def test_restored_signature_uses_library_fallback_when_source_missing(self, sample_pdf, color_signature, tmp_path, monkeypatch):
+        """Resolve missing signature file paths from library on session restore."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+        lib_dir = Path(signature_library.library_dir())
+        lib_dir.mkdir(parents=True, exist_ok=True)
+
+        # Simulate a signature asset kept in library
+        fallback_name = "fallback_signature.png"
+        fallback_path = lib_dir / fallback_name
+        Path(color_signature).replace(fallback_path)
+        restored_sig_path = str(tmp_path / "moved" / fallback_name)
+
+        viewer = PDFViewer()
+        viewer.open_pdf(sample_pdf)
+
+        viewer.restore_signature_placements(
+            [
+                {
+                    "page": 0,
+                    "sig_path": restored_sig_path,
+                    "x": 120,
+                    "y": 220,
+                    "width": 150,
+                    "height": 50,
+                }
+            ]
+        )
+
+        viewer.goto_page(0)
+        assert len(viewer.page_view.signatures) == 1
+        assert viewer.page_view.signatures[0]["sig_path"] == str(fallback_path)
+        placed = viewer.get_placed_signatures()
+        assert len(placed) == 1
+        assert Path(placed[0]["sig_path"]).name == fallback_name
+
+        viewer.close_pdf()
+
+    def test_signature_style_delta_preserves_safe_range(self):
+        page_view = PDFPageView()
+        page_view.set_page(QPixmap(800, 600))
+
+        pixmap = QPixmap(200, 60)
+        page_view.add_signature_overlay(100, 80, 200, 60, pixmap, "sig.png")
+
+        page_view._apply_signature_style_delta(0, "rotation_deg", 90.0)
+        assert page_view.get_signature_style(0)["rotation_deg"] == 90.0
+
+        page_view._apply_signature_style_delta(0, "brightness", -2.0)
+        assert page_view.get_signature_style(0)["brightness"] == 0.0
+
+        page_view._apply_signature_style_delta(0, "contrast", 5.0)
+        assert page_view.get_signature_style(0)["contrast"] == 3.0
 
 
 class TestBulkPlacement:

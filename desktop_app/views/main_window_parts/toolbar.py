@@ -32,7 +32,7 @@ class ToolbarMixin:
         toolbar.setMovable(False)
         toolbar.setFloatable(False)
         toolbar.setIconSize(QSize(22, 22))
-        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         # Remove custom stylesheet to allow native macOS styling
         # The unified title/toolbar handles appearance automatically
 

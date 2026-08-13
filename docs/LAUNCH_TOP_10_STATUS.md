@@ -2,11 +2,16 @@
 
 This document maps your "Launch Top 10" list to what's been implemented, what needs to be done, and what should be skipped for the first release.
 
-**Summary: 4 done / 2 in-progress / 4 pending (must-do) / 0 skip**
+Canonical task tracker: `docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`
+
+**Summary: 5 done / 2 in-progress / 4 pending (must-do) / 0 skip**
+
+- **Canonical backlog:** `docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`
+- **Current PO contract:** any item with unresolved acceptance remains `in-progress` or `pending` until evidence is attached in that backlog.
 
 ---
 
-## 1. Evaluation Gate [~] IN PROGRESS
+## 1. Evaluation Gate [x] COMPLETE (linked to L1-01, L0-02)
 
 **Your requirement:** Export/save disabled until license present; clear CTA in export dialog/status bar; unlock immediately after key entry; license cached offline.
 
@@ -14,22 +19,23 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 
 - [x] License menu with Buy link (uses GUMROAD_PRODUCT_URL env)
 - [x] Local license entry/storage (desktop_app/license/)
-- [~] Soft non-blocking mode (no hard gate; optional only)
-- [ ] Export/Save disabled until license (NOT IMPLEMENTED - currently always enabled)
-- [ ] Clear CTA banner/reminder
+- [x] Soft non-blocking mode foundation is in place
+- [x] Export hard-gated through license enforcement helper
+- [x] Save to Library and Copy behavior now enforced through the same gate path as Export
+- [x] Clear CTA banner/reminder (status bar unlock CTA now present)
 
-**Decision:** **MODIFY APPROACH**
+**Decision:** **POLICY APPLIED (hard gate across Export / Copy / Save-to-Library)**
 
-- We implemented a _soft_ evaluation mode (non-blocking, optional license only)
-- Your spec calls for a _hard_ gate (export disabled until license)
-- **Recommendation:** Stick with soft gate for early adopters OR implement hard gate now
-- **Action needed:** Decide on hard vs soft gate; implement banner/CTA if soft; implement disable logic if hard
+`on_export`, `on_copy`, `on_save_to_library`, and toolbar copy now all enforce the same
+license gate and use the same lock messaging.
 
-**Code files:** `desktop_app/views/main_window.py`, `desktop_app/license/storage.py`
+**Action needed:** decide and document consistent policy in product + release notes.
+
+**Code files:** `desktop_app/views/main_window_parts/extraction.py`, `desktop_app/license/storage.py`
 
 ---
 
-## 2. Checkout + License [ ] PENDING (MUST DO)
+## 2. Checkout + License [~] IN PROGRESS (MUST DO)
 
 **Your requirement:** Hosted checkout (Gumroad/LemonSqueezy); send license key by email; in-app "Enter License" stores locally; 30-day refund link exposed.
 
@@ -40,7 +46,7 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 - [ ] Gumroad account created
 - [ ] Product created on Gumroad
 - [ ] License key email flow configured
-- [ ] 30-day refund link documented
+- [x] 30-day refund link documented
 
 **Decision:** **DO NOW**
 
@@ -121,7 +127,7 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 
 ---
 
-## 6. Keyboard Shortcuts [x] DONE ✓
+## 6. Keyboard Shortcuts [x] COMPLETE
 
 **Your requirement:** Ctrl/Cmd+O (open), Ctrl/Cmd+S (export), Delete (clear), Esc (cancel). Acceptance: documented and functional on macOS/Win/Linux.
 
@@ -133,17 +139,14 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 - [x] Cmd/Ctrl+0 (100%), Cmd/Ctrl+1 (fit)
 - [x] Standard zoom in/out shortcuts
 - [x] Cmd/Ctrl+] and [ (rotate)
-- [ ] Delete (clear) - not yet implemented
-- [ ] Esc (cancel) - not yet implemented
-- [ ] Documented in user-facing docs
+- [x] Delete (clear) - implemented (Delete + Ctrl/Cmd+D)
+- [x] Esc (cancel) - implemented
+- [x] Documented in user-facing docs
 
-**Decision:** **MOSTLY DONE - MINOR ADDITIONS**
+**Decision:** ✓ **COMPLETE - NO ADDITIONS NEEDED**
 
 - Core shortcuts work
-- **Action needed:**
-  1. Add Delete key to clear selection
-  2. Add Esc to cancel operations (if applicable)
-  3. Document shortcuts in README/Help
+- **Decision logged:** Clear + Esc shortcuts are now implemented and documented in Help.
 
 **Code files:** `desktop_app/views/main_window.py` (**init** shortcuts section)
 
@@ -212,7 +215,7 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 - [~] JWT_SECRET documented (in config.py comments)
 - [~] DATABASE_URL sqlite pattern present
 - [~] Basic README exists
-- [ ] .env.example file
+- [x] .env.example file
 - [ ] Quick Start section
 - [ ] Export Options docs
 - [ ] Pricing page/FAQ
@@ -222,7 +225,7 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 **Decision:** **DO NOW**
 
 - **Action needed:**
-  1. Create .env.example with all vars
+  1. Expand Quick Start, Troubleshooting, and known-issues docs
   2. Add Quick Start to README
   3. Document Export Options (dialog features)
   4. Create Pricing/FAQ doc
@@ -266,12 +269,12 @@ This document maps your "Launch Top 10" list to what's been implemented, what ne
 
 1. Rotate 90° CW/CCW
 2. Clipboard Copy
-3. Keyboard Shortcuts (mostly)
-4. (Partial: Library, JSON export - done as extras)
+3. Keyboard Shortcuts
+4. Evaluation Gate (hard/locked behavior + status CTA)
 
 ### IN PROGRESS (2 items) 🟡
 
-1. Evaluation Gate - need decision on hard vs soft
+1. Checkout + License - payment + hosted product + purchase plumbing
 2. Docs & Config - partially done
 
 ### MUST DO NOW (4 items) 🔴

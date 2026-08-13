@@ -1,0 +1,2 @@
+{"created_at":"2026-08-12T00:00:00.000Z","event_type":"execution_created","id":"proof-contractdesk-stage1-20260812-event-001","idem_key":null,"sequence":1,"status_from":null,"status_to":"pending_review","summary":"Deterministic proof packet seeded from local fixture"}
+{"created_at":"2026-08-12T00:01:00.000Z","event_type":"mark_received","id":"proof-contractdesk-stage1-20260812-event-002","idem_key":"fixture-seed-received","sequence":2,"status_from":"pending_review","status_to":"received","summary":"Packet marked received in control-plane simulation mode"}

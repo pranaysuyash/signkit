@@ -323,6 +323,70 @@ class SecurityValidator:
         return abs_path
 
 
+@dataclass(frozen=True)
+class SignatureCandidate:
+    """A detected signature box and its ranking score."""
+
+    bbox: Tuple[int, int, int, int]
+    confidence: float
+    source: str
+
+
+def _find_color_signature_candidates(
+    image: np.ndarray,
+) -> list[tuple[Tuple[int, int, int, int], float]]:
+    """Return blue-ink candidates sorted by deterministic ranking score."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blue_dominance = image[:, :, 0].astype(np.int16) - image[:, :, 2].astype(np.int16)
+    color_mask = ((blue_dominance > 60) & (gray < 210)).astype(np.uint8) * 255
+    color_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_CLOSE, color_kernel)
+    color_mask = cv2.dilate(color_mask, color_kernel, iterations=2)
+    color_contours, _ = cv2.findContours(
+        color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+    color_candidates = []
+    image_area = image.shape[0] * image.shape[1]
+    for contour in color_contours:
+        area = cv2.contourArea(contour)
+        x, y, width, height = cv2.boundingRect(contour)
+        if area < 500 or area >= image_area * 0.5 or width <= 30 or height <= 15:
+            continue
+        dominance_score = float(
+            blue_dominance[y : y + height, x : x + width].clip(min=0).sum()
+        )
+        color_candidates.append((dominance_score, x, y, width, height))
+    if not color_candidates:
+        return []
+    max_score = max(candidate[0] for candidate in color_candidates) or 1.0
+    ranked = sorted(color_candidates, reverse=True)
+    selected: list[tuple[Tuple[int, int, int, int], float]] = []
+    for score, x, y, width, height in ranked:
+        candidate_box = (x, y, x + width, y + height)
+        candidate_area = width * height
+        duplicate = False
+        for selected_box, _ in selected:
+            ix1 = max(candidate_box[0], selected_box[0])
+            iy1 = max(candidate_box[1], selected_box[1])
+            ix2 = min(candidate_box[2], selected_box[2])
+            iy2 = min(candidate_box[3], selected_box[3])
+            intersection = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+            selected_area = (selected_box[2] - selected_box[0]) * (selected_box[3] - selected_box[1])
+            union = candidate_area + selected_area - intersection
+            if union and intersection / union >= 0.5:
+                duplicate = True
+                break
+        if not duplicate:
+            selected.append((candidate_box, min(1.0, score / max_score)))
+    return selected
+
+
+def _find_color_signature_candidate(image: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
+    """Return the strongest blue-ink candidate in a photographed document."""
+    candidates = _find_color_signature_candidates(image)
+    return candidates[0][0] if candidates else None
+
+
 class SignatureExtractor:
     """Local image processing engine for signature extraction."""
     
@@ -403,6 +467,39 @@ class SignatureExtractor:
         """
         return self.sessions.get(session_id)
 
+    def auto_detect_signatures(
+        self,
+        session_id: str,
+        *,
+        max_candidates: int = 2,
+        min_confidence: float = 0.75,
+    ) -> list[SignatureCandidate]:
+        """Detect zero or more scored signature candidates.
+
+        Confidence is a deterministic per-image ranking score, not a calibrated
+        probability. The color path can emit multiple boxes; the existing
+        single-box detector remains the grayscale fallback.
+        """
+        if max_candidates < 1:
+            raise ValueError("max_candidates must be at least 1")
+        if not 0.0 <= min_confidence <= 1.0:
+            raise ValueError("min_confidence must be between 0 and 1")
+        session = self.get_session(session_id)
+        if session is None:
+            return []
+        color_candidates = _find_color_signature_candidates(session.original_image)
+        candidates = [
+            SignatureCandidate(bbox=bbox, confidence=confidence, source="blue-ink")
+            for bbox, confidence in color_candidates
+            if confidence >= min_confidence
+        ][:max_candidates]
+        if candidates:
+            return candidates
+        fallback = self.auto_detect_signature(session_id)
+        if fallback is None:
+            return []
+        return [SignatureCandidate(bbox=fallback, confidence=0.4, source="grayscale-fallback")]
+
     def auto_detect_signature(self, session_id: str) -> Optional[Tuple[int, int, int, int]]:
         """Detect the most likely signature region in the image.
         
@@ -426,6 +523,17 @@ class SignatureExtractor:
         # separate contours, then returned only the largest left-hand stroke.
         image = session.original_image
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Photographed documents commonly use blue ink while the page text,
+        # lines, and nearby objects are grayscale. Use that signal to create
+        # a local candidate before falling back to the grayscale envelope.
+        # These parameters were selected on the external corpus development
+        # split only; the publisher's validation split was not used for tuning.
+        color_candidate = _find_color_signature_candidate(image)
+        if color_candidate is not None:
+            detected = color_candidate
+            LOG.info("Auto-detected color signature candidate: (%d,%d)-(%d,%d)", *detected)
+            return detected
 
         otsu_threshold, _ = cv2.threshold(
             gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU

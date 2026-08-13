@@ -137,6 +137,20 @@ def test_coordinate_mapping_zoomed_out(image_view):
     assert 175 <= y2 <= 185, f"y2={y2}, expected ~180"
 
 
+def test_coordinate_mapping_subpixel_selection_keeps_nonzero_area(image_view):
+    """A tiny sub-pixel drag still returns a valid 1x1 selection."""
+    image_view.reset_zoom()
+
+    _set_selection(image_view, QPointF(120.2, 100.2), QPointF(120.6, 100.6))
+
+    x1, y1, x2, y2 = image_view.selected_rect_image_coords()
+
+    assert x2 > x1, f"selection should not collapse to zero width ({x1},{x2})"
+    assert y2 > y1, f"selection should not collapse to zero height ({y1},{y2})"
+    assert x2 - x1 == 1
+    assert y2 - y1 == 1
+
+
 def test_coordinate_mapping_rotated_90(image_view):
     """Rotated views should still yield accurate coordinates."""
     image_view.reset_zoom()

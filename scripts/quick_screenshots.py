@@ -15,7 +15,7 @@ sys.path.insert(0, str(project_root))
 def main():
     """Print manual screenshot guide."""
     
-    signature_img = project_root / "512px-Mohammad_Rafiquzzaman_signature.jpg"
+    signature_img = project_root / "desktop_app/resources/signature_template_synthetic_512.jpg"
     demo_pdf = project_root / "assets" / "demo_document.pdf"
     screenshots_dir = project_root / "screenshots"
     

@@ -229,3 +229,10 @@ adding more surface area.
   -> `8 passed in 1.31s`.
 - 2026-08-03: Recorded that hosted route and checkout evidence remains open and
   that Playwright dependencies are not installed in `web/e2e`.
+- 2026-08-12: Extraction API ownership contract advanced from Tier 1 to Tier 3
+  application evidence. The canonical route now requires JWT authentication,
+  enforces asset/workspace ownership, records export/delete/audit receipts, and
+  converges duplicate and concurrent retries. Isolated SQLite migration through
+  `e42b7f8c91aa` passed. Production migration, live hosted smoke, and operator
+  recovery remain open; the earlier matrix row is historical and must not be
+  read as current hosted behavior.

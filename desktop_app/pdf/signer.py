@@ -5,12 +5,18 @@ Otherwise, we use a deliberate pikepdf fallback.
 """
 
 import io
-from typing import List, Dict, Any, cast
+import base64
+import os
+import tempfile
+import json
+from datetime import datetime, timezone
+from typing import Any, Dict, List, cast
 from pathlib import Path
 
 import pikepdf
 from desktop_app.pdf.stack_profile import _is_fitz_allowed, record_signing_backend_telemetry
 from PIL import Image as PILImage
+from PIL import ImageEnhance
 
 # Optional, preferred implementation
 try:
@@ -26,13 +32,257 @@ except Exception:
     fitz = cast(Any, None)  # type: ignore
 
 
+_SIGNATURE_MANIFEST_KEY = "/SignKit-SignaturePlacements"
+_SIGNATURE_MANIFEST_VERSION = 1
+_MAX_SIGNATURE_MANIFEST_IMAGE_BYTES = 256_000
+
+
+def _manifest_image_payload(sig_image_path: str) -> str:
+    try:
+        raw = Path(sig_image_path).read_bytes()
+    except Exception:
+        return ""
+
+    if not raw:
+        return ""
+    if len(raw) > _MAX_SIGNATURE_MANIFEST_IMAGE_BYTES:
+        return ""
+
+    return base64.b64encode(raw).decode("ascii")
+
+
+def _coerce_manifest_text(value: Any, default: str) -> str:
+    if value is None:
+        return default
+    if isinstance(value, str):
+        text = value.strip()
+        return text if text else default
+    return default
+
+
+def _coerce_manifest_float(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _coerce_manifest_int(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return int(default)
+
+
+def _normalize_signature_for_manifest(sig: Dict[str, Any]) -> Dict[str, Any]:
+    style = _coerce_signature_style(sig)
+    sig_path = _coerce_manifest_text(sig.get("sig_path"), "")
+    sig_image_data = _manifest_image_payload(sig_path)
+
+    return {
+        "version": _SIGNATURE_MANIFEST_VERSION,
+        "page": _coerce_manifest_int(sig.get("page"), 0),
+        "x": _coerce_manifest_int(sig.get("x"), 0),
+        "y": _coerce_manifest_int(sig.get("y"), 0),
+        "width": max(1, _coerce_manifest_int(sig.get("width"), 1)),
+        "height": max(1, _coerce_manifest_int(sig.get("height"), 1)),
+        "sig_path": sig_path,
+        "sig_filename": Path(sig_path).name if sig_path else "",
+        "rotation_deg": style.get("rotation_deg", 0.0),
+        "brightness": style.get("brightness", 1.0),
+        "contrast": style.get("contrast", 1.0),
+        "saturation": style.get("saturation", 1.0),
+        "units": "px",
+        "dpi": _coerce_manifest_float(sig.get("dpi"), 150.0),
+        "scale": _coerce_manifest_float(sig.get("scale"), 1.0),
+        "style": style,
+    } | ({"sig_image_data": sig_image_data} if sig_image_data else {})
+
+
+def _build_signature_manifest(signatures: List[Dict[str, Any]]) -> str:
+    placement_list = [_normalize_signature_for_manifest(sig) for sig in signatures if isinstance(sig, dict)]
+    payload = {
+        "kind": "signkit.signature_manifest",
+        "version": _SIGNATURE_MANIFEST_VERSION,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "signatures": placement_list,
+    }
+    return json.dumps(payload, sort_keys=True)
+
+
+def _apply_signature_manifest(output_pdf_path: str, signatures: List[Dict[str, Any]]) -> None:
+    manifest_payload = _build_signature_manifest(signatures)
+    output_path = Path(output_pdf_path)
+    temp_file = tempfile.NamedTemporaryFile(prefix=output_path.name + ".", suffix=".pdf", delete=False)
+    temp_output_pdf = temp_file.name
+    temp_file.close()
+
+    try:
+        with pikepdf.open(output_pdf_path) as pdf:
+            pdf.docinfo[_SIGNATURE_MANIFEST_KEY] = pikepdf.String(manifest_payload)
+            pdf.save(temp_output_pdf)
+
+        os.replace(temp_output_pdf, output_pdf_path)
+    finally:
+        if os.path.exists(temp_output_pdf):
+            os.unlink(temp_output_pdf)
+
+
+def _coerce_manifest_entry_float(entry: Dict[str, Any], key: str, default: float) -> float:
+    try:
+        return float(entry[key])
+    except (TypeError, ValueError, KeyError):
+        return default
+
+
+def _coerce_manifest_entry_int(entry: Dict[str, Any], key: str, default: int) -> int:
+    try:
+        return int(entry[key])
+    except (TypeError, ValueError, KeyError):
+        return default
+
+
+def _coerce_manifest_signature_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
+    style = _coerce_signature_style(entry.get("style"))
+    return {
+        "page": _coerce_manifest_entry_int(entry, "page", 0),
+        "x": _coerce_manifest_entry_int(entry, "x", 0),
+        "y": _coerce_manifest_entry_int(entry, "y", 0),
+        "width": max(1, _coerce_manifest_entry_int(entry, "width", 1)),
+        "height": max(1, _coerce_manifest_entry_int(entry, "height", 1)),
+        "sig_path": _coerce_manifest_text(entry.get("sig_path"), ""),
+        "rotation_deg": _coerce_manifest_entry_float(entry, "rotation_deg", 0.0),
+        "brightness": _coerce_manifest_entry_float(entry, "brightness", 1.0),
+        "contrast": _coerce_manifest_entry_float(entry, "contrast", 1.0),
+        "saturation": _coerce_manifest_entry_float(entry, "saturation", 1.0),
+        "style": style,
+        "units": _coerce_manifest_text(entry.get("units"), "px"),
+        "dpi": _coerce_manifest_entry_float(entry, "dpi", 150.0),
+        "scale": _coerce_manifest_entry_float(entry, "scale", 1.0),
+        "sig_image_data": _coerce_manifest_text(entry.get("sig_image_data"), ""),
+    }
+
+
+def read_signature_manifest(pdf_path: str) -> List[Dict[str, Any]]:
+    """Read embedded SignKit signature placement metadata from an output PDF."""
+    if not Path(pdf_path).exists():
+        return []
+
+    try:
+        with pikepdf.open(pdf_path) as pdf:
+            raw_manifest = pdf.docinfo.get(_SIGNATURE_MANIFEST_KEY)
+    except Exception:
+        return []
+
+    if not raw_manifest:
+        return []
+
+    try:
+        manifest = json.loads(str(raw_manifest))
+    except Exception:
+        return []
+
+    if not isinstance(manifest, dict):
+        return []
+    if manifest.get("kind") != "signkit.signature_manifest":
+        return []
+
+    items = manifest.get("signatures")
+    if not isinstance(items, list):
+        return []
+
+    normalized = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        normalized.append(_coerce_manifest_signature_entry(item))
+    return normalized
+
+
+def _coerce_float(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_signature_style(sig: Dict[str, Any]) -> Dict[str, float]:
+    return {
+        "rotation_deg": _coerce_float(sig.get("rotation_deg", 0.0), 0.0) % 360.0,
+        "brightness": _coerce_float(sig.get("brightness", 1.0), 1.0),
+        "contrast": _coerce_float(sig.get("contrast", 1.0), 1.0),
+        "saturation": _coerce_float(sig.get("saturation", 1.0), 1.0),
+    }
+
+
+def _build_signature_image(
+    sig_image_path: str,
+    rotation_deg: float = 0.0,
+    brightness: float = 1.0,
+    contrast: float = 1.0,
+    saturation: float = 1.0,
+) -> PILImage.Image:
+    """Build a style-adjusted signature image for PDF embedding."""
+    sig_image = cast(PILImage.Image, PILImage.open(sig_image_path)).convert("RGBA")
+
+    rotation_deg = float(rotation_deg) % 360.0
+    if rotation_deg:
+        # PIL rotate is CCW-positive; mirror with clockwise-positive control UI.
+        sig_image = sig_image.rotate(-rotation_deg, expand=True, fillcolor=(0, 0, 0, 0))
+        sig_image = sig_image.convert("RGBA")
+
+    brightness_value = _coerce_float(brightness, 1.0)
+    if brightness_value > 0:
+        sig_image = ImageEnhance.Brightness(sig_image).enhance(brightness_value)
+
+    contrast_value = _coerce_float(contrast, 1.0)
+    if contrast_value > 0:
+        sig_image = ImageEnhance.Contrast(sig_image).enhance(contrast_value)
+
+    saturation_value = _coerce_float(saturation, 1.0)
+    if saturation_value > 0:
+        sig_image = ImageEnhance.Color(sig_image).enhance(saturation_value)
+
+    return sig_image.convert("RGBA")
+
+
+def _build_signature_tmp_image_file(
+    sig_image_path: str,
+    *,
+    rotation_deg: float = 0.0,
+    brightness: float = 1.0,
+    contrast: float = 1.0,
+    saturation: float = 1.0,
+) -> str:
+    styled_image = _build_signature_image(
+        sig_image_path,
+        rotation_deg=rotation_deg,
+        brightness=brightness,
+        contrast=contrast,
+        saturation=saturation,
+    )
+    temp_file = tempfile.NamedTemporaryFile(prefix="signkit_sig_", suffix=".png", delete=False)
+    temp_path = temp_file.name
+    temp_file.close()
+    styled_image.save(temp_path, format="PNG")
+    return temp_path
+
+
+def _cleanup_signature_temp_file(path: str) -> None:
+    if path and os.path.exists(path):
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+
+
 class PDFSigner:
     """Embed signature images into PDF documents.
 
     Behavior:
     - When PyMuPDF is available, it is used to insert images via Page.insert_image,
       which is reliable and supported by PDF viewers (including Acrobat).
-    - If PyMuPDF is unavailable, a legacy pikepdf-based stream approach is used
+    - If PyMuPDF is unavailable, a deliberate pikepdf fallback is used
       as a fallback.
     """
 
@@ -84,7 +334,17 @@ class PDFSigner:
                 raise ValueError(f"Failed to open PDF (pikepdf): {e}")
 
     def add_signature(
-        self, page_num: int, sig_image_path: str, x: float, y: float, width: float, height: float
+        self,
+        page_num: int,
+        sig_image_path: str,
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        rotation_deg: float = 0.0,
+        brightness: float = 1.0,
+        contrast: float = 1.0,
+        saturation: float = 1.0,
     ) -> None:
         """
         Add a signature image to a specific page.
@@ -94,6 +354,10 @@ class PDFSigner:
             sig_image_path: Path to signature image file
             x, y: Position on page.
             width, height: Signature dimensions.
+            rotation_deg: Signature image rotation in degrees.
+            brightness: Brightness multiplier (1.0 means unchanged).
+            contrast: Contrast multiplier (1.0 means unchanged).
+            saturation: Saturation multiplier (1.0 means unchanged).
 
         Coordinates origin and units:
         - PyMuPDF path (preferred): expects top-left origin in PDF page space
@@ -115,7 +379,22 @@ class PDFSigner:
             # Insert image; preserve aspect ratio similar to viewer overlay
             # (image is scaled to fit into rect while maintaining aspect)
             try:
-                page.insert_image(rect, filename=sig_image_path, keep_proportion=True, overlay=True)
+                image_file = _build_signature_tmp_image_file(
+                    sig_image_path,
+                    rotation_deg=rotation_deg,
+                    brightness=brightness,
+                    contrast=contrast,
+                    saturation=saturation,
+                )
+                try:
+                    page.insert_image(
+                        rect,
+                        filename=image_file,
+                        keep_proportion=True,
+                        overlay=True,
+                    )
+                finally:
+                    _cleanup_signature_temp_file(image_file)
             except Exception as e:
                 raise ValueError(f"Failed to insert image: {e}")
             return
@@ -130,7 +409,13 @@ class PDFSigner:
         page = self._pdf.pages[page_num]
 
         # Load signature image; cast to concrete Image type for type checkers
-        sig_image = cast(PILImage.Image, PILImage.open(sig_image_path))
+        sig_image = _build_signature_image(
+            sig_image_path,
+            rotation_deg=rotation_deg,
+            brightness=brightness,
+            contrast=contrast,
+            saturation=saturation,
+        )
 
         # Preserve RGBA for transparency, convert others to RGB
         if sig_image.mode not in ("RGBA", "RGB", "L"):
@@ -280,10 +565,15 @@ def sign_pdf(input_pdf_path: str, output_pdf_path: str,
                    - sig_path: str (path to signature image)
                    - x, y: float (position in PDF coordinates)
                    - width, height: float (dimensions in PDF points)
+                   - rotation_deg (optional): signature rotation in degrees
+                   - brightness (optional): brightness multiplier
+                   - contrast (optional): contrast multiplier
+                   - saturation (optional): saturation multiplier
     
     Returns:
         True if successful, False otherwise
     """
+    signer: PDFSigner | None = None
     try:
         signer = PDFSigner(input_pdf_path)
         
@@ -309,6 +599,7 @@ def sign_pdf(input_pdf_path: str, output_pdf_path: str,
                 width *= px_to_pt
                 height *= px_to_pt
 
+            style = _coerce_signature_style(sig)
             signer.add_signature(
                 page_num=int(sig["page"]),
                 sig_image_path=str(sig["sig_path"]),
@@ -316,12 +607,33 @@ def sign_pdf(input_pdf_path: str, output_pdf_path: str,
                 y=y,
                 width=width,
                 height=height,
+                rotation_deg=style["rotation_deg"],
+                brightness=style["brightness"],
+                contrast=style["contrast"],
+                saturation=style["saturation"],
             )
-        
+
         signer.save(output_pdf_path)
-        signer.close()
+        try:
+            _apply_signature_manifest(output_pdf_path, signatures)
+        except Exception as exc:
+            print(f"Warning: could not embed signature manifest metadata into output PDF. {exc}")
         return True
-        
     except Exception as e:
         print(f"Error signing PDF: {e}")
         return False
+    finally:
+        if signer is not None:
+            signer.close()
+
+
+def sign_pdf_with_certificate(*args, **kwargs):
+    """Proxy to the explicit certificate-backed PAdES signer.
+
+    Kept beside the visual `sign_pdf` entry point so callers can choose the
+    signing semantics deliberately without creating a second PDF pipeline.
+    """
+
+    from desktop_app.pdf.digital_signer import sign_pdf_with_certificate as _sign
+
+    return _sign(*args, **kwargs)

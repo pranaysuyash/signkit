@@ -4,7 +4,7 @@ import math
 import sys
 from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtGui import QPalette
-from PySide6.QtWidgets import QLabel, QStatusBar
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QStatusBar, QPushButton, QWidget
 
 
 class PaneClickEventFilter(QObject):
@@ -34,7 +34,10 @@ class PaneStatusMixin:
                 " border-top: 1px solid rgba(0, 0, 0, 20); }"
             )
 
-        self.backend_status_label = QLabel("Backend: checking…")
+        self.backend_status_label = QLabel("Local service: checking…")
+        self.backend_status_label.setToolTip(
+            "Local companion service status. Document processing remains local by default."
+        )
         self.backend_status_label.setStyleSheet("color: #a37f00; padding: 2px 8px;")
         self.status_bar.addPermanentWidget(self.backend_status_label)
 
@@ -57,6 +60,25 @@ class PaneStatusMixin:
         self.selection_coords_label.setStyleSheet(mono_style)
         self.selection_coords_label.setToolTip("Selected area coordinates in image pixel space")
         self.status_bar.addPermanentWidget(self.selection_coords_label)
+
+        self._trial_notice_widget = QWidget()
+        self._trial_notice_layout = QHBoxLayout(self._trial_notice_widget)
+        self._trial_notice_layout.setContentsMargins(4, 2, 4, 2)
+        self._trial_notice_layout.setSpacing(6)
+        self.trial_notice_label = QLabel("Trial mode: Export/Copy/Save are locked")
+        self.trial_notice_label.setStyleSheet("color: #b07a00; padding: 2px 4px;")
+        self._trial_notice_layout.addWidget(self.trial_notice_label)
+        self.unlock_license_button = QPushButton("Unlock with License")
+        self.unlock_license_button.setToolTip("Buy a license or enter an existing one")
+        self.unlock_license_button.setStyleSheet(
+            "padding: 2px 8px;"
+            "border-radius: 12px;"
+            "border: 1px solid rgba(127, 127, 127, 0.8);"
+        )
+        self.unlock_license_button.clicked.connect(self._open_license_cta_action)
+        self._trial_notice_layout.addWidget(self.unlock_license_button)
+        self.status_bar.addPermanentWidget(self._trial_notice_widget)
+        self._update_trial_notice(False)
 
         # Combine zoom and rotation into one label to save space
         self.zoom_rotation_label = QLabel("Z: – | R: –")
@@ -172,6 +194,26 @@ class PaneStatusMixin:
             zoom_combo.setEditText(text)
         finally:
             self._updating_zoom_combo = False
+
+    def _open_license_cta_action(self) -> None:
+        if hasattr(self, "on_buy_license") and callable(getattr(self, "on_buy_license")):
+            self.on_buy_license()
+            return
+        if hasattr(self, "on_enter_license") and callable(getattr(self, "on_enter_license")):
+            self.on_enter_license()
+
+    def _update_trial_notice(self, export_allowed: bool | None = None) -> None:
+        if not hasattr(self, "_trial_notice_widget") or not hasattr(self, "trial_notice_label"):
+            return
+        if export_allowed is None:
+            from desktop_app.license import is_export_allowed
+
+            export_allowed = bool(is_export_allowed())
+        if export_allowed:
+            self._trial_notice_widget.hide()
+            return
+        self.trial_notice_label.setText("Trial mode: Export, Copy, and Save to Library are locked")
+        self._trial_notice_widget.show()
 
     def _update_pane_borders(self) -> None:
         palette = self.palette()

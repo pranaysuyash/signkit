@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import argparse
+from datetime import datetime, timezone
 from pathlib import Path
+import random
+import json
+import sys
 
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 
 OUTPUT = Path(__file__).resolve().parents[1] / "desktop_app" / "tests" / "fixtures" / "native_form_benchmark.pdf"
+SCRIPT_VERSION = "1.0.0"
+DEFAULT_SEED = 20260812
 
 
 def build_fixture(path: Path) -> None:
@@ -84,9 +91,45 @@ def build_fixture(path: Path) -> None:
     cnv.save()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate a native-form fixture used by parser/integration tests."
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=OUTPUT,
+        help="Fixture output path.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help="Determinism seed for any future randomized generation paths.",
+    )
+    return parser.parse_args()
+
+
+def emit_reproducibility_metadata(seed: int, output: Path) -> None:
+    metadata = {
+        "script": "generate_native_form_fixture.py",
+        "version": SCRIPT_VERSION,
+        "seed": seed,
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "output": str(output),
+        "command": " ".join([str(arg) for arg in sys.argv]),
+    }
+    print(json.dumps(metadata, indent=2))
+
+
 def main() -> None:
-    build_fixture(OUTPUT)
-    print(OUTPUT)
+    args = parse_args()
+    output = args.output
+    random.seed(args.seed)
+
+    emit_reproducibility_metadata(seed=args.seed, output=output)
+    build_fixture(output)
+    print(output)
 
 
 if __name__ == "__main__":

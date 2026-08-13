@@ -37,7 +37,7 @@ class FinalScreenshotCapture:
         self.screenshot_count = 0
         
         # Test assets
-        self.signature_image = project_root / "512px-Mohammad_Rafiquzzaman_signature.jpg"
+        self.signature_image = project_root / "desktop_app/resources/signature_template_synthetic_512.jpg"
         self.demo_pdf = project_root / "assets" / "demo_document.pdf"
         
         # Initialize Qt Application

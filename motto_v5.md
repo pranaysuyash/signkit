@@ -103,6 +103,26 @@ Chat is ephemeral; the repo is the durable memory of the project. A session ends
 - **Transcript-grade depth** — for any redirect or rejection: the operator's verbatim words (blockquoted) plus the consequence. Paraphrase erases the decision logic; verbatim preserves it.
 - **Skim-grade depth** — for minor observations: a one-line note in the relevant map/log. Not everything needs a dedicated doc; but everything worth saying needs *somewhere* durable.
 
+**When to document (triggers — never wait for a reminder):**
+- In the same pass as the work: the moment behavior, a decision, a risk, a contract, or strategy changes, write the durable note. Documentation is delivery, not a follow-up task.
+- The instant a redirect or rejection lands: capture the operator's verbatim words (blockquoted) and the consequence. A rejected direction not recorded will be re-proposed by the next agent.
+- Before ending a session or marking work done: run the reconstructability test (below). If the next agent could not reconstruct why we are where we are, documentation is incomplete.
+- When scope widens or the product shape changes: append the widening to the decision record's Update log and re-derive dependent decisions; do not silently keep the old shape.
+- When a claim is made: attach an evidence tier (§0.5) and, for external facts, the date and source. No claim without a tier.
+
+**Why this is mandatory (not optional polish):**
+- Chat is ephemeral; the repo is the durable memory of the project. A session ends and the conversation vanishes.
+- A decision, analysis, redirect, or audit survives only if written to a durable doc. Decisions not recorded are rediscovered and re-debated.
+- Strategic and positioning decisions (target, category, wedge, messaging, naming) are load-bearing: record them at decision-grade with the options considered, the rejection reasons, and what would cause the decision to be revisited (see §0.12). The 2026-08-12 positioning decisions log is the exemplar.
+- The goal is not to document everything said; it is to ensure no load-bearing reasoning is lost to chat ephemerality.
+
+**How detailed (default minimum):**
+- Decision-grade for any load-bearing choice: options, selection, rejection reasons, evidence tier, what would revisit it, update-log entry on change.
+- Analysis-grade for any evaluation: method, full candidate set, criteria, per-candidate assessment.
+- Transcript-grade for any redirect/rejection: operator's verbatim words + consequence. Never paraphrase a redirect.
+- Skim-grade for minor observations: a one-line note in the relevant map/log.
+- Work lives in the project: write to repo-local canonical docs and commit to `main`. Never leave load-bearing reasoning in `/tmp`, shell logs, or chat-only. (See §4 Local Work Preservation and §0.12.)
+
 **Where to document:**
 
 - Prefer repo-local canonical locations (`docs/`, project maps, decision logs). Avoid scattering durable knowledge in tool outputs, shell logs, or chat that will not survive the session.
@@ -1790,6 +1810,30 @@ lifecycle, and business claims. The canonical filename is now `motto_v5.md`.
 Do not create a parallel `motto_v4.md` operating path. Historical v4 copies may
 remain in Downloads or Git history, but active project working trees must carry
 only v5 after propagation.
+
+### 9.1 Parallel-Agent Commit Ownership Rule (v5 clarification)
+
+The user runs several agents in parallel on the same repo, frequently across
+sessions. The agent tasked with a commit (or any gated, sign-off-required
+action) assumes the FULL owner role for the entire staged tree, regardless of
+which agent or session produced each change.
+
+- Pre-existing, in-flight, or parallel-session work is OWNED by the committing
+  agent, not excused. "This was another agent's work / another session's work"
+  is NOT a valid reason to skip verification, risk classification, or sign-off.
+  This is the literal mandate of §6 (Pre-existing Is Not an Excuse) read with
+  §2 and §4 (parallel work is real work, never assumed junk).
+- The committer must verify the whole tree to the evidence tier the change
+  class demands (§0.5 / §0.6) before attesting `Risk-Class` and `Evidence-Tier`
+  in the commit trailers. If verification cannot be completed in-session, state
+  the exact missing check and next step; do NOT lower the classification or
+  disclaim ownership to avoid the work.
+- Attribution of origin does not change the owner's obligation. Whether the code
+  came from the user, another agent, or the same agent in a prior session, the
+  committing agent is responsible for its correctness, safety, and gated claims.
+- Disclaiming ownership of parallel work reintroduces the exact silent-loss and
+  silent-risk patterns §6 forbids. When in doubt, verify; when blocked, say
+  what blocks you — never hide behind "it wasn't mine."
 
 ### Anything else?
 

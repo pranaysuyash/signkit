@@ -61,26 +61,11 @@ if ! "$PYTHON_BIN" -c "import PyInstaller" 2>/dev/null; then
     "$PYTHON_BIN" -m pip install pyinstaller
 fi
 
-# Check other required packages
-echo "Checking required packages..."
-REQUIRED_PACKAGES=("PySide6:PySide6" "Pillow:PIL" "opencv-python:cv2" "numpy:numpy" "requests:requests")
-MISSING_PACKAGES=()
-
-for package_spec in "${REQUIRED_PACKAGES[@]}"; do
-    package_name="${package_spec%%:*}"
-    module_name="${package_spec##*:}"
-    if ! "$PYTHON_BIN" -c "import $module_name" 2>/dev/null; then
-        MISSING_PACKAGES+=("$package_name")
-    fi
-done
-
-if [ ${#MISSING_PACKAGES[@]} -gt 0 ]; then
-    echo -e "${YELLOW}Missing packages: ${MISSING_PACKAGES[*]}${NC}"
-    echo "Installing missing packages..."
-    "$PYTHON_BIN" -m pip install "${MISSING_PACKAGES[@]}"
-fi
-
-echo -e "${GREEN}✓ All required packages available${NC}"
+# Validate dependencies in the selected project environment. The gate fails
+# with a reproducible command instead of silently mutating an arbitrary Python.
+echo "Checking test-data and extraction environment..."
+"$PYTHON_BIN" tools/validate_test_data_environment.py --repo-root "$PROJECT_ROOT" --python "$PYTHON_BIN"
+echo -e "${GREEN}✓ All required test-data packages available${NC}"
 echo ""
 
 # Clean previous builds

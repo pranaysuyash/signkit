@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "seed": 20260812,
+  "generator": "tools/generate_signature_edge_case_fixtures.py",
+  "privacy": "synthetic only; no production-derived strokes",
+  "annotation_schema": "ground_truth boxes are [x1, y1, x2, y2] in source-image pixels",
+  "cases": [
+    {
+      "name": "blank_canvas",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/blank_canvas.png",
+      "expected_detection": "none",
+      "ground_truth": [],
+      "tags": [
+        "blank",
+        "background_only"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "d8acccafa1fdcf03f3bb9112f5f2f30ad1558e446d5c12ec5644fc0d53c1e58b"
+    },
+    {
+      "name": "low_contrast",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/low_contrast.png",
+      "expected_detection": "present",
+      "ground_truth": [
+        [
+          90,
+          160,
+          430,
+          360
+        ]
+      ],
+      "min_width": 120,
+      "min_height": 40,
+      "tags": [
+        "contrast:low",
+        "background:gray"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "32a4155d0dcdca61998355d03f7568cb0f802c161609322aef05ae876cfe856f"
+    },
+    {
+      "name": "rotated_tilted",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/rotated_tilted.png",
+      "expected_detection": "present",
+      "ground_truth": [
+        [
+          70,
+          130,
+          445,
+          385
+        ]
+      ],
+      "min_width": 120,
+      "min_height": 40,
+      "tags": [
+        "rotation:tilted",
+        "background:white"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "74bd26e70c93ac50fc6ee2832a3b8177dbbf67cead9a42f96f1f02cfcb29d8b1"
+    },
+    {
+      "name": "offset_noisy",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/offset_noisy.png",
+      "expected_detection": "present",
+      "ground_truth": [
+        [
+          135,
+          145,
+          475,
+          350
+        ]
+      ],
+      "min_width": 120,
+      "min_height": 40,
+      "tags": [
+        "signature_position:offset",
+        "scan_noise:high"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "0b0fd3714f8b749c47577b14ab62982b9cb9bf658a6b8e86f4c48e631a59a1b8"
+    },
+    {
+      "name": "partial_occlusion",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/partial_occlusion.png",
+      "expected_detection": "present",
+      "ground_truth": [
+        [
+          90,
+          160,
+          425,
+          355
+        ]
+      ],
+      "min_width": 100,
+      "min_height": 35,
+      "tags": [
+        "occlusion:partial",
+        "signature_position:center"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "90b45813600ef918600644d6cdbdf3d64fe064c50fd6a878639a3f0805e9885d"
+    },
+    {
+      "name": "multi_signature",
+      "file": "desktop_app/tests/fixtures/signature_edge_cases/multi_signature.png",
+      "expected_detection": "present",
+      "ground_truth": [
+        [
+          30,
+          160,
+          360,
+          355
+        ],
+        [
+          235,
+          160,
+          510,
+          355
+        ]
+      ],
+      "min_width": 120,
+      "min_height": 40,
+      "tags": [
+        "signature_count:multiple",
+        "signature_position:split"
+      ],
+      "split": "regression",
+      "image_size": [
+        512,
+        512
+      ],
+      "sha256": "17538e2eed452740dcec043201ed2157680a8ba005ee7f2e914de2df87562a59"
+    }
+  ]
+}

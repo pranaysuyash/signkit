@@ -11,10 +11,11 @@ Applies to the desktop app (PySide6).
 - Fit to View: Ctrl/Cmd+1
 - Rotate CW (active pane): Ctrl/Cmd+]
 - Rotate CCW (active pane): Ctrl/Cmd+[
-- Clear Selection: Ctrl/Cmd+D
+- Clear Selection: Delete (also Ctrl/Cmd+D)
 - Clean Session: Ctrl+Shift+X
 - Toggle Mode: Ctrl/Cmd+T
 - Save to Library: Ctrl/Cmd+L
+- Cancel active operation / clear selection: Escape
 
 **PDF Shortcuts**:
 

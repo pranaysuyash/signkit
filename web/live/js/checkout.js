@@ -18,6 +18,22 @@
     }
   }
 
+  function getEntryAttribution() {
+    const params = new URLSearchParams(window.location.search);
+    const attribution = {
+      entry_path: window.location.pathname || '/',
+    };
+
+    for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content']) {
+      const value = params.get(key);
+      if (value) {
+        attribution[key] = value.slice(0, 160);
+      }
+    }
+
+    return attribution;
+  }
+
   function trackCheckout(provider, placement) {
     if (typeof window.gtag === 'function') {
       window.gtag('event', 'checkout_intent', {
@@ -25,6 +41,7 @@
         checkout_provider: provider,
         placement,
         value: 1,
+        ...getEntryAttribution(),
       });
     }
   }
@@ -43,7 +60,8 @@
   }
 
   function disableCheckoutLink(link, title) {
-    link.removeAttribute('href');
+    link.href = '';
+    link.setAttribute('role', 'button');
     link.setAttribute('aria-disabled', 'true');
     link.title = title;
     setCheckoutRole(link, 'unavailable');
@@ -51,6 +69,7 @@
 
   function enableCheckoutLink(link, url, role) {
     link.href = url;
+    link.removeAttribute('role');
     link.removeAttribute('aria-disabled');
     link.removeAttribute('title');
     setCheckoutRole(link, role);

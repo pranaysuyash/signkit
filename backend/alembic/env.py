@@ -137,6 +137,7 @@ from backend.app.database import Base
 from backend.app.models.user import User  # noqa
 from backend.app.models.image import Image  # noqa
 from backend.app.models.workspace import WorkspaceExecution, WorkspaceExecutionEvent  # noqa
+from backend.app.models.extraction_audit import ExtractionAuditEvent  # noqa
 from backend.app.config import settings
 
 # this is the Alembic Config object

@@ -32,7 +32,7 @@ def main():
     print("  3. You manually show all features")
     print("\n🎬 Features to demonstrate:")
     print("  ✓ Main interface")
-    print("  ✓ Open image (512px-Mohammad_Rafiquzzaman_signature.jpg)")
+    print("  ✓ Open image (desktop_app/resources/signature_template_synthetic_512.jpg)")
     print("  ✓ Draw selection rectangle")
     print("  ✓ Adjust threshold slider")
     print("  ✓ Click Preview/Extract")

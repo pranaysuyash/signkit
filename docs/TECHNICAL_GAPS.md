@@ -7,9 +7,9 @@ This reflects the current codebase on the `feature/desktop-pyqt-base` branch aft
 ## Critical Launch Gaps
 
 ### 1. Ports & Configuration
-- `desktop_app/README.md` still references port **8000** while the app and backend default to **8001**.
-- No checked-in `.env.example` describing required variables (`API_BASE_URL`, `JWT_SECRET`, `DATABASE_URL`).
-**Action:** Update docs to 8001 everywhere and add `.env.example` at repo root. (Estimate: 30–45 min)
+- `desktop_app/README.md` previously referenced port **8000** while the app and backend default to **8001**.
+- No checked-in `.env.example` describing required variables (`API_BASE_URL`, `JWT_SECRET`, `DATABASE_URL`). *(Superseded 2026-08-12; addendum below.)*
+**Action:** Review stale references by location and keep active and archived materials explicitly separated before launch claims. (Estimate: 30–45 min)
 
 ### 2. Packaging & Distribution
 - No PyInstaller/Nuitka build scripts; no unsigned DMG/EXE/AppImage artifacts.
@@ -82,3 +82,11 @@ This reflects the current codebase on the `feature/desktop-pyqt-base` branch aft
 
 Answering these will determine which high-priority tasks stay in the launch gate.
 
+
+## Addendum (2026-08-12)
+
+- `desktop_app/README.md` now references port **8001** consistently for local runs.
+- `.env.example` exists at repository root and includes API, auth, DB, and updates settings.
+- `scripts/run-backend-dev.sh` is now aligned with the same port policy and uses `BACKEND_PORT` (default `8001`).
+- Remaining `8000` references are concentrated in historical/archived launch artifacts, not active runtime instructions.
+- Next decision: whether to normalize archived references or explicitly treat them as historical only.

@@ -116,7 +116,7 @@ python scripts/take_screenshots.py --auto
 - PySide6 (Qt framework)
 - SignKit desktop app dependencies
 - Test assets:
-  - `512px-Mohammad_Rafiquzzaman_signature.jpg` (signature image)
+  - `desktop_app/resources/signature_template_synthetic_512.jpg` (signature image)
   - `assets/demo_document.pdf` (PDF document)
 
 ---
@@ -151,7 +151,7 @@ pip install PySide6
 ```
 
 **"Signature image not found"**
-- Ensure `512px-Mohammad_Rafiquzzaman_signature.jpg` exists in project root
+- Ensure `desktop_app/resources/signature_template_synthetic_512.jpg` exists in project root
 - Or update the script to point to your test image
 
 **"PDF not found"**

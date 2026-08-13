@@ -229,7 +229,7 @@ pip install PySide6
 ### Assets
 
 1. **Signature Image** (required)
-   - Path: `512px-Mohammad_Rafiquzzaman_signature.jpg`
+   - Path: `desktop_app/resources/signature_template_synthetic_512.jpg`
    - Format: JPG/PNG
    - Purpose: Extraction demo
 
@@ -296,7 +296,7 @@ pip install PySide6
 ```
 
 **"Signature image not found"**
-- Check file exists: `512px-Mohammad_Rafiquzzaman_signature.jpg`
+- Check file exists: `desktop_app/resources/signature_template_synthetic_512.jpg`
 - Or update script path
 
 **"Screenshots are blank"**

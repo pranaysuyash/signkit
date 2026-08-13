@@ -57,7 +57,8 @@ This document contains technical implementation details that were removed from t
 ### Extraction (`/extraction`)
 
 - `POST /extraction/upload`: Image upload (multipart/form-data)
-- `POST /extraction/process_image/{session_id}`: Process selection
+- `POST /extraction/select_region/`: Persist a validated region selection for a session
+- `POST /extraction/process_image/`: Process selection
   - Parameters: x1, y1, x2, y2, color, threshold
   - Returns: PNG bytes of extracted signature
 
@@ -76,7 +77,10 @@ This document contains technical implementation details that were removed from t
 ### File Storage
 
 - Images stored in `backend/uploads/images/`
-- Static serving via `/uploads/images/` endpoint
+- Stored files are intentionally not publicly mounted via `/uploads/images/` in the current architecture
+- Upload reads are bounded to the configured maximum plus one byte, and validated files are atomically written with owner-readable permissions.
+- Stale image and region metadata artifacts are cleaned at startup and after successful uploads; the default retention is 24 hours and is configurable with `SIGNKIT_UPLOAD_RETENTION_SECONDS`.
+- This local lifecycle does not provide hosted owner authorization or idempotent cross-request retry semantics.
 - SQLite database: `backend/data/app.db` (configurable)
 
 ## Coordinate Systems
@@ -236,3 +240,7 @@ python backend/test_auth.py  # Test login flow
 - No database dependency for library features
 
 This technical documentation preserves the implementation details that were removed from the user-facing help, ensuring developers and advanced users have access to the information they need while keeping the main help focused on end-user questions.
+
+### Hosted extraction asset contract (2026-08-12)
+
+Hosted extraction is authenticated through the canonical JWT dependency and owner-scoped by `Image.user_id`. Optional workspace execution linkage is accepted only when the execution belongs to the authenticated owner. Files are written privately and returned as internal paths only; export creates a receipt-backed ZIP, deletion records a soft-delete and cleanup receipt, and the audit endpoint remains available to the owner after deletion. Duplicate and concurrent retries converge through the database uniqueness constraint on owner, event type, and idempotency key. Migration `e42b7f8c91aa` must be applied before deployment.

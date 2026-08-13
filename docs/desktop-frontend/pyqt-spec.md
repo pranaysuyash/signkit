@@ -25,7 +25,7 @@ This document describes the desktop GUI application built with PySide6 (Qt for P
 - File picker dialog (PNG/JPG/JPEG)
 - **EXIF auto-rotation**: Automatically corrects image orientation based on EXIF data
 - Call `POST /extraction/upload` as multipart/form-data with `file` field
-- Response: `{ id (UUID), filename, file_path }`
+- Response: `{ id (UUID), filename, file_path }` where `file_path` is intentionally server-private (`null` in current contract); the authenticated client sends a stable `Idempotency-Key`
 - Session ID saved in `SessionState` and **displayed in status bar footer** with tooltip
 
 ### 3) Select Region (✅ Implemented)
@@ -96,7 +96,7 @@ All API calls go to `http://127.0.0.1:8001`
 
 **POST /extraction/upload**
 - Content-Type: `multipart/form-data` (field `file`)
-- Response: `{ id (UUID), filename, file_path }`
+- Response: `{ id (UUID), filename, file_path }` where `file_path` is internal metadata (`null` in current contract)
 
 **POST /extraction/process_image/**
 - Params/Form fields: `session_id` (UUID), `x1`, `y1`, `x2`, `y2`, `color` ("#RRGGBB"), `threshold` (0-255)
@@ -108,7 +108,7 @@ All API calls go to `http://127.0.0.1:8001`
 **Notes**:
 - Color string **must start with `#`** - backend parses hex at indexes 1, 3, 5
 - Coordinates clamped to actual image size (backend + frontend validation)
-- Backend mounts static uploads at `/uploads/images`
+- Backend keeps uploaded files in user-writable upload storage, but does not mount them publicly.
 
 ## Project Layout (Current Implementation)
 
@@ -145,7 +145,7 @@ desktop_app/
 ### api/client.py (✅ Complete)
 - **ApiClient class**:
   - `login(email, password)` → stores JWT token
-  - `upload_image(file_path)` → returns `{id, filename, file_path}`
+  - `upload_image(file_path)` → returns `{id, filename, file_path}` (`file_path` remains private and is `null`)
   - `process_image(session_id, x1, y1, x2, y2, color, threshold)` → returns PNG bytes
 - **Authorization**: Adds `Authorization: Bearer {token}` header when token present
 - **Base URL**: `http://127.0.0.1:8001` (configurable via environment)
@@ -311,3 +311,7 @@ pyinstaller --noconfirm --windowed --name "Signature Extractor" desktop_app/main
   - Help & Troubleshooting (opens docs/HELP.md)
   - Keyboard Shortcuts (opens docs/SHORTCUTS.md)
   - Backend health check (opens http://127.0.0.1:8001/health)
+
+### Hosted extraction contract addendum (2026-08-12)
+
+Backend extraction calls require a JWT owner session. Upload, region selection, and process calls use stable idempotency keys; export, delete, and audit receipts are owner-scoped operations. Local/offline extraction remains separate from hosted API authorization. Production readiness still requires applying the ownership/audit migration and completing the `L0-09` hosted smoke gate.

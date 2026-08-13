@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 
-SAMPLE_SIGNATURE_NAME = "512px-Mohammad_Rafiquzzaman_signature.jpg"
+SAMPLE_SIGNATURE_NAME = "signature_template_synthetic_512.jpg"
 
 
 def _canonical_sample_path() -> Path | None:
@@ -15,7 +15,7 @@ def _canonical_sample_path() -> Path | None:
     source_root = Path(__file__).resolve().parents[2]
     candidates = [
         Path(__file__).resolve().with_name(SAMPLE_SIGNATURE_NAME),
-        source_root / SAMPLE_SIGNATURE_NAME,
+        source_root / "desktop_app" / "resources" / SAMPLE_SIGNATURE_NAME,
     ]
     bundle_root = getattr(sys, "_MEIPASS", None)
     if bundle_root:
@@ -23,7 +23,6 @@ def _canonical_sample_path() -> Path | None:
         candidates.extend(
             [
                 bundle / "desktop_app" / "resources" / SAMPLE_SIGNATURE_NAME,
-                bundle / SAMPLE_SIGNATURE_NAME,
             ]
         )
 
