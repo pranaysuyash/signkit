@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 
 from desktop_app.resources.icons import get_icon
 from desktop_app.widgets.modern_mac_button import ModernMacButton
+from desktop_app.workflows.operator_content import companion_status_message
 
 
 def _create_button(
@@ -477,10 +478,10 @@ class OnboardingDialog(QDialog):
     def _on_health_check_result(self, online: bool, message: str) -> None:
         """Handle backend health check result."""
         if online:
-            self.health_status_label.setText("Backend is online and ready")
+            self.health_status_label.setText("Local companion is online and ready")
             self.health_status_label.setStyleSheet("font-size: 13px; color: #2e7d32;")
         else:
-            self.health_status_label.setText(f"Backend offline: {message}")
+            self.health_status_label.setText(companion_status_message("offline"))
             self.health_status_label.setStyleSheet("font-size: 13px; color: #c62828;")
 
     def _open_license_dialog(self) -> None:

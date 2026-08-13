@@ -1,7 +1,13 @@
 """Tests for safe, stable operator-facing workflow copy."""
 
 from desktop_app.workflows.models import WorkflowState
-from desktop_app.workflows.operator_content import outcome_message, state_label
+from desktop_app.workflows.operator_content import (
+    companion_status_label,
+    companion_status_message,
+    companion_tooltip,
+    outcome_message,
+    state_label,
+)
 
 
 def test_state_labels_are_human_facing_and_stable() -> None:
@@ -27,3 +33,21 @@ def test_terminal_and_recovery_copy_follows_state_contract() -> None:
         "The visual output could not be created. Retry is available when safe."
     )
     assert outcome_message(None, WorkflowState.NEEDS_REVIEW) == "Needs review before the workflow can continue."
+
+
+def test_local_companion_copy_is_bounded_and_recoverable() -> None:
+    assert companion_status_label("offline") == "Local service: Offline"
+    message = companion_status_message("offline")
+    tooltip = companion_tooltip("offline")
+
+    assert "local companion" in message.lower()
+    assert "core signature extraction" in message.lower()
+    assert "retry" in message.lower()
+    assert "127.0.0.1" not in tooltip
+    assert "Backend unavailable" not in tooltip
+    assert "raw exception" not in tooltip.lower()
+
+
+def test_unknown_companion_state_fails_to_checking_copy() -> None:
+    assert companion_status_label("future_state") == "Local service: Checking..."
+    assert "status is checked" in companion_status_message("future_state")

@@ -64,6 +64,11 @@ from desktop_app.views.export_dialog import ExportDialog
 from desktop_app.views.help_dialog import HelpDialog
 from desktop_app.views.license_dialog import LicenseDialog
 from desktop_app.views.signature_candidate_dialog import SignatureCandidateDialog
+from desktop_app.workflows.operator_content import (
+    companion_status_label,
+    companion_status_message,
+    companion_tooltip,
+)
 
 if TYPE_CHECKING:
     from PySide6.QtCore import QEvent
@@ -2518,12 +2523,9 @@ class ExtractionTabMixin:
         self._backend_online = True
         
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("● Local service: Online")
+            self.backend_status_label.setText(f"● {companion_status_label('online')}")
             self.backend_status_label.setStyleSheet("color: #2e7d32; padding: 2px 8px;")
-            self.backend_status_label.setToolTip(
-                "Local companion service is running.\n"
-                "Document processing remains local by default."
-            )
+            self.backend_status_label.setToolTip(companion_tooltip("online"))
         
         # Enable cloud features if any
         self._update_cloud_features_availability(True)
@@ -2533,13 +2535,9 @@ class ExtractionTabMixin:
         self._backend_online = False
         
         if hasattr(self, "backend_status_label"):
-            self.backend_status_label.setText("○ Local service: Offline")
+            self.backend_status_label.setText(f"○ {companion_status_label('offline')}")
             self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
-            self.backend_status_label.setToolTip(
-                f"Local companion service unavailable - {reason}\n"
-                "Core signature extraction and PDF work remain available locally.\n"
-                "Connected coordination is disabled."
-            )
+            self.backend_status_label.setToolTip(companion_tooltip("offline"))
         
         # Disable cloud features but keep core functionality
         self._update_cloud_features_availability(False)
@@ -2603,15 +2601,9 @@ class ExtractionTabMixin:
                     QTimer.singleShot(delay, self._check_backend_health)
                 else:
                     # Max attempts reached - mark as offline
-                    error_msg = payload.get("error", "Unknown error") if isinstance(payload, dict) else str(payload)
-
-                    self.backend_status_label.setText("● Local service: Offline")
+                    self.backend_status_label.setText(f"● {companion_status_label('offline')}")
                     self.backend_status_label.setStyleSheet("color: #c62828; padding: 2px 8px;")
-                    self.backend_status_label.setToolTip(
-                        f"Cannot reach {self.api_client.base_url}\n"
-                        f"Error: {error_msg}\n"
-                        f"Click for troubleshooting"
-                    )
+                    self.backend_status_label.setToolTip(companion_tooltip("offline"))
                     # Make clickable
                     self.backend_status_label.mousePressEvent = lambda e: self._open_document("docs/HELP.md")
                     # Core local functionality stays available even when backend is unreachable.
@@ -2628,7 +2620,7 @@ class ExtractionTabMixin:
     def _handle_backend_exception(self, e: Exception, *, context: str = "Error") -> None:
         """Show user-friendly errors for backend/network issues."""
         # Default detail
-        detail = str(e)
+        detail = companion_status_message("offline")
         title = context
 
         # Map common request exceptions to helpful messages
@@ -2636,15 +2628,9 @@ class ExtractionTabMixin:
         mod = getattr(cls, "__module__", "")
         name = getattr(cls, "__name__", "")
         if mod.startswith("requests") and name in {"ConnectionError", "Timeout"}:
-            base_url = getattr(self.api_client, "base_url", "http://127.0.0.1:8001")
-            detail = (
-                f"The backend at {base_url} is unreachable.\n\n"
-                "Make sure the server is running.\n"
-                "Tip: In the app menu, open Help → Open Backend Health to verify."
-            )
+            detail = companion_status_message("offline")
         elif isinstance(e, FileNotFoundError):
-            # Surface simple messages as-is
-            detail = str(e)
+            detail = "The selected local resource is unavailable. Choose it again or continue with another source."
 
         QMessageBox.critical(cast(QWidget, self), title, detail)
         # Update backend status indicator after errors

@@ -50,3 +50,5 @@ def test_operator_state_task_points_to_current_runtime_evidence() -> None:
     assert "local_operator_state_proof_2026-08-13.md" in backlog
     assert "disposable source-to-ready observation" in matrix
     assert "QA-28" in qa
+    assert "QA-30" in qa
+    assert "local companion outage copy binding" in matrix

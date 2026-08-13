@@ -8,11 +8,14 @@ def test_desktop_status_copy_names_the_local_companion_boundary() -> None:
     main_window = (ROOT / "desktop_app" / "views" / "main_window.py").read_text(encoding="utf-8")
     status = (ROOT / "desktop_app" / "views" / "main_window_parts" / "status.py").read_text(encoding="utf-8")
     extraction = (ROOT / "desktop_app" / "views" / "main_window_parts" / "extraction.py").read_text(encoding="utf-8")
+    operator_content = (ROOT / "desktop_app" / "workflows" / "operator_content.py").read_text(encoding="utf-8")
 
-    assert "Local service: Online" in main_window
+    assert '"online": "Local service: Online"' in operator_content
     assert "Local service: checking" in status
     assert "Cloud-sync active" not in extraction
     assert "cloud features enabled" not in extraction
+    assert "companion_status_message" in extraction
+    assert "companion_status_label" in main_window
 
 
 def test_startup_and_onboarding_copy_do_not_overclaim_topology() -> None:
@@ -23,6 +26,7 @@ def test_startup_and_onboarding_copy_do_not_overclaim_topology() -> None:
     assert "Local companion service" in bootstrap
     assert "Works 100% offline" not in onboarding
     assert "locally by default" in onboarding
+    assert "companion_status_message" in onboarding
 
 
 def test_browser_workspace_explains_current_and_planned_topologies() -> None:

@@ -83,3 +83,18 @@ workflow console uses those labels instead of raw enum values or stored
 exception text. Technical receipt events remain available through the existing
 metadata-only passport and workflow store, while paths and raw exceptions are
 not presented as the primary failure message.
+
+## Addendum (2026-08-13): local companion outage copy binding
+
+`desktop_app/workflows/operator_content.py` now also owns the bounded copy for
+the local companion lifecycle: checking, starting, online, and offline. The
+desktop extraction surface, main-window health monitor, and onboarding dialog
+use this layer. An outage tells the operator that core local document work
+remains available and that retry or continued local work is possible; raw
+endpoint, timeout, or exception details are reserved for logs and are not the
+primary message.
+
+Targeted evidence: `tests/test_operator_content.py` and
+`tests/test_topology_experience_contract.py` passed as QA-30. This binds the
+copy contract but does not prove process restart, stale companion recovery,
+assistive-technology behavior, or packaged-runtime outage observation.

@@ -43,6 +43,7 @@ from desktop_app.views.main_window_parts.recipe_builder import RecipeBuilder
 from desktop_app.views.main_window_parts.grant_manager import GrantManager
 from desktop_app.views.main_window_parts.workflow_console import WorkflowConsole
 from desktop_app.workflows.workflow_utils import resolve_operator_subject
+from desktop_app.workflows.operator_content import companion_status_label
 
 LOG = logging.getLogger(__name__)
 APP_DATA_ROOT = os.path.join(os.path.expanduser("~"), ".signature_extractor")
@@ -325,18 +326,18 @@ class MainWindow(
             if is_available and not self._backend_online:
                 # Backend just came online
                 self._backend_online = True
-                self.backend_status_label.setText("Local service: Online")
+                self.backend_status_label.setText(companion_status_label("online"))
                 self.backend_status_label.setStyleSheet("color: #00cc00; padding: 2px 8px;")
                 LOG.info("Backend is now online")
             elif not is_available and self._backend_online:
                 # Backend went offline
                 self._backend_online = False
-                self.backend_status_label.setText("Local service: Checking...")
+                self.backend_status_label.setText(companion_status_label("checking"))
                 self.backend_status_label.setStyleSheet("color: #666666; padding: 2px 8px;")
                 LOG.info("Backend connection lost, will keep checking")
             elif not is_available and not self._backend_online:
                 # Still waiting for backend to start
-                self.backend_status_label.setText("Local service: Starting...")
+                self.backend_status_label.setText(companion_status_label("starting"))
                 self.backend_status_label.setStyleSheet("color: #0066cc; padding: 2px 8px;")
         except Exception as e:
             LOG.debug(f"Backend health check failed: {e}")

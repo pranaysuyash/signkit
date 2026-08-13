@@ -39,6 +39,23 @@ _OUTCOME_COPY = {
     "ERR_OUTPUT_IO": "The output could not be written. Check the local destination and retry if safe.",
 }
 
+_COMPANION_LABELS = {
+    "checking": "Local service: Checking...",
+    "starting": "Local service: Starting...",
+    "online": "Local service: Online",
+    "offline": "Local service: Offline",
+}
+
+_COMPANION_MESSAGES = {
+    "checking": "Checking the local companion. Core document work remains available while status is checked.",
+    "starting": "The local companion is starting. Core document work remains available while it starts.",
+    "online": "The local companion is running. Document processing remains local by default.",
+    "offline": (
+        "The local companion is unavailable. Core signature extraction and PDF work remain available locally. "
+        "Retry the local service or continue local work."
+    ),
+}
+
 
 def _coerce_state(state: WorkflowState | str) -> Optional[WorkflowState]:
     if isinstance(state, WorkflowState):
@@ -78,4 +95,33 @@ def outcome_message(code: str | None, state: WorkflowState | str) -> str:
     return "No failure recorded."
 
 
-__all__ = ["outcome_message", "state_label"]
+def companion_status_label(state: str) -> str:
+    """Return stable operator copy for the local companion lifecycle."""
+
+    normalized = str(state).strip().lower()
+    return _COMPANION_LABELS.get(normalized, _COMPANION_LABELS["checking"])
+
+
+def companion_status_message(state: str) -> str:
+    """Return bounded recovery copy without raw endpoint or exception details."""
+
+    normalized = str(state).strip().lower()
+    return _COMPANION_MESSAGES.get(normalized, _COMPANION_MESSAGES["checking"])
+
+
+def companion_tooltip(state: str, *, version: str | None = None) -> str:
+    """Return secondary companion detail that keeps the primary boundary clear."""
+
+    message = companion_status_message(state)
+    if str(state).strip().lower() == "online" and version:
+        return f"{message}\nVersion: {version}\nOpen local health details for diagnostics."
+    return f"{message}\nOpen Help for local companion recovery."
+
+
+__all__ = [
+    "companion_status_label",
+    "companion_status_message",
+    "companion_tooltip",
+    "outcome_message",
+    "state_label",
+]

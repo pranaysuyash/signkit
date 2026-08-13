@@ -104,7 +104,7 @@ condensed TODO list honest while the larger reconciliation remains active.
 - [x] `RECON-18` Implement one canonical metadata-only local companion bridge from the desktop workflow store to the browser workspace. See `docs/decisions/ADR-0147-local-desktop-passport-bridge-boundary.md`.
 - [x] `RECON-19` Harden local bridge retry with store locking, durable idempotency receipts, deterministic default keys, and concurrent replay tests. See `docs/decisions/ADR-0147-local-desktop-passport-bridge-boundary.md`.
 - [x] `RECON-20` Prove the local macOS ARM64 packaged runtime, prevent `.env` bundling, and package the canonical browser workspace. See `docs/review/local_packaging_runtime_proof_2026-08-13.md`.
-- [~] `L1-08` Advance the operator state/recovery contract with the local source-to-ready proof; malformed-input, timeout, partial-export, cleanup, and local-companion-outage evidence remain open. See `docs/review/local_operator_state_proof_2026-08-13.md`.
+- [~] `L1-08` Advance the operator state/recovery contract with the local source-to-ready proof and canonical workflow/companion copy binding; malformed-input, timeout, partial-export, cleanup, local-companion process recovery, and accessibility evidence remain open. See `docs/review/local_operator_state_proof_2026-08-13.md` and QA-30.
 
 The local closure claim is intentionally narrower than a hosted or packaged
 release claim. Hosted deployment, provider activation, signed artifacts,

@@ -40,3 +40,13 @@ It does not close malformed-input, timeout, partial-export, deletion-cleanup,
 local-companion-outage, assistive-technology, cross-platform, provider,
 hosted-migration, or legal-signature gates. `L1-08` remains in progress until
 those state mappings have their own scoped controls and evidence.
+
+## Addendum: companion copy contract
+
+The local companion outage sub-gate now has a canonical copy owner in
+`desktop_app/workflows/operator_content.py`. Extraction, main-window health,
+and onboarding surfaces bind checking, starting, online, and offline states to
+bounded messages that preserve the local-work recovery path without exposing
+raw endpoints or exception text in primary UI. QA-30 records the focused
+contract evidence. This is a copy-binding result, not a runtime process
+restart, stale-state, packaged outage, or assistive-technology observation.
