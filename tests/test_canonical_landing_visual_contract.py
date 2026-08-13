@@ -1,11 +1,4 @@
-"""Focused contract checks for the canonical root landing surface.
-
-The completion rail is intentionally a bounded, keyboard-operable preview of
-the documented current workflow. It does not process a visitor document or
-replace the desktop application. A future interaction pass can bind the rail
-to an authorized demonstration asset after the product and evidence contract
-is approved.
-"""
+"""Focused contract checks for the canonical document-studio landing surface."""
 
 from __future__ import annotations
 
@@ -14,6 +7,7 @@ from pathlib import Path
 
 
 PAGE = Path(__file__).parents[1] / "index.html"
+PROJECT_ROOT = PAGE.parent
 
 
 class _LandingParser(HTMLParser):
@@ -66,14 +60,14 @@ def test_canonical_landing_has_mobile_first_cta_and_semantic_landmarks() -> None
     assert len(footer_elements) == 1
     assert 'class="skip-link" href="#main-content"' in page
 
-    hero_start = page.index('<div class="hero-main">')
-    lead_end = page.index('</p>', page.index('<p class="lead">', hero_start))
+    hero_start = page.index('<section class="hero frame"')
+    lead_end = page.index('</p>', page.index('<p class="lede">', hero_start))
     cta_start = page.index('<div class="hero-actions">', lead_end)
-    feature_detail_start = page.index('<ul>', cta_start)
-    first_checkout = page.index('data-checkout-provider="dodo"', cta_start)
+    workflow_start = page.index('<section class="workflow frame"', cta_start)
+    first_checkout = page.index('data-checkout-provider="dodo"')
 
-    assert lead_end < cta_start < feature_detail_start
-    assert cta_start < first_checkout < feature_detail_start
+    assert lead_end < cta_start < workflow_start
+    assert cta_start < first_checkout
 
 
 def test_canonical_landing_exposes_non_vacuous_completion_rail_contract() -> None:
@@ -85,31 +79,29 @@ def test_canonical_landing_exposes_non_vacuous_completion_rail_contract() -> Non
     ]
 
     assert len(rail_buttons) == 5
-    assert parser.button_labels == ["Source", "Mark", "Clean", "Place", "Ready"]
+    assert [label.split()[-1] for label in parser.button_labels[:5]] == ["Source", "Mark", "Clean", "Place", "Ready"]
     assert {button["type"] for button in rail_buttons} == {"button"}
     assert {button["aria-controls"] for button in rail_buttons} == {
         "completion-step-description"
     }
     assert sum(button.get("aria-current") == "step" for button in rail_buttons) == 1
     assert 'role="status" aria-live="polite"' in page
-    assert "not a live document processor" in page
-    assert "document.querySelectorAll('[data-completion-step]')" in page
+    assert "not a browser signing engine" in page
+    script = (PROJECT_ROOT / "web/canonical_landing/app.js").read_text(encoding="utf-8")
+    assert "document.querySelectorAll('[data-completion-step]')" in script
 
 
 def test_canonical_landing_has_image_geometry_loading_and_accessibility_primitives() -> None:
     page, parser = _parsed_page()
 
-    assert parser.images
-    assert all(image.get("alt") is not None for image in parser.images)
-    assert all(image.get("width") and image.get("height") for image in parser.images)
-    assert all(image.get("loading") in {"eager", "lazy"} for image in parser.images)
-    assert 'loading="eager"' in page
-    assert page.count('loading="lazy"') >= 4
+    assert 'class="registration-frame"' in page
+    assert 'aria-label="Illustrative source to ready registration frame"' in page
+    assert "aspect-ratio" in (PROJECT_ROOT / "web/canonical_landing/styles.css").read_text(encoding="utf-8")
 
-    assert "scroll-margin-top" in page
-    assert ":focus-visible" in page
-    assert "prefers-reduced-motion: reduce" in page
-    assert "scroll-behavior: auto" in page
+    styles = (PROJECT_ROOT / "web/canonical_landing/styles.css").read_text(encoding="utf-8")
+    assert ":focus-visible" in styles
+    assert "prefers-reduced-motion:reduce" in styles
+    assert "scroll-behavior:auto" in styles
 
 
 def test_canonical_landing_keeps_governed_claim_and_checkout_boundaries() -> None:
@@ -130,3 +122,14 @@ def test_canonical_landing_keeps_governed_claim_and_checkout_boundaries() -> Non
         "free updates forever",
     ):
         assert forbidden not in page.lower()
+
+
+def test_canonical_landing_hands_off_to_the_existing_local_workspace() -> None:
+    page = _page()
+    script = (PROJECT_ROOT / "web/canonical_landing/app.js").read_text(encoding="utf-8")
+    assert page.count('data-local-workspace') == 2
+    assert 'id="workspace-note" role="status" aria-live="polite"' in page
+    assert ":8001/workspace-app/" in script
+    assert "metadata-first" in page
+    assert "does not retain document bytes" in page
+    assert "document signing" in page

@@ -13,6 +13,7 @@ from backend.app.models.workspace import WorkspaceExecution
 from backend.app.runtime import is_local_companion
 from backend.app.schemas.workspace import (
     DocumentInspectionResponse,
+    LocalWorkflowJobResponse,
     WorkspaceExecutionCreate,
     WorkspaceExecutionResponse,
     WorkspaceExecutionTransition,
@@ -107,6 +108,162 @@ def _get_owned_execution(
     if execution is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow execution not found.")
     return execution
+
+
+def _local_subjects(current_user: User) -> tuple[str, ...]:
+    """Return exact desktop subjects owned by the authenticated account.
+
+    UUID is the canonical bridge identity. Email remains an exact compatibility
+    identity because existing desktop grants were created with operator email
+    subjects; it is unique in the authenticated user table and is never treated
+    as a wildcard or substring match.
+    """
+    subjects = [str(current_user.id)]
+    email = str(current_user.email or "").strip()
+    if email and email not in subjects:
+        subjects.append(email)
+    return tuple(subjects)
+
+
+def _authorize_local_job(job, current_user: User):
+    from desktop_app.workflows import authorization
+
+    for subject in _local_subjects(current_user):
+        decision = authorization.require_authorization(
+            job,
+            subject=subject,
+            requested_action="inspect_job",
+        )
+        if decision.allowed:
+            return subject
+    return None
+
+
+def _get_authorized_local_job(job_id: str, current_user: User):
+    """Read one local job through the desktop store's existing grant boundary."""
+    if not is_local_companion():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Local workflow bridge is unavailable on the hosted runtime profile.",
+        )
+
+    from desktop_app.workflows import store
+
+    job = store.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local workflow job not found.")
+
+    subject = _authorize_local_job(job, current_user)
+    if subject is None:
+        # Do not disclose whether an unowned job exists or why its grant failed.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local workflow job not found.")
+    return job, store, subject
+
+
+def _local_job_response(job, store) -> LocalWorkflowJobResponse:
+    from desktop_app.workflows.passport import project_local_job
+
+    passport = project_local_job(job, store.list_events(job.job_id))
+    return LocalWorkflowJobResponse.model_validate(
+        {
+            "job_id": job.job_id,
+            "title": f"Local desktop execution {job.job_id[:8]}",
+            "status": job.state.value,
+            "topology": "local",
+            "template_code": job.recipe_id,
+            "template_version": job.recipe_version,
+            "created_at": job.created_at,
+            "updated_at": job.updated_at,
+            "passport": passport.to_payload(),
+        }
+    )
+
+
+@router.get("/local-jobs", response_model=list[LocalWorkflowJobResponse])
+def get_local_jobs(current_user: User = Depends(get_current_user)):
+    """Project only the authenticated user's local desktop jobs."""
+    if not is_local_companion():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Local workflow bridge is unavailable on the hosted runtime profile.",
+        )
+
+    from desktop_app.workflows import store
+
+    result = []
+    for job in store.list_jobs():
+        if _authorize_local_job(job, current_user) is not None:
+            result.append(_local_job_response(job, store))
+    return result
+
+
+@router.get("/local-jobs/{job_id}", response_model=LocalWorkflowJobResponse)
+def get_local_job(job_id: str, current_user: User = Depends(get_current_user)):
+    job, store, _ = _get_authorized_local_job(job_id, current_user)
+    return _local_job_response(job, store)
+
+
+@router.post("/local-jobs/{job_id}/retry", response_model=LocalWorkflowJobResponse)
+def retry_local_job(
+    job_id: str,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    current_user: User = Depends(get_current_user),
+):
+    from desktop_app.workflows import models
+    from desktop_app.workflows.engine import WorkflowEngine
+    from desktop_app.workflows import store as workflow_store
+
+    initial_job, _, _ = _get_authorized_local_job(job_id, current_user)
+    provided_key = idempotency_key.strip() if idempotency_key else ""
+    retry_key = provided_key or f"local-retry:{initial_job.job_id}:attempt:{initial_job.attempts}"
+    if len(retry_key) < 6 or len(retry_key) > 80:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Idempotency-Key must be between 6 and 80 characters.",
+        )
+
+    with workflow_store.workflow_store_lock():
+        job, store, subject = _get_authorized_local_job(job_id, current_user)
+
+        replay = store.get_retry_receipt(job.job_id, retry_key)
+        if replay is not None:
+            replay_job = models.WorkflowJob.from_payload(replay["job"])
+            return _local_job_response(replay_job, store)
+
+        if job.state not in {
+            models.WorkflowState.FAILED,
+            models.WorkflowState.RETRY,
+            models.WorkflowState.NEEDS_REVIEW,
+        }:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Local workflow job is not retryable in its current state.",
+            )
+
+        engine = WorkflowEngine(
+            actor=f"workspace-local:{current_user.id}",
+            audit_actor="workspace-local-bridge",
+        )
+        engine.start()
+        try:
+            updated = engine.retry_job(
+                job.job_id,
+                actor=f"workspace-local:{current_user.id}",
+                action_subject=subject,
+                idempotency_key=retry_key,
+            )
+        except ValueError as exc:
+            if str(exc).startswith("job_not_found:"):
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local workflow job not found.") from exc
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Local workflow retry could not be started.",
+            ) from exc
+        finally:
+            engine.stop()
+
+        store.save_retry_receipt(updated, retry_key)
+        return _local_job_response(updated, store)
 
 
 @router.get("/templates", response_model=list[WorkflowTemplateResponse])

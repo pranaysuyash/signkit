@@ -1,9 +1,9 @@
 # Session Context
 
-- Generated: 2026-08-13T06:04:21Z
+- Generated: 2026-08-13T12:41:56Z
 - Project: `Data_Science/computer_vision/proj6/signature-extractor-app`
-- Provider: `openai`
-- Model: `text-embedding-3-small`
+- Provider: `ollama`
+- Model: `nomic-embed-text`
 - Project collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Shared collection: `projects_workspace_shared`
 
@@ -20,49 +20,49 @@
 ### Architecture Decisions
 - Collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Query: `architecture decisions for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### Project Management Workflow
 - Collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Query: `project management workflow for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### Known Issues and Worklogs
 - Collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Query: `known issues and worklog for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### Prompts and Guidelines
 - Collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Query: `prompts and guidelines for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### System Learning Graph
 - Collection: `projects_proj_data_science_computer_vision_proj6_signature_extractor_app`
 - Query: `knowledge graph memory learning feedback loops autoresearch semantic taste graph for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ## Shared Cross-Project Retrieval
 
 ### Reusable Patterns
 - Collection: `projects_workspace_shared`
 - Query: `similar architecture patterns for Data_Science/computer_vision/proj6/signature-extractor-app`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### Process Templates
 - Collection: `projects_workspace_shared`
 - Query: `project management templates and workflows`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### Common Failure Modes
 - Collection: `projects_workspace_shared`
 - Query: `lessons learned mistakes retrospectives postmortems`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 ### System Learning Graph
 - Collection: `projects_workspace_shared`
 - Query: `knowledge graph memory learning feedback loops autoresearch semantic taste graph`
-_Search failed for this collection/query._
+_Fast mode (--skip-index): retrieval skipped to keep startup non-blocking. Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` for full retrieval, or set `AGENT_START_SKIP_INDEX_RETRIEVE=1` if you want retrieval with skip-index._
 
 
 ---

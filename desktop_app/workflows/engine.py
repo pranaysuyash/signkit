@@ -129,8 +129,26 @@ class WorkflowEngine:
         *,
         actor: str = "system",
         action_subject: str = "system",
+        idempotency_key: Optional[str] = None,
     ) -> models.WorkflowJob:
         """Retry a job that is eligible for retry/review."""
+        with store.workflow_store_lock():
+            return self._retry_job_locked(
+                job_id,
+                actor=actor,
+                action_subject=action_subject,
+                idempotency_key=idempotency_key,
+            )
+
+    def _retry_job_locked(
+        self,
+        job_id: str,
+        *,
+        actor: str = "system",
+        action_subject: str = "system",
+        idempotency_key: Optional[str] = None,
+    ) -> models.WorkflowJob:
+        """Retry a job while the caller owns the workflow store lock."""
         self._require_running()
         self._require_not_paused()
         job = store.get_job(job_id)
@@ -159,6 +177,8 @@ class WorkflowEngine:
                 code=_reason_code(decision.code),
                 message=f"retry_denied:{decision.reason}",
             )
+        if idempotency_key:
+            job = store.save_job(replace(job, last_idempotency_key=idempotency_key))
         return self.run_job(job.job_id, actor=actor, action_subject=action_subject)
 
     def cancel_job(
@@ -273,6 +293,11 @@ class WorkflowEngine:
 
     def run_job(self, job_id: str, *, actor: str = "system", action_subject: str = "system") -> models.WorkflowJob:
         """Execute one queued workflow job end-to-end."""
+        with store.workflow_store_lock():
+            return self._run_job_locked(job_id, actor=actor, action_subject=action_subject)
+
+    def _run_job_locked(self, job_id: str, *, actor: str = "system", action_subject: str = "system") -> models.WorkflowJob:
+        """Execute one queued workflow job while the caller owns the store lock."""
         self._require_running()
         self._require_not_paused()
         job = store.get_job(job_id)
@@ -570,7 +595,11 @@ class WorkflowEngine:
             last_error_code=None if to_state == models.WorkflowState.COMPLETED else code,
             last_error_message=message,
         )
-        if to_state in {models.WorkflowState.FAILED, models.WorkflowState.CANCELLED}:
+        if to_state in {
+            models.WorkflowState.RETRY,
+            models.WorkflowState.FAILED,
+            models.WorkflowState.CANCELLED,
+        }:
             updated = replace(
                 updated,
                 attempts=job.attempts + 1,

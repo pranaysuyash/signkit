@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -82,6 +83,15 @@ def test_local_projection_exposes_recovery_without_exposing_error_text():
     assert passport.recovery_action == "retry_local_job"
     assert passport.evidence[0].code == "ERR_OUTPUT_IO"
     assert passport.evidence[0].message is None
+
+
+def test_local_projection_exposes_opaque_receipt_reference_without_paths():
+    job = replace(_local_job(), receipt_reference="sha256:receipt-001")
+    payload = project_local_job(job, []).to_payload()
+
+    assert payload["output_reference"] == "local-receipt:sha256:receipt-001"
+    assert "/private/" not in str(payload)
+    assert "receipt_reference" not in payload
 
 
 def test_workspace_projection_keeps_control_plane_authority_and_idempotency_receipt():

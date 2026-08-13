@@ -43,7 +43,11 @@ def project_local_job(
         )
         for index, event in enumerate(events, start=1)
     )
-    output_reference = f"local-output:{job.job_id}" if job.output_path_ref else None
+    output_reference = None
+    if job.receipt_reference:
+        output_reference = f"local-receipt:{job.receipt_reference}"
+    elif job.output_path_ref:
+        output_reference = f"local-output:{job.job_id}"
     passport = ExecutionPassport(
         execution_id=job.job_id,
         topology="local",
@@ -55,6 +59,7 @@ def project_local_job(
         child_job_id=job.job_id,
         child_job_status=job.state.value,
         correlation_id=f"local:{job.job_id}",
+        idempotency_key=job.last_idempotency_key,
         input_fingerprint=job.input_fingerprint or None,
         output_reference=output_reference,
         attempt=job.attempts,

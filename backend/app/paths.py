@@ -13,7 +13,10 @@ from pathlib import Path
 
 def get_user_data_dir(app_name: str = "SignKit") -> Path:
     """Return a user-writable base directory for app data/logs/uploads."""
-    if sys.platform == "darwin":
+    configured_base = os.environ.get("SIGNKIT_DATA_DIR")
+    if configured_base:
+        base = Path(configured_base).expanduser().resolve()
+    elif sys.platform == "darwin":
         base = Path.home() / "Library" / "Application Support" / app_name
     elif sys.platform == "win32":
         base = Path(os.environ.get("APPDATA", str(Path.home()))) / app_name
@@ -26,4 +29,3 @@ def get_user_data_dir(app_name: str = "SignKit") -> Path:
 USER_DATA_DIR: Path = get_user_data_dir()
 LOG_DIR: Path = USER_DATA_DIR / "logs"
 UPLOADS_DIR: Path = USER_DATA_DIR / "uploads" / "images"
-

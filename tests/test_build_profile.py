@@ -55,3 +55,17 @@ def test_resolve_entrypoint_unknown_profile_is_rejected():
         assert "Unknown launch profile" in str(exc)
     else:
         raise AssertionError("Expected unknown profile to fail for entrypoint resolution")
+
+
+def test_release_specs_never_bundle_developer_environment_files():
+    """Release specs must not copy local credentials into packaged apps."""
+
+    root = Path(__file__).resolve().parents[1]
+    specs = sorted((root / "build-tools").glob("SignatureExtractor_*.spec"))
+
+    assert specs
+    for spec in specs:
+        source = spec.read_text(encoding="utf-8")
+        assert '"backend" / ".env"' not in source
+        assert "backend/.env" not in source
+        assert '"web" / "cloud_workspace"' in source

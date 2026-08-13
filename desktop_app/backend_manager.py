@@ -185,6 +185,26 @@ class BackendManager:
                     pass
 
         return prepared
+
+    @staticmethod
+    def _apply_inprocess_backend_env(env: dict[str, str]) -> None:
+        """Apply the explicit backend contract before importing the backend.
+
+        The in-process path has no subprocess environment to receive the
+        prepared local database URL and generated JWT secret. Apply only the
+        shared runtime contract here so backend settings are resolved from the
+        same values as the subprocess path, without bundling a developer
+        ``.env`` file into a release artifact.
+        """
+        for key in (
+            "DATABASE_URL",
+            "JWT_SECRET",
+            "SIGNKIT_HEALTH_TOKEN",
+            "SIGNKIT_RUNTIME_PROFILE",
+        ):
+            value = env.get(key)
+            if value:
+                os.environ[key] = value
     
     def start(self) -> bool:
         """Start backend as subprocess (non-blocking).
@@ -435,8 +455,7 @@ class BackendManager:
 
             # Prepare a user-writable environment (same as subprocess branch)
             env = self._prepare_backend_env(dict(os.environ))
-            os.environ["SIGNKIT_HEALTH_TOKEN"] = env["SIGNKIT_HEALTH_TOKEN"]
-            os.environ["SIGNKIT_RUNTIME_PROFILE"] = env["SIGNKIT_RUNTIME_PROFILE"]
+            self._apply_inprocess_backend_env(env)
 
             config = uvicorn.Config(
                 "backend.app.main:app",

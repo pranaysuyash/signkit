@@ -95,6 +95,57 @@ MUTANTS = (
         tests=("backend/tests/test_workspace_router.py",),
         reason="Worker confidence values outside 0..1 must be rejected at the API boundary.",
     ),
+    Mutant(
+        id="local-source-to-ready-retry",
+        file="tools/run_local_source_to_ready_proof.py",
+        find="            if attempt_count == 1:\n",
+        replace="            if False:  # mutation removes the forced transient failure\n",
+        tests=("tests/test_local_source_to_ready_proof_tool.py",),
+        reason="The local source-to-ready proof must exercise and prove the canonical retry recovery path.",
+    ),
+    Mutant(
+        id="local-retry-attempt-accounting",
+        file="desktop_app/workflows/engine.py",
+        find=(
+            "            models.WorkflowState.RETRY,\n"
+            "            models.WorkflowState.FAILED,\n"
+        ),
+        replace="            models.WorkflowState.FAILED,\n",
+        tests=("tests/test_local_source_to_ready_proof_tool.py",),
+        reason="A retryable source-to-ready failure must consume one attempt in the durable job and passport.",
+    ),
+    Mutant(
+        id="local-bridge-owner-binding",
+        file="desktop_app/workflows/authorization.py",
+        find="    if grant.approver_subject == subject:\n        return True",
+        replace="    if grant.approver_subject != subject:\n        return True",
+        tests=("backend/tests/test_local_workflow_bridge.py",),
+        reason="The local browser bridge must expose only jobs explicitly bound to the authenticated user.",
+    ),
+    Mutant(
+        id="local-bridge-passport-projection",
+        file="backend/app/routers/workspace.py",
+        find='            "passport": passport.to_payload(),',
+        replace='            "passport": {"data_boundary": "metadata_only_no_document_bytes"},',
+        tests=("backend/tests/test_local_workflow_bridge.py",),
+        reason="The bridge must return the complete canonical metadata passport, not a weakened or ad hoc shape.",
+    ),
+    Mutant(
+        id="local-retry-idempotency-replay",
+        file="backend/app/routers/workspace.py",
+        find="        replay = store.get_retry_receipt(job.job_id, retry_key)",
+        replace="        replay = None  # mutation removes durable retry replay",
+        tests=("backend/tests/test_local_workflow_bridge.py",),
+        reason="Repeated or concurrent local retry requests must return the durable first result without a second engine execution.",
+    ),
+    Mutant(
+        id="local-inprocess-backend-environment",
+        file="desktop_app/backend_manager.py",
+        find="            if value:\n                os.environ[key] = value",
+        replace="            if False:  # mutation removes the in-process environment contract\n                os.environ[key] = value",
+        tests=("desktop_app/tests/test_backend_manager.py",),
+        reason="Frozen local startup must apply the generated database and JWT settings before backend import.",
+    ),
 )
 
 

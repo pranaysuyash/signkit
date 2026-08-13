@@ -44,6 +44,98 @@ python3 tools/audit_public_surface.py --json
 python3 tools/test_deployed_surface.py --base-url https://signkit.work
 ```
 
+## Local product browser proof
+
+- `run_local_product_browser_proof.mjs`: runs a real Playwright browser
+  context against the local canonical root and existing workspace. It checks
+  1440x900, 390x844, and 320x844; the semantic main landmark; focused skip-link
+  target and visibility; labeled five-state rail; canonical primary workspace
+  CTA; reduced-motion media behavior; keyboard and pointer state progression;
+  checkout fallback; responsive overflow; browser errors; and the
+  root-to-`/workspace-app/` handoff. It does not start servers or contact a
+  hosted service. This is a bounded browser accessibility contract, not a
+  screen-reader or assistive-technology certification. The default Playwright
+  module path points to the shared
+  Browser Daemon skill; override it with `SIGNKIT_PLAYWRIGHT_MODULE` when a
+  different installed runtime is authoritative.
+
+Usage:
+
+```bash
+node tools/run_local_product_browser_proof.mjs
+SIGNKIT_LANDING_BASE_URL=http://127.0.0.1:8080 \
+SIGNKIT_WORKSPACE_BASE_URL=http://127.0.0.1:8001 \
+node tools/run_local_product_browser_proof.mjs
+```
+
+## Local product stack
+
+- `run_local_product_stack.py`: starts the existing FastAPI local companion and
+  canonical `serve.py` landing together, waits for `/health` and `/`, prints
+  both URLs, and terminates both children together. It defaults to an isolated
+  rebuildable SQLite database and data root under `.codex-test-tmp/`; pass
+  `--database-url` or `--data-dir` only when intentionally using another local
+  resource. Ambient `DATABASE_URL` and `SIGNKIT_DATA_DIR` values are ignored
+  unless explicitly passed through those options. This keeps preview uploads
+  and logs out of the normal SignKit application-support directory. It does
+  not proxy or duplicate the workspace route.
+
+Usage:
+
+```bash
+./.venv/bin/python tools/run_local_product_stack.py
+./.venv/bin/python tools/run_local_product_stack.py --once
+```
+
+## Local source-to-ready proof
+
+- `run_local_source_to_ready_proof.py`: composes the existing desktop
+  `SignatureExtractor`, encrypted `NotaryVault`, persisted `WorkflowEngine`,
+  metadata-only `ExecutionPassport`, PDF signer, and `ArtifactReceipt` into a
+  disposable local proof. It forces one transient signing failure after real
+  extraction and vault resolution, then retries through the canonical engine
+  path. It writes a JSON manifest and receipt under the requested output
+  directory. It does not contact a hosted service or use the browser workspace
+  to retain document bytes.
+
+The browser workspace can now project an authorized local desktop passport
+through `/workspace/local-jobs`. The projection is metadata-only and retry
+delegates to the existing `WorkflowEngine`; it does not create a second local
+store or signing pipeline.
+
+`run_local_workspace_bridge_browser_proof.mjs` extends the local proof with a
+disposable authenticated account and a seeded, grant-bound desktop job. It
+checks unauthenticated and missing-job direct URLs, exact owner binding,
+private-path exclusion, browser passport visibility, and real retry recovery.
+The retry route accepts an optional bounded `Idempotency-Key`, derives a
+deterministic default when absent, persists an internal replay receipt, and
+serializes the canonical local store so repeated or concurrent keyed requests
+converge on one engine execution. The browser receives only the opaque key and
+passport projection.
+Run it with the local stack using the same isolated `SIGNKIT_DATA_DIR`:
+
+```bash
+SIGNKIT_DATA_DIR="$PWD/.codex-test-tmp/bridge-browser-data" \
+node tools/run_local_workspace_bridge_browser_proof.mjs
+```
+
+To link the bridge proof to an actual source-to-ready artifact receipt, pass
+the `artifact_id` from that proof's `manifest.json`:
+
+```bash
+SIGNKIT_DATA_DIR="$PWD/.codex-test-tmp/bridge-browser-data" \
+SIGNKIT_LOCAL_RECEIPT_REFERENCE="sha256:..." \
+node tools/run_local_workspace_bridge_browser_proof.mjs
+```
+
+Usage:
+
+```bash
+./.venv/bin/python tools/run_local_source_to_ready_proof.py
+./.venv/bin/python tools/run_local_source_to_ready_proof.py \
+  --output-dir .codex-test-tmp/source-to-ready-proof-review
+```
+
 ## Release artifact evidence
 
 - `release_artifact_ledger.py`: the canonical producer and validator for the

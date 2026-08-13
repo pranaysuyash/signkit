@@ -127,6 +127,20 @@ class ExecutionPassportResponse(BaseModel):
     updated_at: str | None = None
 
 
+class LocalWorkflowJobResponse(BaseModel):
+    """Metadata-only projection of one authorized desktop workflow job."""
+
+    job_id: str
+    title: str
+    status: str
+    topology: WorkspaceTopology
+    template_code: str
+    template_version: int
+    created_at: str
+    updated_at: str
+    passport: ExecutionPassportResponse
+
+
 class WorkspaceExecutionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

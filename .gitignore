@@ -159,8 +159,12 @@ WHAT_WE_HAVE_FOR_LAUNCH.md
 
 # Node (if any legacy files)
 node_modules/
+# The repository has no root package.json, so an orphan root lockfile remains
+# local tooling output. The tracked web/e2e package does have a package
+# manifest, so its lockfile is part of the reproducible test toolchain.
 package-lock.json
 yarn.lock
+!web/e2e/package-lock.json
 
 # Alembic
 alembic/versions/*.pyc

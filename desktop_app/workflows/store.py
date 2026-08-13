@@ -10,6 +10,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import threading
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,9 +29,22 @@ from desktop_app.workflows.models import (
 )
 
 
-APP_DIR = Path.home() / ".signature_extractor"
-WORKFLOW_STORE_FILE = APP_DIR / "workflow_store.json"
+_configured_data_dir = os.environ.get("SIGNKIT_DATA_DIR")
+if _configured_data_dir:
+    APP_DIR = Path(_configured_data_dir).expanduser().resolve() / "workflow"
+else:
+    APP_DIR = Path.home() / ".signature_extractor"
+
+_configured_store_file = os.environ.get("SIGNKIT_WORKFLOW_STORE_FILE")
+WORKFLOW_STORE_FILE = (
+    Path(_configured_store_file).expanduser().resolve()
+    if _configured_store_file
+    else APP_DIR / "workflow_store.json"
+)
 WORKFLOW_STORE_VERSION = 1
+
+_store_process_lock = threading.RLock()
+_store_lock_state = threading.local()
 
 
 def _utc_now_iso() -> str:
@@ -60,23 +75,97 @@ def _ensure_dir() -> None:
     APP_DIR.mkdir(parents=True, exist_ok=True)
 
 
+@contextmanager
+def workflow_store_lock():
+    """Serialize workflow mutations across threads and companion processes."""
+
+    depth = getattr(_store_lock_state, "depth", 0)
+    if depth:
+        _store_lock_state.depth = depth + 1
+        try:
+            yield
+        finally:
+            _store_lock_state.depth = depth
+        return
+
+    _store_process_lock.acquire()
+    handle = None
+    try:
+        _ensure_dir()
+        lock_path = WORKFLOW_STORE_FILE.with_suffix(WORKFLOW_STORE_FILE.suffix + ".lock")
+        handle = lock_path.open("a+", encoding="utf-8")
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            handle.write("0")
+            handle.flush()
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        _store_lock_state.depth = 1
+        _store_lock_state.handle = handle
+        yield
+    finally:
+        try:
+            if handle is not None:
+                if os.name == "nt":
+                    import msvcrt
+
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                handle.close()
+        finally:
+            _store_lock_state.depth = 0
+            _store_lock_state.handle = None
+            _store_process_lock.release()
+
+
 def _load_payload() -> Dict[str, Any]:
     _ensure_dir()
     if not WORKFLOW_STORE_FILE.exists():
-        return {"version": WORKFLOW_STORE_VERSION, "recipes": [], "grants": [], "jobs": [], "events": []}
+        return {
+            "version": WORKFLOW_STORE_VERSION,
+            "recipes": [],
+            "grants": [],
+            "jobs": [],
+            "events": [],
+            "retry_receipts": [],
+        }
     try:
         with WORKFLOW_STORE_FILE.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
     except Exception:
-        return {"version": WORKFLOW_STORE_VERSION, "recipes": [], "grants": [], "jobs": [], "events": []}
+        return {
+            "version": WORKFLOW_STORE_VERSION,
+            "recipes": [],
+            "grants": [],
+            "jobs": [],
+            "events": [],
+            "retry_receipts": [],
+        }
     if not isinstance(payload, dict):
-        return {"version": WORKFLOW_STORE_VERSION, "recipes": [], "grants": [], "jobs": [], "events": []}
+        return {
+            "version": WORKFLOW_STORE_VERSION,
+            "recipes": [],
+            "grants": [],
+            "jobs": [],
+            "events": [],
+            "retry_receipts": [],
+        }
 
     payload.setdefault("version", WORKFLOW_STORE_VERSION)
     payload.setdefault("recipes", [])
     payload.setdefault("grants", [])
     payload.setdefault("jobs", [])
     payload.setdefault("events", [])
+    payload.setdefault("retry_receipts", [])
     return payload
 
 
@@ -94,6 +183,7 @@ def _safe_payload() -> Dict[str, Any]:
     payload["grants"] = _coerce_list(payload.get("grants"))
     payload["jobs"] = _coerce_list(payload.get("jobs"))
     payload["events"] = _coerce_list(payload.get("events"))
+    payload["retry_receipts"] = _coerce_list(payload.get("retry_receipts"))
     return payload
 
 
@@ -311,6 +401,54 @@ def get_job(job_id: str) -> Optional[WorkflowJob]:
     return None
 
 
+def get_retry_receipt(job_id: str, idempotency_key: str) -> Optional[Dict[str, Any]]:
+    """Return the durable result for one local retry request, if recorded."""
+
+    if not job_id or not idempotency_key:
+        return None
+    payload = _safe_payload()
+    for receipt in payload["retry_receipts"]:
+        if (
+            receipt.get("job_id") == job_id
+            and receipt.get("idempotency_key") == idempotency_key
+            and isinstance(receipt.get("job"), dict)
+        ):
+            return dict(receipt)
+    return None
+
+
+def save_retry_receipt(job: WorkflowJob, idempotency_key: str) -> Dict[str, Any]:
+    """Persist one retry result so a repeated request cannot execute twice."""
+
+    if not job.job_id:
+        raise ValueError("job_id is required")
+    if not idempotency_key:
+        raise ValueError("idempotency_key is required")
+    with workflow_store_lock():
+        payload = _safe_payload()
+        receipt = {
+            "job_id": job.job_id,
+            "idempotency_key": idempotency_key,
+            "job": job.to_payload(),
+            "recorded_at": _utc_now_iso(),
+        }
+        existing = next(
+            (
+                item
+                for item in payload["retry_receipts"]
+                if item.get("job_id") == job.job_id
+                and item.get("idempotency_key") == idempotency_key
+            ),
+            None,
+        )
+        if existing is None:
+            payload["retry_receipts"].append(receipt)
+        else:
+            existing.update(receipt)
+        _write_payload(payload)
+        return dict(receipt)
+
+
 def save_job(job: WorkflowJob) -> WorkflowJob:
     payload = _safe_payload()
     now = _utc_now_iso()
@@ -416,5 +554,13 @@ def migrate_legacy_templates() -> int:
 
 def clear_store() -> None:
     """Test helper to reset the store file."""
-    payload = {"version": WORKFLOW_STORE_VERSION, "recipes": [], "grants": [], "jobs": [], "events": []}
-    _write_payload(payload)
+    payload = {
+        "version": WORKFLOW_STORE_VERSION,
+        "recipes": [],
+        "grants": [],
+        "jobs": [],
+        "events": [],
+        "retry_receipts": [],
+    }
+    with workflow_store_lock():
+        _write_payload(payload)

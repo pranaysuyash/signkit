@@ -52,7 +52,7 @@ Full backlog (34 items): see TODO_FULL.md
 ## Backend
 
 - [ ] Clean up commented/duplicate code
-- [~] Confirm port 8001 across docs, tests, and desktop client
+- [x] Confirm port 8001 across docs, tests, and desktop client
 - [ ] Smoke tests: /health, upload, process round-trip
 
 ## Packaging and distribution
@@ -75,7 +75,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] Update README with desktop-only instructions
 - [ ] Add quickstart with screenshots
 - [ ] Record short demo video (open → select → preview → export → library)
-- [ ] Simple landing page per `docs/LANDING_PAGE_PLAN.md` (hero, features, comparison, pricing, FAQ)
+- [x] Local canonical product surface per `docs/LANDING_PAGE_PLAN.md` and the document-registration-studio direction; hosted publication remains a separate release gate
 - [ ] Publish `updates.json` and stable downloads; add legal links (Privacy, Terms/EULA, Refund)
 
 ## Licensing & Evaluation
@@ -83,6 +83,30 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] Export gating: show Upgrade dialog if unlicensed (soft gate first)
 - [ ] Status bar note when unlicensed: “Evaluation mode — Export locked”
 - [ ] Optional watermark overlay in evaluation mode (off by default)
+
+## Local product reconciliation addendum (2026-08-13)
+
+The local product is now being advanced against the long-term document
+registration-studio direction. The canonical task record is
+`docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`; these entries keep the
+condensed TODO list honest while the larger reconciliation remains active.
+
+- [x] `RECON-13` Promote the selected registration-studio direction to the local canonical root.
+- [x] `RECON-14` Add reusable real-browser proof for the root, workspace handoff, keyboard/pointer states, responsive widths, and reduced motion.
+- [x] `RECON-16` Add one-command local stack startup with isolated data defaults and clean process shutdown.
+- [x] `RECON-17` Add disposable local source-to-ready proof covering extraction, cleanup, vault, placement/export, forced failure, retry, passports, and artifact receipt, then join it to the browser proof through the local bridge.
+- [x] `RECON-18` Implement one canonical metadata-only local companion bridge from the desktop workflow store to the browser workspace. See `docs/decisions/ADR-0147-local-desktop-passport-bridge-boundary.md`.
+- [x] `RECON-19` Harden local bridge retry with store locking, durable idempotency receipts, deterministic default keys, and concurrent replay tests. See `docs/decisions/ADR-0147-local-desktop-passport-bridge-boundary.md`.
+- [x] `RECON-20` Prove the local macOS ARM64 packaged runtime, prevent `.env` bundling, and package the canonical browser workspace. See `docs/review/local_packaging_runtime_proof_2026-08-13.md`.
+
+The local closure claim is intentionally narrower than a hosted or packaged
+release claim. Hosted deployment, provider activation, signed artifacts,
+cross-platform installation, and external user research remain separate
+backlog gates.
+
+The local packaged-runtime claim is also deliberately narrow: QA-20 is closed
+for macOS ARM64 only. Intel, Windows, Linux, notarization, clean installation,
+rollback, hosted deployment, and provider activation remain open.
 
 ---
 

@@ -177,8 +177,8 @@ def test_refund_copy_matches_legal_policy() -> None:
 
 def test_workflow_enquiry_is_unpriced_and_data_bounded() -> None:
     page = _index()
-    start = page.index('<section class="workflow-section"')
-    end = page.index("<!-- FAQ section -->", start)
+    start = page.index('<section class="enquiry-section frame"')
+    end = page.index("</section>", start)
     workflow = _normalised(page[start:end])
     assert "$" not in workflow
     assert "what you choose to type" in workflow.lower()

@@ -326,6 +326,8 @@ class WorkflowJob:
     recipe_id: str
     recipe_version: int
     output_path_ref: str = ""
+    receipt_reference: Optional[str] = None
+    last_idempotency_key: Optional[str] = None
     state: WorkflowState = WorkflowState.QUEUED
     grant_id: Optional[str] = None
     match_class: MatchClass = MatchClass.REVIEW_ONLY
@@ -357,6 +359,8 @@ class WorkflowJob:
             recipe_id=recipe_id,
             recipe_version=recipe_version,
             output_path_ref="",
+            receipt_reference=None,
+            last_idempotency_key=None,
             state=state,
             grant_id=grant_id,
             match_class=match_class,
@@ -374,6 +378,8 @@ class WorkflowJob:
             "recipe_id": self.recipe_id,
             "recipe_version": self.recipe_version,
             "output_path_ref": self.output_path_ref,
+            "receipt_reference": self.receipt_reference,
+            "last_idempotency_key": self.last_idempotency_key,
             "state": self.state.value,
             "grant_id": self.grant_id,
             "match_class": self.match_class.value,
@@ -396,6 +402,8 @@ class WorkflowJob:
             recipe_id=str(payload.get("recipe_id") or ""),
             recipe_version=int(payload.get("recipe_version") or 1),
             output_path_ref=_normalize_optional_text(payload.get("output_path_ref")) or "",
+            receipt_reference=_normalize_optional_text(payload.get("receipt_reference")),
+            last_idempotency_key=_normalize_optional_text(payload.get("last_idempotency_key")),
             state=WorkflowState(str(payload.get("state") or WorkflowState.QUEUED.value)),
             grant_id=_normalize_optional_text(payload.get("grant_id")),
             match_class=MatchClass(str(payload.get("match_class") or MatchClass.REVIEW_ONLY.value)),

@@ -90,3 +90,38 @@ This is therefore a repeatable false-success and retrieval-health failure, not
 closure of RECON-05. The closure criteria above remain unchanged. The generated
 context files were restored after capture because they contain only the failed
 refresh output and are derived artifacts.
+
+## Addendum (2026-08-13): full-refresh false-success guard
+
+The shared `/Users/pranay/Projects/agent-start` wrapper now fails closed before
+source sync or retrieval when a non-fast refresh cannot find its configured
+workspace Python interpreter or when the `memsearch` entry point does not
+advertise the required CLI commands. This preserves the intentional
+non-blocking `--skip-index` path while preventing a full refresh from claiming
+success on missing or placeholder retrieval tooling.
+
+Current verification:
+
+- Before the guard, the full refresh returned shell exit code `0` while
+  reporting `zsh:16: no such file or directory:
+  /Users/pranay/Projects/workspace_memory/.venv/bin/python` and generating
+  failed retrieval sections.
+- After the guard, the same full refresh returns exit code `1` with the
+  actionable `workspace memory Python interpreter not found` diagnostic, S2.
+- `agent-start --skip-index --quiet` still returns exit code `0` and generates
+  explicit `_Fast mode (--skip-index): retrieval skipped ..._` sections.
+- `AGENT_START_SKIP_INDEX_RETRIEVE=1 agent-start --skip-index --quiet` now also
+  returns exit code `1`; the quiet flag no longer masks an explicitly requested
+  retrieval attempt, S2.
+- The configured `memsearch` file is still a 17-byte shell `exit 0` stub, and
+  the workspace Python interpreter is still absent. Rebuilding the shared
+  environment and proving real indexing/retrieval remain open and require the
+  documented workspace-tooling setup path.
+
+The current truthful fast-mode context hashes are:
+
+```text
+SESSION_CONTEXT.md       0a96aa5f48567df0fd0fd1bd7cec61de1661445a52857397876210b4bb77ebe6
+AGENT_KICKOFF_PROMPT.txt b9c0119cd9d26d8383a3e7b21db652573cf3c779b0958136e90e0ecda27b76e7
+STEP1_ENV.sh             5a8a24dfe122d7d38f282b4c55898eb5b04d382cd2fded5e055b98e98f0f84a8
+```

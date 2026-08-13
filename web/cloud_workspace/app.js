@@ -2,6 +2,7 @@ const state = {
   token: window.localStorage.getItem("signkit_workspace_token"),
   templates: [],
   executions: [],
+  localJobs: [],
   selectedId: null,
   transitionError: "",
   proofFixtures: null,
@@ -65,6 +66,10 @@ const proofMessage = document.querySelector("#proof-message");
 
 function isSyntheticExecution(execution) {
   return Boolean(execution?.synthetic);
+}
+
+function isLocalDesktopExecution(execution) {
+  return Boolean(execution?.local_desktop);
 }
 
 function eventTimestamp(base, offsetSeconds) {
@@ -189,6 +194,12 @@ function statusActions(status) {
 }
 
 function actionButton(execution) {
+  if (isLocalDesktopExecution(execution)) {
+    if (execution.passport?.recovery_action !== "retry_local_job") {
+      return "<p class=\"passport-empty-action\">No direct local action for this state.</p>";
+    }
+    return `<button class="primary-button" type="button" data-action="retry_local_job">Retry local execution <span>→</span></button>`;
+  }
   const actions = statusActions(execution.status);
   if (!actions.length) {
     return "<p class=\"passport-empty-action\">No direct operator action for this state.</p>";
@@ -305,7 +316,11 @@ async function api(path, options = {}) {
   }
   const response = await fetch(path, { ...options, headers });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(formatApiError(body));
+  if (!response.ok) {
+    const error = new Error(formatApiError(body));
+    error.status = response.status;
+    throw error;
+  }
   return body;
 }
 
@@ -349,6 +364,40 @@ function selectedExecution() {
   return state.executions.find((execution) => execution.id === state.selectedId) || null;
 }
 
+function normalizeLocalJob(raw) {
+  const passport = raw.passport || {};
+  const events = (passport.evidence || []).map((event, index) => ({
+    id: `${raw.job_id}-event-${index + 1}`,
+    sequence: Number(event.sequence || index + 1),
+    event_type: event.code || "local_workflow_event",
+    status_from: event.state_from ?? null,
+    status_to: event.state_to || raw.status,
+    idem_key: null,
+    summary: event.code || "Local workflow state recorded.",
+    created_at: event.occurred_at || raw.updated_at,
+  }));
+  return {
+    id: `local:${raw.job_id}`,
+    job_id: raw.job_id,
+    local_desktop: true,
+    title: raw.title,
+    status: raw.status,
+    topology: "local",
+    template_code: raw.template_code,
+    template_version: raw.template_version,
+    participant_name: "Local desktop operator",
+    participant_email: "Kept on this device",
+    reviewer_name: "Local workflow owner",
+    reviewer_email: "Kept on this device",
+    effective_date: null,
+    notes: "Metadata-only projection from the local desktop workflow store.",
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
+    events,
+    passport,
+  };
+}
+
 function hydrateDocumentInspectionResults(executions) {
   for (const execution of executions) {
     const success = (execution.events || []).find(
@@ -367,7 +416,7 @@ function hydrateDocumentInspectionResults(executions) {
 function renderMetrics() {
   const active = state.executions.filter((execution) => !["completed", "cancelled"].includes(execution.status));
   document.querySelector("#metric-active").textContent = active.length;
-  document.querySelector("#metric-review").textContent = state.executions.filter((execution) => execution.status === "pending_review").length;
+  document.querySelector("#metric-review").textContent = state.executions.filter((execution) => ["pending_review", "needs_review", "retry", "failed"].includes(execution.status)).length;
   document.querySelector("#metric-completed").textContent = state.executions.filter((execution) => execution.status === "completed").length;
   document.querySelector("#execution-count").textContent = `${state.executions.length} packet${state.executions.length === 1 ? "" : "s"}`;
 }
@@ -394,7 +443,7 @@ function renderExecutions() {
 }
 
 function documentInspectionBlock(execution) {
-  if (execution.synthetic || execution.topology !== "local") return "";
+  if (execution.synthetic || execution.local_desktop || execution.topology !== "local") return "";
   const result = state.documentInspections[execution.id];
   const failure = [...(execution.events || [])]
     .reverse()
@@ -470,7 +519,7 @@ function renderPassport() {
     : "";
   state.transitionError = "";
   content.innerHTML = `
-    <p class="eyebrow">EXECUTION PASSPORT · ${escapeHtml(topologyLabel(execution.topology))}</p>
+    <p class="eyebrow">EXECUTION PASSPORT · ${escapeHtml(isLocalDesktopExecution(execution) ? "local desktop projection" : topologyLabel(execution.topology))}</p>
     <h2 class="passport-title">${escapeHtml(execution.title)}</h2>
     <span class="passport-status">${escapeHtml(readableStatus(execution.status))}</span>
     <dl class="passport-facts">
@@ -478,6 +527,7 @@ function renderPassport() {
       <div><dt>Current boundary</dt><dd>${passport.data_boundary === "metadata_only_no_document_bytes" ? "Metadata-only browser record; document bytes remain outside this surface." : "Passport boundary unavailable; no document data is present here."}</dd></div>
       <div><dt>Source of truth</dt><dd>${passport.source_of_truth === "workspace_control_plane" ? "Browser workspace control plane" : escapeHtml(passport.source_of_truth || "Passport unavailable from workspace API")}</dd></div>
       <div><dt>Passport status</dt><dd>${escapeHtml(passport.aggregate_status || execution.status || "pending_review")}</dd></div>
+      <div><dt>Receipt reference</dt><dd>${escapeHtml(passport.output_reference || "Not available")}</dd></div>
       <div><dt>Recovery</dt><dd>${escapeHtml(passport.recovery_action || "Recovery guidance unavailable")}</dd></div>
       <div><dt>Participant</dt><dd>${escapeHtml(execution.participant_name)}<br />${escapeHtml(execution.participant_email)}</dd></div>
       <div><dt>Reviewer</dt><dd>${escapeHtml(execution.reviewer_name)}<br />${escapeHtml(execution.reviewer_email)}</dd></div>
@@ -519,10 +569,18 @@ function renderTemplates() {
 }
 
 async function refreshWorkspace() {
-  const [templates, executions] = await Promise.all([api("/workspace/templates"), api("/workspace/executions")]);
+  const [templates, executions, localJobs] = await Promise.all([
+    api("/workspace/templates"),
+    api("/workspace/executions"),
+    api("/workspace/local-jobs").catch((error) => {
+      if (error.status === 404) return [];
+      throw error;
+    }),
+  ]);
   state.templates = templates;
+  state.localJobs = localJobs.map(normalizeLocalJob);
   const preservedSynthetic = state.executions.filter((execution) => execution.synthetic);
-  const merged = [...executions];
+  const merged = [...state.localJobs, ...executions];
   for (const execution of preservedSynthetic) {
     const exists = merged.some((item) => item.id === execution.id);
     if (!exists) {
@@ -587,6 +645,11 @@ async function transitionExecution(action) {
       renderMetrics();
       renderExecutions();
       renderPassport();
+      return;
+    }
+    if (isLocalDesktopExecution(execution)) {
+      await api(`/workspace/local-jobs/${execution.job_id}/retry`, { method: "POST" });
+      await refreshWorkspace();
       return;
     }
     await api(`/workspace/executions/${execution.id}/transitions`, { method: "POST", body: JSON.stringify({ action }) });

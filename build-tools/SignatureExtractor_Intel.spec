@@ -17,7 +17,6 @@ MAIN_SCRIPT = SRC_DIR / "desktop_app" / "main.py"
 
 # Prepare datas list (filter out None entries)
 datas_list = [
-    (str(SRC_DIR / "backend" / ".env"), "backend") if (SRC_DIR / "backend" / ".env").exists() else None,
     (str(SRC_DIR / "legal"), "legal") if (SRC_DIR / "legal").exists() else None,
     (str(SRC_DIR / "desktop_app" / "resources"), "desktop_app/resources") if (SRC_DIR / "desktop_app" / "resources").exists() else None,
     (str(SRC_DIR / "desktop_app/resources/signature_template_synthetic_512.jpg"), "desktop_app/resources") if (SRC_DIR / "desktop_app/resources/signature_template_synthetic_512.jpg").exists() else None,
@@ -27,6 +26,7 @@ datas_list = [
     
     (str(SRC_DIR / "backend" / "app"), "backend/app"),
     (str(SRC_DIR / "backend" / "alembic.ini"), "backend") if (SRC_DIR / "backend" / "alembic.ini").exists() else None,
+    (str(SRC_DIR / "web" / "cloud_workspace"), "web/cloud_workspace") if (SRC_DIR / "web" / "cloud_workspace").exists() else None,
 ]
 # Filter out None entries
 datas_list = [d for d in datas_list if d is not None]

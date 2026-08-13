@@ -262,6 +262,55 @@ working state and filter interactions. These results are local candidate
 evidence only.
 
 Remaining gates are product comprehension, claim review, asset authorization,
-route migration, checkout governance, backend execution contracts, and
-deployed parity. The old root and web-app surfaces remain historical/current
-evidence, not the replacement design target.
+checkout governance, backend execution contracts, and deployed parity. The
+local promotion decision is recorded in
+`docs/decisions/ADR-0146-canonical-local-product-surface-promotion.md`.
+
+### Local promotion addendum: 2026-08-13
+
+The selected direction is now promoted into the canonical local root at
+`index.html`, with interaction and styling owned by
+`web/canonical_landing/app.js` and `web/canonical_landing/styles.css`. The root
+exposes the five bounded states, a qualified product boundary, governed
+checkout, and a local-only handoff to the existing backend-mounted
+`/workspace-app/` surface. The existing `web/cloud_workspace/` app remains the
+single metadata-first browser control plane. No duplicate workspace route,
+signing pipeline, or hosted claim was introduced.
+
+Evidence: 29 focused landing, claim, route, and public-audit tests passed S1;
+JavaScript syntax checks passed S1; local Browser Daemon inspection observed
+the new title, state transition, checkout fallback, 390px no-overflow, and
+workspace link behavior at Tier 4. The local backend proof runner and workspace
+browser inspection passed on the existing `/workspace-app` mount at Tier 3/4.
+The hosted surface remains out of scope for this local product pass.
+
+The next local execution gate was tracked as `RECON-17` / `QA-17` and is now
+closed locally. The reusable `tools/run_local_source_to_ready_proof.py`
+composes the existing desktop extraction, encrypted Vault, controlled
+workflow engine, retry path, metadata-only passport, PDF placement, and
+artifact receipt into a disposable source-to-ready run. The proof found and
+fixed retry-attempt accounting in `desktop_app/workflows/engine.py`. The
+browser workspace now consumes the desktop passport through the explicit
+metadata-only `/workspace/local-jobs` bridge, tracked and verified as
+`RECON-18` / `QA-18`; hosted promotion remains a separate release gate.
+
+## Addendum: local bridge and receipt projection, 2026-08-13
+
+The local product direction now has a verified operator path from the desktop
+execution owner into the browser passport surface. The desktop workflow job
+persists an opaque artifact-receipt reference after the verified PDF is
+produced; the browser renders that reference without receiving document bytes,
+filesystem paths, vault material, or private event messages. Existing desktop
+grants bound to either the authenticated account UUID or its unique email are
+accepted as exact identities, preserving compatibility without wildcard
+authorization.
+
+Current evidence is `180 passed` in the isolated full suite, `37 passed` in the
+focused local product and bridge set, and `11/11` S3 mutation kills. The real
+Chrome bridge proof passes direct URL authentication failure, missing-job
+failure, owner-bound projection, receipt reference visibility, retry, terminal
+recovery, document-byte exclusion, and zero browser errors. The browser proof
+was linked to the actual source-to-ready receipt reference
+`sha256:3dbb4132b1e95927c2edc4409719533b0a057b1b96f24a2ece153a3ca13eb2ff`.
+This closes the local bridge slice only; hosted deployment, provider
+activation, packaging, and user comprehension remain separate gates.

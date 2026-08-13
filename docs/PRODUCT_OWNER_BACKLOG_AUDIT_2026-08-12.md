@@ -59,7 +59,8 @@ Baseline evidence checked this pass:
 | L0-09 | implicit | release/backend | Apply the extraction ownership migration and prove hosted rollout/recovery against the real deployment topology | in-progress | P0 | Local production-like smoke now passes with `e42b7f8c91aa`; target database application, live authenticated smoke, rollback/recovery, and operator receipt evidence remain required | `tools/run_extraction_hosted_smoke.py`, `backend/alembic/versions/e42b7f8c91aa_add_extraction_asset_ownership_receipts.py`, `scripts/test-deployment.sh`, `docs/decisions/ADR-0142-authenticated-extraction-asset-contract.md` | eng + ops |
 | L0-10 | implicit | developer experience | Make the backend test runtime preflight detect missing API dependencies instead of reporting only desktop test-data readiness | done | P1 | `tools/validate_test_data_environment.py --backend` passes in the repaired canonical project environment and detects stale launchers/missing modules before backend evidence is collected | `tools/validate_test_data_environment.py`, `tools/README.md`, `docs/test_data_environment.md` | eng |
 | L1-06 | implicit | workspace | Close the local document-inspection contract: preserve requested topology, reject cloud inspection, avoid document retention, and make retries replay-safe | done | P1 | Authenticated local inspection returns isolated/non-retained receipt data; same key replays; changed bytes conflict; cloud topology returns 409; full workspace/backend regression passes | `backend/app/schemas/workspace.py`, `backend/app/services/document_inspection.py`, `backend/app/routers/workspace.py`, `backend/tests/test_workspace_router.py`, `docs/decisions/ADR-0143-local-document-inspection-contract.md` | eng |
-| L0-11 | implicit | developer experience | Diagnose the non-returning `agent-start --project ... --skip-index --quiet` refresh path and restore deterministic context regeneration | in-progress | P1 | Command completes within an established local timeout, generated context files are refreshed, and the cause/evidence is documented without bypassing canonical motto guards | `/Users/pranay/Projects/agent-start`, `docs/context/agent-start/*`, `/Users/pranay/Projects/motto_v5.md` | eng |
+| L0-11 | implicit | developer experience | Diagnose the non-returning `agent-start --project ... --skip-index --quiet` refresh path and restore deterministic context regeneration | done | P1 | Ordinary `--skip-index --quiet` completes and refreshes truthful fast-mode context; full retrieval and explicitly forced retrieval fail closed when the shared runtime is absent; cause and evidence are documented without bypassing canonical motto guards | `/Users/pranay/Projects/agent-start`, `docs/context/agent-start/*`, `docs/issue_review_agent_start_context_2026-08-13.md`, `/Users/pranay/Projects/motto_v5.md` | eng |
+| L0-12 | implicit | packaging | Close the local packaged desktop runtime contract for the promoted product direction | done-local | P0 | ARM64 bundle starts the in-process backend with generated user-writable local settings, serves the canonical `/workspace-app/`, contains no developer `.env`, passes bounded local smoke and ad hoc signature verification; cross-platform, notarization, rollback, hosted, and provider evidence remain separate | `desktop_app/backend_manager.py`, `build-tools/SignatureExtractor_*.spec`, `docs/decisions/ADR-0148-local-packaged-runtime-boundary.md`, `docs/review/local_packaging_runtime_proof_2026-08-13.md`, `tests/test_build_profile.py` | desktop + release |
 | L2-08 | implicit | backend | Add regression check so extraction responses never return public `uploads/images` URLs | done | P1 | Upload/select responses keep `file_path` null/internal and contract tests guard against accidental reintroduction | `backend/app/routers/extraction.py`, `backend/tests/test_extraction_router.py`, `desktop_app/tests/test_api_client.py` | eng |
 | L2-05 | implicit | QA | Create QA matrix with reproducible commands/results and attach to runbook | in-progress | P1 | Matrix includes negative-path cases and known-limit table | `docs/QA_*` (new) | PO + QA |
 | L2-06 | explicit | web claims | Add `docs/launch_claims/registry.md` and claim smoke check for every public copy statement that implies hosted/cloud behavior | in-progress | P2 | Every hosted claim has a gate test and a source commit hash | `web/live`, `tests/test_landing_surface_contract.py` | PO |
@@ -70,6 +71,10 @@ Baseline evidence checked this pass:
 - `backend/app/main.py` previously exposed `/uploads/images` publicly through `StaticFiles`; this contract risk is mitigated by removing the mount and returning private `file_path` values from extraction responses. The hosted extraction contract now enforces authenticated owner/workspace scope, export/deletion/audit receipts, and database-backed idempotent replay. Production migration and rollout evidence remain open under `L0-09`.
 - `on_copy` and `on_save_to_library` are now hard-gated. Public legal/policy linkage and trial messaging have been updated in this cycle (menu, about, status bar).
 - Several docs remain at “pending” while code moved ahead. This is a high-risk claims gap, even when technical code is done.
+
+- Packaging is now locally proven for macOS ARM64, but no release claim may
+  generalize that result to other platforms, notarization, clean installation,
+  rollback, hosted deployment, or provider activation.
 
 ## Current pass work queue (this PO cycle)
 
@@ -95,6 +100,7 @@ Baseline evidence checked this pass:
 - `L1-05`: Closed by aligning in-app manual update flow status and Help menu evidence with backlog/task trackers.
 - `L1-04`: Closed by implementing Help → Report Issue / Send Diagnostics with local log snapshot capture and prefilled support email.
 - `L0-08`: Closed this pass. The 44-line doctrine addition is present in the Downloads canonical source; the Projects-root motto is now a symlink to it; `agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app --skip-index --quiet` regenerated the project context successfully.
+- `L0-11`: Closed for deterministic context generation and false-success prevention. Ordinary fast mode returns `0` with explicit retrieval-skipped sections; full and explicitly forced retrieval return `1` when the shared interpreter or usable `memsearch` runtime is absent. The shared environment rebuild and real retrieval proof remain separately tracked under `RECON-06`.
 - `L0-03`: Application closure this pass: authenticated owner/workspace scope, private asset lifecycle, export/deletion/audit receipts, and durable database-backed idempotency are implemented and covered by hosted integration tests. Deployment migration and live-host evidence remain under `L0-09`.
 - `L0-04`: Elevated to in-progress; production smoke evidence still reports route inconsistency in previous report.
 - `L2-04`: Closed with Tier 3 evidence: `.venv/bin/pytest -q backend/tests/test_extraction_router.py backend/tests/test_extraction_hosted.py` passed `10 passed`; desktop API assertions cover generated idempotency headers. The focused suite was first red on three response classification defects, then passed after fixing those defects (S2).
@@ -155,7 +161,7 @@ as dated records.
 | RECON-03 | explicit | release evidence | done | P0 | `6d0e54e`; 64 focused tests passed S1, entitlement mutation S2, 5/5 mutation S3, local public-surface smoke Tier 3. | Complete provider, signing, cross-platform launch, remote CI, and hosted deployment proof. |
 | RECON-04 | implicit | research and operator workflow | done | P1 | `5798235`; 39 focused tests passed S1 and 7/7 mutation S3. | Complete browser runtime proof and decide which research candidates, if any, are promoted. |
 | RECON-05 | implicit | documentation continuity | done | P1 | Current reconciliation status is in `docs/RECONCILIATION_STATUS_2026-08-13.md`; primary and a11f full docs are archived. | Keep canonical docs synchronized as remaining gates close. |
-| RECON-06 | implicit | agent-start | open | P1 | Existing issue review documents the missing workspace-memory interpreter and truthful retrieval-refresh gap. | Run bounded full refresh, repair or explicitly report retrieval health, and attach generated context hashes. |
+| RECON-06 | implicit | agent-start | open | P1 | The shared `/Users/pranay/Projects/agent-start` wrapper now fails closed for full retrieval when the workspace Python interpreter or usable `memsearch` CLI is absent; `--skip-index --quiet` remains explicitly truthful. The interpreter is still absent and `memsearch` remains a 17-byte `exit 0` stub. | Rebuild the shared workspace-memory environment through the documented setup path, run a real sync/index/search refresh, confirm retrieval results or truthful unavailable status, and attach generated context hashes. |
 | RECON-07 | implicit | hosted migration and recovery | open | P0 | Local contract and temporary SQLite smoke exist; no target database or live authenticated recovery receipt is claimed. | Apply target migrations, run authenticated upload/process/export/delete/replay, prove rollback and operator recovery. |
 | RECON-08 | explicit | public claims and deployment | open | P0 | Local root, redirect, asset content-type, and retired-claim probes pass Tier 3; the hosted probe remains a release gate. | Run `scripts/test-deployment.sh https://signkit.work` and `tools/test_deployed_surface.py --base-url https://signkit.work --json` after deployment propagation. |
 | RECON-09 | explicit | provider and packaging | open | P0 | Provider-neutral receipt and release ledger contracts fail closed without real provider or artifact evidence. | Controlled purchase/revocation, support recovery, signed artifacts, launch smoke, rollback artifact, and ready ledger evidence. |
@@ -185,6 +191,16 @@ coverage, remote CI, and agent-start retrieval health remain open tasks.
   returning HTML. Local `main` was not changed to mask a deployment mismatch.
 - The local reconciled checkout remains the source of truth for the six local
   commits and their evidence. No remote push was performed.
+
+## Addendum (2026-08-13): agent-start guard correction
+
+The earlier bounded-refresh result above is preserved as historical evidence.
+The shared wrapper now fails closed for full retrieval and for an explicitly
+forced retrieval attempt under `--skip-index --quiet`: both return exit `1`
+when the workspace interpreter or usable `memsearch` CLI is absent. Ordinary
+`--skip-index --quiet` remains a truthful exit-`0` fast mode. The shared runtime
+is still not rebuilt; `RECON-06` remains open for the documented setup path,
+real indexing/search verification, and final context hashes.
 
 ## Addendum (2026-08-13): corrected path accounting
 
@@ -227,3 +243,41 @@ The a11f worktree still contains only the untracked runtime directories
 excluded from source history. The eb41 worktree is clean and identical to
 incoming `17f644b`. `RECON-12` is closed for accounting; hosted, provider,
 packaging, and QA gates remain open.
+
+## Addendum (2026-08-13): local product direction promotion
+
+The user clarified that the immediate objective is the long-term, first-
+principles local product, not hosted deployment parity. The backlog therefore
+adds and tracks the local promotion separately from deployment gates:
+
+| ID | Type | Workstream | Status | Priority | Current evidence | Closure criteria |
+| --- | --- | --- | --- | --- | --- | --- |
+| RECON-13 | implicit | local product / design | done | P0 | `index.html`, `web/canonical_landing/`, ADR-0146, and 29 focused tests now bind the selected document-registration-studio direction to the canonical root. | Keep the root, local workspace handoff, and claim registry on one canonical path; revisit only through ADR-0146 triggers. |
+| RECON-14 | implicit | local product / QA | done | P0 | `node tools/run_local_product_browser_proof.mjs` passed in real Chrome with `reducedMotion: "reduce"` at 1440x900, 390x844, and 320x844; keyboard Source→Mark, pointer Mark→Clean, checkout fallback, workspace handoff, no overflow, and no browser errors passed. | Preserve the reusable proof command and rerun it after local surface changes. Hosted and user-research evidence remain separate gates. |
+| RECON-15 | implicit | documentation / truth boundary | done | P1 | ADR-0146 and the visual-direction addendum record the promotion, ownership boundaries, and remaining hosted gates. | Keep dated addenda synchronized when local capability or product direction changes. |
+| RECON-16 | implicit | local operator workflow / developer experience | done | P1 | `tools/run_local_product_stack.py --once` started the existing FastAPI companion and canonical `serve.py`, waited for `/health` and `/`, used isolated SQLite and filesystem data defaults even with ambient values set, and cleanly stopped both processes; the long-running stack then passed the full local browser proof. | Preserve the one-command launcher and rerun its startup, browser, isolated-data, and cleanup checks after changes to either local surface. |
+| RECON-17 | implicit | local product / operator execution | done-local | P0 | `tools/run_local_source_to_ready_proof.py` runs the real desktop extraction, encrypted vault round-trip, controlled placement/export, forced signing failure, canonical retry, metadata-only passports, and verified artifact receipt in a disposable directory. `tools/run_local_workspace_bridge_browser_proof.mjs` now joins that local execution owner to the browser passport projection and proves the operator-visible recovery path. | Preserve both reusable proofs and rerun them after local execution, passport, browser, or boundary changes. Hosted, packaged, and external-research evidence remain separate gates. |
+| RECON-18 | implicit | local product / cross-surface architecture | done-local | P0 | The existing `/workspace` route family now exposes authenticated `/workspace/local-jobs`, `/workspace/local-jobs/{job_id}`, and `/workspace/local-jobs/{job_id}/retry` projections. The desktop JSON store remains the source of truth; `ExecutionPassport` is metadata-only; authorization binds the exact `ExecutionGrant.approver_subject` to the authenticated user; hosted profile returns 404. Focused route tests pass, 2 bridge mutants are killed, and the real Chrome bridge proof passes with 401/404, private-path exclusion, retry, recovery, and zero browser errors. | Preserve one canonical local bridge. Reopen if the desktop store, authorization model, workspace route family, passport boundary, or local/hosted topology changes. Do not interpret this local closure as hosted deployment or legal-signing evidence. |
+| RECON-19 | implicit | local product / retry integrity | done-local | P0 | The existing retry route now serializes local store mutations, accepts or derives a bounded idempotency key, persists a replay receipt, and exposes the opaque key through the existing passport. The focused workflow/store/passport/bridge suite passes `32` tests at S1; the full `12/12` mutation manifest passes at S3; same-key replay and concurrent keyed requests converge on one engine execution; fresh source-to-ready and real-Chrome bridge proofs pass at Tier 4. | Preserve the route/store/engine ownership boundary. Reopen if the local store changes, retry becomes multi-process across machines, or receipt retention requires compaction. Hosted/provider retry remains separate. |
+| RECON-20 | implicit | local packaged runtime | done-local | P0 | The macOS ARM64 PyInstaller artifact starts the in-process backend with generated local SQLite/JWT settings, serves and renders the bundled canonical `/workspace-app/`, passes the real-browser landing/workspace handoff and authenticated local bridge recovery flow, contains no `.env`, passes ad hoc code-sign verification, and leaves no port-8001 listener after bounded shutdown. | Preserve the spec/runtime contract and rerun `QA-20` after packaging changes. Intel/Windows/Linux, notarization, clean-install, rollback, hosted, and provider evidence remain separate. |
+
+## Addendum (2026-08-13): local packaged runtime
+
+The local packaging gate advanced without changing the hosted or provider
+boundary. `desktop_app/backend_manager.py` now applies the explicit local
+database/JWT/runtime/health contract before the in-process backend import.
+All desktop PyInstaller specs omit the developer `backend/.env` and include
+the canonical `web/cloud_workspace/` assets.
+
+The ARM64 standard bundle was rebuilt with the canonical `venv` and exercised
+in a real offscreen frozen process. It reached `/health` with HTTP 200, served
+`/workspace-app/` with HTTP 200, created only isolated local state, passed
+`codesign --verify --deep --strict`, and stopped under a 15-second bound with
+no remaining port-8001 listener. This is Tier 4 local artifact evidence and
+S2-style regression evidence because the prior artifact failed at missing
+`JWT_SECRET` before the environment fix.
+
+`RECON-20` and `QA-20` are closed locally. `RECON-09`, `L0-05`, and the broad
+release gate remain open for Intel/Windows/Linux artifacts, distribution
+signing/notarization, clean installation, rollback, and a release ledger tied
+to a real release source and recoverable prior artifact.

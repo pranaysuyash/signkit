@@ -82,9 +82,10 @@ class CanonicalRouteHandler(SimpleHTTPRequestHandler):
         return SimpleHTTPRequestHandler.do_GET(self)
 
 if __name__ == '__main__':
-    PORT = 8080
-    server = HTTPServer(('127.0.0.1', PORT), CanonicalRouteHandler)
-    print(f'Server running at http://127.0.0.1:{PORT}/')
+    HOST = os.getenv('SIGNKIT_LANDING_HOST', '127.0.0.1')
+    PORT = int(os.getenv('SIGNKIT_LANDING_PORT', '8080'))
+    server = HTTPServer((HOST, PORT), CanonicalRouteHandler)
+    print(f'Server running at http://{HOST}:{PORT}/')
     print('Legacy landing and experiment routes redirect to /.')
     print('Press Ctrl+C to stop')
     

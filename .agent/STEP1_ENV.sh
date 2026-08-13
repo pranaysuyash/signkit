@@ -1,6 +1,6 @@
 # Source this file in your shell for this project session.
-export MEMSEARCH_PROVIDER="openai"
-export MEMSEARCH_MODEL="text-embedding-3-small"
+export MEMSEARCH_PROVIDER="ollama"
+export MEMSEARCH_MODEL="nomic-embed-text"
 export PM="/Users/pranay/Projects/projects-memory"
 export PROJECT_REL="Data_Science/computer_vision/proj6/signature-extractor-app"
 export AGENT_MOTTO_SOURCE="/Users/pranay/Downloads/motto_v5.md"  # portable setups override to project motto_v5.md

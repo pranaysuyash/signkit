@@ -17,9 +17,6 @@ MAIN_SCRIPT = SRC_DIR / "desktop_app" / "main_macos_premium.py"
 
 # Prepare datas list (filter out None entries)
 datas_list = [
-    # Include configuration files
-    (str(SRC_DIR / "backend" / ".env"), "backend") if (SRC_DIR / "backend" / ".env").exists() else None,
-
     # Include legal documents
     (str(SRC_DIR / "legal"), "legal") if (SRC_DIR / "legal").exists() else None,
 
@@ -35,6 +32,7 @@ datas_list = [
     # Include backend files (optional component)
     (str(SRC_DIR / "backend" / "app"), "backend/app"),
     (str(SRC_DIR / "backend" / "alembic.ini"), "backend") if (SRC_DIR / "backend" / "alembic.ini").exists() else None,
+    (str(SRC_DIR / "web" / "cloud_workspace"), "web/cloud_workspace") if (SRC_DIR / "web" / "cloud_workspace").exists() else None,
 ]
 # Filter out None entries
 datas_list = [d for d in datas_list if d is not None]

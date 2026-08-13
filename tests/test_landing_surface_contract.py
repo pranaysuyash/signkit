@@ -210,7 +210,9 @@ def test_canonical_root_and_legacy_routes_have_one_public_destination() -> None:
 def test_every_retained_html_artifact_is_non_public() -> None:
     """Cloudflare publishes the root, so stale HTML must be redirected too."""
 
-    excluded_dirs = {".git", ".venv", "venv", "node_modules"}
+    # Build and distribution outputs are ignored, generated artifacts. They
+    # contain PyInstaller cross-reference HTML but are not publishable routes.
+    excluded_dirs = {".git", ".venv", "venv", "node_modules", "build", "dist"}
     for path in REPO_ROOT.rglob("*.html"):
         relative_parts = path.relative_to(REPO_ROOT).parts
         if any(part in excluded_dirs for part in relative_parts):

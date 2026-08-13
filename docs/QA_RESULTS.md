@@ -18,8 +18,8 @@ Scope: local reproducible matrix only unless stated otherwise
 | QA-07 | PASS | Tier 3, S1 | Workspace malformed and unkeyed document inspection cases returned 422. |
 | QA-08 | PASS | Tier 2, S1 | Manual offline mode returned the typed offline error and the fake HTTP client was not called. The combined API and coordinate suite passed `25 passed`. |
 | QA-09 | PASS | Tier 1 plus Tier 2, S1 | Configuration contract and backend manager checks passed `6 passed`; fresh SQLite migration to Alembic head also passed in the canonical environment. |
-| QA-10 | PASS | Tier 3 local runtime | The local deployment route matrix passed in the preceding release-gate run. This is not hosted proof. |
-| QA-11 | PASS | Tier 3 local runtime | The local deployed-surface probe passed in the preceding release-gate run. This is not hosted proof. |
+| QA-10 | PASS | Tier 3 local runtime | Fresh `bash scripts/test-deployment.sh http://127.0.0.1:8080` passed the root, 27 legacy redirects, wildcard routes, retained asset content types, and JavaScript content-type checks against the running canonical `serve.py`. This is not hosted proof. |
+| QA-11 | PASS | Tier 3 local runtime | Fresh `./.venv/bin/python tools/test_deployed_surface.py --base-url http://127.0.0.1:8080 --json` returned `status: pass`, with the canonical document-registration-studio marker, 301 legacy redirects, current checkout assets, and no errors. This is not hosted proof. |
 
 Additional touched-flow checks:
 
@@ -54,7 +54,7 @@ CI-equivalent execution after binding the matrix into
 
 | ID | Status | Evidence or next step |
 | --- | --- | --- |
-| QA-12 | OPEN | Local browser/accessibility evidence exists for the canonical root, but a fresh device and narrow-viewport pass is still needed. |
+| QA-12 | PASS | Tier 4 local real-Chrome runtime | Fresh `node tools/run_local_product_browser_proof.mjs` passed at 1440x900, 390x844, and 320x844. The proof now asserts the main landmark, visible focused skip link and `#main-content` target, labeled five-state rail, canonical primary workspace CTA, keyboard focus/state transition, pointer state transition, reduced motion, no horizontal overflow, and zero browser errors. This is local browser evidence, not a full assistive-technology audit. |
 | QA-13 | FAIL, release-blocking | The 2026-08-13 external probe still found the deployed root without the current canonical marker, legacy paths returning 200/308 instead of the required 301 policy, and checkout JavaScript paths returning HTML. Re-run after target deployment propagation. |
 | QA-14 | OPEN | Local production-like migration and hosted smoke exist, but target-database application, live authenticated smoke, rollback, and operator receipt evidence remain open under L0-09. |
 | QA-15 | OPEN | Provider-neutral entitlement code and research exist, but no configured product ID, controlled purchase, refund/revocation webhook, or provider-backed receipt evidence exists. |
@@ -70,3 +70,36 @@ The matrix is now part of the canonical CI workflow. A GitHub-hosted run is
 still required before L1-09 can close; local workflow-contract and
 CI-equivalent evidence cannot substitute for the remote runner, artifact URL,
 or retained workflow receipt.
+
+QA-12 is closed for the reusable local browser contract at Tier 4. A full
+screen-reader, VoiceOver, device-browser, and manual assistive-technology pass
+remains a separate release-quality follow-up; the proof does not claim those
+surfaces from Playwright alone.
+
+## Addendum (2026-08-13): fresh local public-surface gate
+
+The strict local auditor also returned `status: pass` with `claim_count: 13`,
+27 redirect legacy paths, 27 server legacy paths, and no blocking errors. Its
+warnings remain intentionally visible: retained historical pages contain
+legacy checkout references and unsupported claims, and 30 historical documents
+reference retired routes. These warnings do not make the current local root
+unready, but they remain part of the hosted artifact/release review and must
+not be mistaken for current product claims.
+
+## Addendum (2026-08-13): packaged local desktop runtime
+
+QA-20 passed for the macOS ARM64 standard bundle. The focused packaging and
+backend-manager contract suite passed `10` tests at S1; the complete mutation
+manifest passed `13/13` at S3; and the full repository suite passed `181` tests
+at S1 after the generated-build HTML boundary was corrected. The frozen
+artifact reached `/health` with HTTP 200, served and rendered `/workspace-app/`
+with HTTP 200, passed the local landing/workspace handoff and authenticated
+bridge recovery browser flows, created isolated SQLite/JWT state, contained no
+`.env`, passed local ad hoc `codesign --verify --deep --strict`, and left no
+port-8001 listener after the bounded smoke.
+
+The detailed evidence is in
+`docs/review/local_packaging_runtime_proof_2026-08-13.md`. This closes only
+the local ARM64 artifact contract. Intel/Windows/Linux, distribution signing
+and notarization, clean installation, rollback, hosted deployment, and
+provider activation remain open.

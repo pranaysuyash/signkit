@@ -113,7 +113,7 @@ def require_authorization(
         return GrantDecision(False, REASONS["missing_subject"], "Subject is required")
 
     # Explicitly non-persistent actions can still run with broad role checks disabled.
-    if requested_action not in {"run_job", "retry_job", "approve_job"}:
+    if requested_action not in {"inspect_job", "run_job", "retry_job", "approve_job"}:
         return GrantDecision(False, "ERR_AUTH_UNKNOWN_ACTION", f"Unknown action: {requested_action}")
 
     if not job.grant_id:
@@ -140,7 +140,7 @@ def require_authorization(
         return GrantDecision(False, REASONS["subject_mismatch"], "Subject is not authorized for this grant")
 
     executed = count_jobs_for_grant(grant.grant_id)
-    if grant.max_jobs is not None and executed >= grant.max_jobs:
+    if requested_action != "inspect_job" and grant.max_jobs is not None and executed >= grant.max_jobs:
         return GrantDecision(False, REASONS["quota_exceeded"], "Grant job quota is exhausted")
 
     return GrantDecision(True, REASONS["ok"], "Grant is valid", grant=grant)
