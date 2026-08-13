@@ -60,3 +60,12 @@ directs the operator to choose a readable PDF or inspect the source. QA-31
 records the focused workflow and content evidence. Timeout, partial-export,
 cleanup, companion process recovery, and accessibility observations remain
 open.
+
+## Addendum: partial-export contract
+
+The desktop PDF save surface now verifies the final output before recording a
+successful save. If a newly created destination fails export or verification,
+the destination is removed and the operator receives bounded recovery copy.
+QA-32 records the focused orchestration, artifact-receipt, and export-mode
+evidence. This remains local code-contract evidence; packaged, device,
+certificate-provider, and assistive-technology observations remain open.

@@ -81,6 +81,7 @@ def _create_button(
 from desktop_app.library import storage as lib
 from desktop_app.views.bulk_sign_dialog import BulkSignDialog
 from desktop_app.pdf.stack_profile import stack_install_hint, signing_backend_report
+from desktop_app.workflows.operator_content import export_outcome_message
 
 try:
     from desktop_app.pdf.viewer import PDFViewer
@@ -982,9 +983,12 @@ class PdfTabMixin:
             if not passphrase_ok:
                 return
 
-        # Export through the canonical explicit signing seam.
+        # Export through the canonical explicit signing seam, then verify before
+        # recording the save or telling the operator that output is ready.
+        output_preexisting = Path(output_path).exists()
         try:
             from desktop_app.workflows.engine import export_pdf_artifact
+            from desktop_app.workflows.verifier import verify_output
 
             export_result = export_pdf_artifact(
                 self.session.pdf_state.current_pdf_path,
@@ -995,36 +999,44 @@ class PdfTabMixin:
                 passphrase=certificate_passphrase,
             )
             success = bool(export_result) if signing_mode == "visual" else True
-            
-            if success:
-                # Log save operation
-                if self.audit_logger:
-                    self.audit_logger.log_save(output_path, len(placed_sigs))
-                if self._current_pdf_path:
-                    save_document_session(self._current_pdf_path, placed_sigs)
-                save_document_session(output_path, placed_sigs)
+            if not success:
+                raise RuntimeError("ERR_EXPORT_FAILED")
 
-                if signing_mode == "certificate":
-                    receipt_path = getattr(export_result, "receipt_path", None)
-                    receipt_line = f"\\nReceipt: {receipt_path}" if receipt_path else ""
-                    message = (
-                        f"Certificate-backed PDF saved to:\\n{output_path}\\n\\n"
-                        f"Cryptographic verification passed.{receipt_line}"
-                    )
-                else:
-                    message = (
-                        f"Visual-placement PDF saved to:\\n{output_path}\\n\\n"
-                        f"Signatures placed: {len(placed_sigs)}\\n"
-                        "This export is not a cryptographic signature."
-                    )
-                QMessageBox.information(self, "Success", message)
-                self.statusBar().showMessage(f"💾 Saved: {Path(output_path).name}")
-            else:
-                QMessageBox.warning(self, "Error", "Failed to save signed PDF")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error saving PDF:\n{e}")
+            verification = verify_output(self.session.pdf_state.current_pdf_path, output_path)
+            if not verification.ok:
+                raise RuntimeError("ERR_EXPORT_VERIFY")
+
             if self.audit_logger:
-                self.audit_logger.log_error("save_failed", str(e))
+                self.audit_logger.log_save(output_path, len(placed_sigs))
+            if self._current_pdf_path:
+                save_document_session(self._current_pdf_path, placed_sigs)
+            save_document_session(output_path, placed_sigs)
+
+            if signing_mode == "certificate":
+                receipt_path = getattr(export_result, "receipt_path", None)
+                receipt_line = f"\\nReceipt: {receipt_path}" if receipt_path else ""
+                message = (
+                    f"Certificate-backed PDF saved to:\\n{output_path}\\n\\n"
+                    f"Cryptographic verification passed.{receipt_line}"
+                )
+            else:
+                message = (
+                    f"Visual-placement PDF saved to:\\n{output_path}\\n\\n"
+                    f"Signatures placed: {len(placed_sigs)}\\n"
+                    "This export is not a cryptographic signature."
+                )
+            QMessageBox.information(self, "Success", message)
+            self.statusBar().showMessage(f"💾 Saved: {Path(output_path).name}")
+        except Exception as exc:
+            if not output_preexisting:
+                try:
+                    Path(output_path).unlink(missing_ok=True)
+                except OSError:
+                    pass
+            error_code = "ERR_EXPORT_VERIFY" if "ERR_EXPORT_VERIFY" in str(exc) else "ERR_EXPORT_FAILED"
+            QMessageBox.critical(self, "Export failed", export_outcome_message(error_code))
+            if self.audit_logger:
+                self.audit_logger.log_error("save_failed", error_code)
         finally:
             if hasattr(self, "_refresh_toolbar_action_states"):
                 self._refresh_toolbar_action_states()

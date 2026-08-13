@@ -111,3 +111,18 @@ source.
 
 Targeted evidence: `desktop_app/tests/test_workflow_engine.py` and
 `tests/test_operator_content.py` passed as QA-31.
+
+## Addendum (2026-08-13): partial-export recovery binding
+
+The PDF save surface now treats an export as ready only after
+`desktop_app/workflows/verifier.py` confirms that the output exists, is
+non-empty, and differs from the source. If the destination did not exist
+before the attempt and export or verification fails, the newly created output
+is removed before the operator is notified. The primary message is bounded
+and explicitly says that no incomplete output was kept; technical error class
+is retained only for the audit path.
+
+Targeted evidence: `tests/test_pdf_export_recovery_contract.py`,
+`tests/test_operator_content.py`, `desktop_app/tests/test_export_mode_dispatch.py`,
+and `tests/test_artifact_receipt.py` passed as QA-32. This does not establish
+packaged, device, certificate-provider, or assistive-technology observation.

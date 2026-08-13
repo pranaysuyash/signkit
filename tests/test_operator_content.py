@@ -5,6 +5,7 @@ from desktop_app.workflows.operator_content import (
     companion_status_label,
     companion_status_message,
     companion_tooltip,
+    export_outcome_message,
     outcome_message,
     state_label,
 )
@@ -58,3 +59,11 @@ def test_local_companion_copy_is_bounded_and_recoverable() -> None:
 def test_unknown_companion_state_fails_to_checking_copy() -> None:
     assert companion_status_label("future_state") == "Local service: Checking..."
     assert "status is checked" in companion_status_message("future_state")
+
+
+def test_partial_export_copy_protects_against_incomplete_output_claim() -> None:
+    message = export_outcome_message("ERR_EXPORT_VERIFY")
+
+    assert "did not pass local output verification" in message
+    assert "No incomplete output was kept" in message
+    assert "/Users/pranay" not in message

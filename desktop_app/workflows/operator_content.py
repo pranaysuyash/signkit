@@ -57,6 +57,17 @@ _COMPANION_MESSAGES = {
     ),
 }
 
+_EXPORT_COPY = {
+    "ERR_EXPORT_FAILED": (
+        "The PDF could not be exported. No incomplete output was kept. "
+        "Check the source and destination, then try again if safe."
+    ),
+    "ERR_EXPORT_VERIFY": (
+        "The exported PDF did not pass local output verification. No incomplete output was kept. "
+        "Review the source and destination before trying again."
+    ),
+}
+
 
 def _coerce_state(state: WorkflowState | str) -> Optional[WorkflowState]:
     if isinstance(state, WorkflowState):
@@ -119,10 +130,17 @@ def companion_tooltip(state: str, *, version: str | None = None) -> str:
     return f"{message}\nOpen Help for local companion recovery."
 
 
+def export_outcome_message(code: str | None) -> str:
+    """Return bounded recovery copy for a local PDF export result."""
+
+    return _EXPORT_COPY.get(code or "", _EXPORT_COPY["ERR_EXPORT_FAILED"])
+
+
 __all__ = [
     "companion_status_label",
     "companion_status_message",
     "companion_tooltip",
+    "export_outcome_message",
     "outcome_message",
     "state_label",
 ]
