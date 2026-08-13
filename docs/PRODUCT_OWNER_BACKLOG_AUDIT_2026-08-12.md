@@ -169,3 +169,19 @@ Integrated local regression checkpoint: the current `main` checkout passed
 and offscreen Qt. This is S1 evidence only. Hosted migration and recovery,
 public deployment, provider activation, signed packaging, browser/device
 coverage, remote CI, and agent-start retrieval health remain open tasks.
+
+## Addendum (2026-08-13): live reconciliation gate results
+
+- `RECON-06` / agent-start remains open. A bounded full refresh returned shell
+  exit code `0` while reporting the missing
+  `/Users/pranay/Projects/workspace_memory/.venv/bin/python` interpreter. The
+  regenerated context contained `_Search failed for this collection/query._`
+  in every retrieval section. See
+  `docs/issue_review_agent_start_context_2026-08-13.md` for reproduction and
+  closure criteria.
+- `RECON-08` / hosted public surface remains open. The read-only probes against
+  `https://signkit.work` found the older root surface, legacy routes returning
+  `200` or `308` rather than `301`, and retired `/web/live` JavaScript paths
+  returning HTML. Local `main` was not changed to mask a deployment mismatch.
+- The local reconciled checkout remains the source of truth for the five local
+  commits and their evidence. No remote push was performed.

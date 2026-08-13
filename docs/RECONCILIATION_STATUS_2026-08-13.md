@@ -45,7 +45,7 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-02 | done | backend and desktop | Runtime profile, local inspection receipts, health proof, and remote-upload policy are in one canonical path with focused tests. |
 | RECON-03 | done | release engineering | Release ledger, deployment probes, claim checks, QA matrix, and entitlement receipt contract are in local `main`. |
 | RECON-04 | done | research and product | Research tooling, web operator receipt recovery, isolated concept surface, and evidence-bound experiment protocol are in local `main`. |
-| RECON-05 | open | workspace tooling | Run `/Users/pranay/Projects/agent-start --project Data_Science/computer_vision/proj6/signature-extractor-app` under a bounded timeout, repair or explicitly report retrieval health, and attach regenerated context hashes. |
+| RECON-05 | open | workspace tooling | Bounded rerun exits `0` but emits a missing `/Users/pranay/Projects/workspace_memory/.venv/bin/python` diagnostic and writes `_Search failed for this collection/query._` into every retrieval section. Repair or explicitly report retrieval health, fix false-success behavior, and attach regenerated context hashes. |
 | RECON-06 | open | release and ops | Apply the Alembic head to the target database, run authenticated hosted extraction and local inspection smoke, prove replay, deletion, rollback, and operator recovery receipts. |
 | RECON-07 | open | release owner | Run the hosted public-surface probe after deployment propagation and retain root, redirect, JavaScript content-type, and claim results. |
 | RECON-08 | open | commercial and release | Configure a provider-neutral adapter boundary, controlled purchase, receipt activation, refund/revocation, offline-grace expiry, support recovery, and customer-safe claims. |
@@ -63,6 +63,33 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
   not a production signing route.
 - `agent-start` context artifacts are not considered healthy until the live
   bounded refresh and retrieval behavior are rechecked.
+- The 2026-08-13 live hosted probe still serves the older landing and checkout
+  surface. It is not evidence that the reconciled local `main` has been
+  deployed.
+
+## Addendum (2026-08-13): live gate results
+
+The workspace tooling refresh was rerun with a 90-second bound. It returned
+shell exit code `0` while reporting the missing workspace-memory interpreter and
+failed retrieval sections. The exact evidence and interpretation are recorded
+in `docs/issue_review_agent_start_context_2026-08-13.md`; RECON-05 remains open.
+
+The hosted checks were also rerun read-only against `https://signkit.work`:
+
+- `tools/test_deployed_surface.py --base-url https://signkit.work --json` failed
+  because `/` lacked the current canonical public-surface marker, legacy paths
+  such as `/buy`, `/gum`, `/new`, `/purchase`, `/root`, and `/test-variants`
+  returned `200` or `308` instead of the required `301`, and retired
+  `/web/live/js/checkout.js` and `/web/live/js/checkout-config.js` returned
+  HTML instead of JavaScript.
+- `scripts/test-deployment.sh https://signkit.work` passed the root `200` check
+  but failed the `/index.html` redirect check because the host returned `308`
+  instead of `301`.
+
+These are Tier 3 command-execution results against the deployed surface, but
+they do not prove a code defect in the unreleased local checkout. RECON-08
+remains open until the reconciled public surface is deployed and the same
+probes pass.
 
 ## Next coherent unit
 

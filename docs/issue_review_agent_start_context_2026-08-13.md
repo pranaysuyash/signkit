@@ -67,3 +67,26 @@ Workspace tooling owner must:
 This review is Tier 1 static plus command-execution evidence. It does not claim
 that workspace memory indexing is repaired, and it does not authorize deleting
 or recreating the shared `.venv`.
+
+## Addendum (2026-08-13): bounded full-refresh result
+
+The bounded command was rerun from the canonical checkout:
+
+```bash
+/opt/homebrew/bin/timeout 90 /Users/pranay/Projects/agent-start \
+  --project Data_Science/computer_vision/proj6/signature-extractor-app \
+  --quiet
+```
+
+The shell reported exit code `0`, but emitted:
+
+```text
+zsh:16: no such file or directory: /Users/pranay/Projects/workspace_memory/.venv/bin/python
+```
+
+The generated context timestamp advanced to `2026-08-13T10:21:51Z`, while all
+retrieval sections contained `_Search failed for this collection/query._`.
+This is therefore a repeatable false-success and retrieval-health failure, not
+closure of RECON-05. The closure criteria above remain unchanged. The generated
+context files were restored after capture because they contain only the failed
+refresh output and are derived artifacts.
