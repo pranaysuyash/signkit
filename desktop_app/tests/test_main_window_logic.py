@@ -385,10 +385,12 @@ def test_on_delete_selected_library(monkeypatch, main_window):
     items_deleted = []
 
     def fake_delete(path):
-        items_deleted.append(path)
-        return True
+        from desktop_app.library.storage import DeletionResult
 
-    monkeypatch.setattr("desktop_app.library.storage.delete_item", fake_delete)
+        items_deleted.append(path)
+        return DeletionResult("deleted", True, True)
+
+    monkeypatch.setattr("desktop_app.library.storage.delete_item_with_result", fake_delete)
     monkeypatch.setattr(QMessageBox, "question", lambda *args, **kwargs: QMessageBox.Yes)
 
     item = QListWidgetItem("sig")

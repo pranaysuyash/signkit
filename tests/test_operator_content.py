@@ -5,6 +5,7 @@ from desktop_app.workflows.operator_content import (
     companion_status_label,
     companion_status_message,
     companion_tooltip,
+    deletion_outcome_message,
     export_outcome_message,
     outcome_message,
     state_label,
@@ -67,3 +68,9 @@ def test_partial_export_copy_protects_against_incomplete_output_claim() -> None:
     assert "did not pass local output verification" in message
     assert "No incomplete output was kept" in message
     assert "/Users/pranay" not in message
+
+
+def test_deletion_copy_distinguishes_complete_and_incomplete_cleanup() -> None:
+    assert deletion_outcome_message("deleted") == "Signature removed and cleanup completed."
+    assert "cleanup is incomplete" in deletion_outcome_message("cleanup_incomplete")
+    assert "No deletion was recorded" in deletion_outcome_message("not_deleted")

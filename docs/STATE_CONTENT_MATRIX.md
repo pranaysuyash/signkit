@@ -126,3 +126,18 @@ Targeted evidence: `tests/test_pdf_export_recovery_contract.py`,
 `tests/test_operator_content.py`, `desktop_app/tests/test_export_mode_dispatch.py`,
 and `tests/test_artifact_receipt.py` passed as QA-32. This does not establish
 packaged, device, certificate-provider, or assistive-technology observation.
+
+## Addendum (2026-08-13): local library deletion cleanup binding
+
+Local library deletion now validates the resolved path remains inside the
+library root, removes the image and JSON sidecar as one operator action, and
+writes a metadata-only deletion receipt. The result distinguishes
+`deleted`, `cleanup_incomplete`, and `not_deleted`; the UI explains the
+cleanup-incomplete state without exposing the path. The boolean `delete_item`
+compatibility wrapper remains for older callers, while the desktop surface
+uses the structured result.
+
+Targeted evidence: `tests/test_library_deletion_contract.py`,
+`desktop_app/tests/test_main_window_logic.py`, and
+`tests/test_operator_content.py` passed as QA-33. Permission-denied,
+cross-device, and restart/recovery observations remain open.

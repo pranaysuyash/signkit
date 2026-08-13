@@ -68,6 +68,12 @@ _EXPORT_COPY = {
     ),
 }
 
+_DELETION_COPY = {
+    "deleted": "Signature removed and cleanup completed.",
+    "cleanup_incomplete": "Signature removed, but cleanup is incomplete. Review local cleanup before continuing.",
+    "not_deleted": "The signature could not be removed. No deletion was recorded.",
+}
+
 
 def _coerce_state(state: WorkflowState | str) -> Optional[WorkflowState]:
     if isinstance(state, WorkflowState):
@@ -136,10 +142,17 @@ def export_outcome_message(code: str | None) -> str:
     return _EXPORT_COPY.get(code or "", _EXPORT_COPY["ERR_EXPORT_FAILED"])
 
 
+def deletion_outcome_message(status: str) -> str:
+    """Return bounded recovery copy for a local library deletion result."""
+
+    return _DELETION_COPY.get(status, _DELETION_COPY["not_deleted"])
+
+
 __all__ = [
     "companion_status_label",
     "companion_status_message",
     "companion_tooltip",
+    "deletion_outcome_message",
     "export_outcome_message",
     "outcome_message",
     "state_label",

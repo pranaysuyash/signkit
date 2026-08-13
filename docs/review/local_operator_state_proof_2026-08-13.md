@@ -69,3 +69,13 @@ the destination is removed and the operator receives bounded recovery copy.
 QA-32 records the focused orchestration, artifact-receipt, and export-mode
 evidence. This remains local code-contract evidence; packaged, device,
 certificate-provider, and assistive-technology observations remain open.
+
+## Addendum: local library deletion contract
+
+The local signature library now removes the image and JSON sidecar through a
+structured deletion result and records a metadata-only receipt. If the image
+is removed but sidecar or receipt cleanup fails, the result is
+`cleanup_incomplete` and the desktop surface tells the operator that cleanup
+needs attention. QA-33 records complete cleanup, surfaced failure, path
+boundary, and Qt action evidence. Permission-denied, cross-device, and
+restart/recovery observations remain open.

@@ -1,12 +1,16 @@
 import os
 import json
+import hashlib
+import tempfile
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
+from uuid import uuid4
 
 
 APP_DIR = os.path.join(os.path.expanduser("~"), ".signature_extractor")
 LIB_DIR = os.path.join(APP_DIR, "signatures")
+DELETION_RECEIPT_DIRNAME = ".deletion_receipts"
 
 
 def ensure_library_dir() -> str:
@@ -244,6 +248,64 @@ class LibraryItem:
         return "\n".join(lines)
 
 
+@dataclass(frozen=True)
+class DeletionResult:
+    """Durable outcome for removing a library item and its sidecar."""
+
+    status: str
+    primary_deleted: bool
+    cleanup_complete: bool
+    reason: Optional[str] = None
+
+
+def _library_path(path: str) -> Optional[str]:
+    """Return a safe library path, rejecting traversal and symlink escapes."""
+
+    try:
+        root = os.path.realpath(LIB_DIR)
+        candidate = os.path.realpath(os.path.abspath(os.path.expanduser(path)))
+        if os.path.commonpath([candidate, root]) != root or candidate == root:
+            return None
+        return candidate
+    except (OSError, TypeError, ValueError):
+        return None
+
+
+def _sha256_file(path: str) -> Optional[str]:
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        return None
+    return digest.hexdigest()
+
+
+def _write_deletion_receipt(*, item_name: str, item_sha256: Optional[str], cleanup_status: str) -> None:
+    receipt_dir = os.path.join(LIB_DIR, DELETION_RECEIPT_DIRNAME)
+    os.makedirs(receipt_dir, exist_ok=True)
+    destination = os.path.join(receipt_dir, f"{uuid4().hex}.json")
+    payload = {
+        "schema": "signkit.library_deletion_receipt.v1",
+        "item_name": item_name,
+        "item_sha256": item_sha256,
+        "cleanup_status": cleanup_status,
+        "recorded_at": datetime.now().astimezone().isoformat(),
+    }
+    descriptor, temporary_name = tempfile.mkstemp(prefix=".deletion-", suffix=".tmp", dir=receipt_dir)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_name, destination)
+    finally:
+        if os.path.exists(temporary_name):
+            os.unlink(temporary_name)
+
+
 def list_items(limit: int = 50) -> List[LibraryItem]:
     """List the `limit` most recently modified library items.
 
@@ -286,14 +348,44 @@ def list_items(limit: int = 50) -> List[LibraryItem]:
     return items
 
 
+def delete_item_with_result(path: str) -> DeletionResult:
+    """Remove a library image, sidecar, and metadata-only deletion receipt."""
+
+    safe_path = _library_path(path)
+    if safe_path is None or not os.path.isfile(safe_path):
+        return DeletionResult("not_deleted", False, True, "path_not_in_library")
+
+    item_name = os.path.basename(safe_path)
+    item_sha256 = _sha256_file(safe_path)
+    try:
+        os.remove(safe_path)
+    except OSError:
+        return DeletionResult("not_deleted", False, True, "primary_delete_failed")
+
+    cleanup_complete = True
+    sidecar_path = os.path.splitext(safe_path)[0] + ".json"
+    if os.path.exists(sidecar_path):
+        try:
+            os.remove(sidecar_path)
+        except OSError:
+            cleanup_complete = False
+
+    status = "complete" if cleanup_complete else "incomplete"
+    try:
+        _write_deletion_receipt(item_name=item_name, item_sha256=item_sha256, cleanup_status=status)
+    except OSError:
+        cleanup_complete = False
+        status = "incomplete"
+
+    return DeletionResult(
+        "deleted" if cleanup_complete else "cleanup_incomplete",
+        True,
+        cleanup_complete,
+        None if cleanup_complete else "cleanup_incomplete",
+    )
+
+
 def delete_item(path: str) -> bool:
-    try:
-        if os.path.commonpath([os.path.abspath(path), os.path.abspath(LIB_DIR)]) != os.path.abspath(LIB_DIR):
-            return False
-    except Exception:
-        return False
-    try:
-        os.remove(path)
-        return True
-    except Exception:
-        return False
+    """Backward-compatible boolean deletion API."""
+
+    return delete_item_with_result(path).primary_deleted

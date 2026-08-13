@@ -68,6 +68,7 @@ from desktop_app.workflows.operator_content import (
     companion_status_label,
     companion_status_message,
     companion_tooltip,
+    deletion_outcome_message,
 )
 
 if TYPE_CHECKING:
@@ -3152,11 +3153,15 @@ class ExtractionTabMixin:
         if act == open_act:
             self.on_library_item_open(item)
         elif act == del_act:
-            if lib.delete_item(path):
+            result = lib.delete_item_with_result(path)
+            if result.primary_deleted:
                 self._refresh_library_list()
-                self.status_bar.showMessage("Deleted", 2000)
+                message = deletion_outcome_message(result.status)
+                self.status_bar.showMessage(message, 3000)
+                if not result.cleanup_complete:
+                    QMessageBox.warning(cast(QWidget, self), "Cleanup needs attention", message)
             else:
-                QMessageBox.warning(cast(QWidget, self), "Delete failed", "Could not delete the selected file.")
+                QMessageBox.warning(cast(QWidget, self), "Delete failed", deletion_outcome_message(result.status))
         self._update_library_controls()
 
     def on_delete_selected_library(self):
@@ -3173,23 +3178,31 @@ class ExtractionTabMixin:
         if confirm != QMessageBox.Yes:
             return
 
-        failed = []
+        failed = 0
+        incomplete = 0
         for item in items:
             path = item.data(Qt.ItemDataRole.UserRole)
             if not path:
                 continue
-            if not lib.delete_item(path):
-                failed.append(path)
+            result = lib.delete_item_with_result(path)
+            if not result.primary_deleted:
+                failed += 1
+            elif not result.cleanup_complete:
+                incomplete += 1
 
         self._refresh_library_list()
         self._update_library_controls()
 
-        if failed:
-            formatted = "\n".join(failed)
-            QMessageBox.warning(cast(QWidget, self), "Delete failed", f"Could not delete:\n{formatted}")
+        if failed or incomplete:
+            parts = []
+            if failed:
+                parts.append(f"{failed} signature(s) could not be removed.")
+            if incomplete:
+                parts.append(f"{incomplete} signature(s) were removed but need cleanup review.")
+            QMessageBox.warning(cast(QWidget, self), "Deletion needs attention", " ".join(parts))
             return
 
-        self.status_bar.showMessage("Deleted", 2000)
+        self.status_bar.showMessage(deletion_outcome_message("deleted"), 3000)
 
     def on_rotate(self, degrees: int):
         """Rotate the active pane. Source rotates image+session, others rotate display only."""
