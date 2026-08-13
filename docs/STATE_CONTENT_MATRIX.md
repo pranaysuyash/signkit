@@ -74,3 +74,12 @@ and browser document-byte transfer were both false in the manifest.
 The proof advances the local source-to-export state contract but does not close
 the remaining malformed-input, timeout, partial-export, deletion-cleanup, or
 local-companion-outage states.
+
+## Addendum (2026-08-13): canonical operator copy binding
+
+`desktop_app/workflows/operator_content.py` now owns the primary desktop
+labels for persisted workflow states and bounded outcome messages. The
+workflow console uses those labels instead of raw enum values or stored
+exception text. Technical receipt events remain available through the existing
+metadata-only passport and workflow store, while paths and raw exceptions are
+not presented as the primary failure message.

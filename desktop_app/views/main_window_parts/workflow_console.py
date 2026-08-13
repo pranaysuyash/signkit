@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 from desktop_app.workflows import store, models
 from desktop_app.workflows.folder_monitor import FolderMonitor
 from desktop_app.workflows.engine import WorkflowEngine
+from desktop_app.workflows.operator_content import outcome_message, state_label
 from desktop_app.license.restrictions import check_and_enforce_workflow_automation_license
 
 
@@ -174,10 +175,10 @@ class WorkflowConsole(QWidget):
             self.job_table.setItem(row, 1, QTableWidgetItem(job.recipe_id))
             self.job_table.setItem(row, 2, QTableWidgetItem(job.input_path_ref))
             self.job_table.setItem(row, 3, QTableWidgetItem(job.output_path_ref or ""))
-            self.job_table.setItem(row, 4, QTableWidgetItem(job.state.value))
+            self.job_table.setItem(row, 4, QTableWidgetItem(state_label(job.state)))
             self.job_table.setItem(row, 5, QTableWidgetItem(job.match_class.value))
             self.job_table.setItem(row, 6, QTableWidgetItem(str(job.attempts)))
-            self.job_table.setItem(row, 7, QTableWidgetItem(job.last_error_message or ""))
+            self.job_table.setItem(row, 7, QTableWidgetItem(outcome_message(job.last_error_code, job.state)))
 
             for col in range(self.job_table.columnCount()):
                 item = self.job_table.item(row, col)
@@ -237,7 +238,7 @@ class WorkflowConsole(QWidget):
             return False, "Engine is paused."
 
         if allowed_states is not None and selected_job.state not in allowed_states:
-            return False, f"Not valid in state {selected_job.state.value}."
+            return False, f"Not valid in state {state_label(selected_job.state)}."
 
         authorized, reason = self._action_authorization(action, selected_job)
         if not authorized:
@@ -384,13 +385,13 @@ class WorkflowConsole(QWidget):
             QMessageBox.warning(
                 self,
                 "Run result",
-                f"Job {updated.job_id} now in {updated.state.value}.\nReason: {updated.last_error_code}",
+                f"Job {updated.job_id}: {state_label(updated.state)}.\n{outcome_message(updated.last_error_code, updated.state)}",
             )
         else:
             QMessageBox.information(
                 self,
                 "Run result",
-                f"Job {updated.job_id} moved to {updated.state.value}.",
+                f"Job {updated.job_id}: {state_label(updated.state)}.",
             )
         self.refresh()
 
@@ -431,9 +432,13 @@ class WorkflowConsole(QWidget):
             return
 
         if updated.last_error_code:
-            QMessageBox.warning(self, "Retry result", f"Job {updated.job_id} now in {updated.state.value}.")
+            QMessageBox.warning(
+                self,
+                "Retry result",
+                f"Job {updated.job_id}: {state_label(updated.state)}.\n{outcome_message(updated.last_error_code, updated.state)}",
+            )
         else:
-            QMessageBox.information(self, "Retry result", f"Job {updated.job_id} moved to {updated.state.value}.")
+            QMessageBox.information(self, "Retry result", f"Job {updated.job_id}: {state_label(updated.state)}.")
         self.refresh()
 
     def _quarantine_selected_job(self) -> None:
@@ -481,7 +486,7 @@ class WorkflowConsole(QWidget):
             self.refresh()
             return
 
-        QMessageBox.information(self, "Quarantine complete", f"Job {updated.job_id} moved to {updated.state.value}.")
+        QMessageBox.information(self, "Quarantine complete", f"Job {updated.job_id}: {state_label(updated.state)}.")
         self.refresh()
 
     def _cancel_selected_job(self) -> None:
@@ -529,7 +534,7 @@ class WorkflowConsole(QWidget):
             self.refresh()
             return
 
-        QMessageBox.information(self, "Cancel complete", f"Job {updated.job_id} moved to {updated.state.value}.")
+        QMessageBox.information(self, "Cancel complete", f"Job {updated.job_id}: {state_label(updated.state)}.")
         self.refresh()
 
     def _run_queued_jobs(self) -> None:
