@@ -13,12 +13,17 @@ Reusable helpers for local exploration and validation.
   fixture into a content-addressed synthetic manifest and `receipt.ndjson`.
   The package explicitly reports `synthetic: true` and
   `signature_status: not_signed`; it is not a signed document export.
+- `run_contractdesk_browser_proof.py`: uses the installed Python Playwright
+  browser API against a keep-running canonical backend to verify the live
+  workspace control-plane markers and local/cloud boundary copy. It does not
+  prove hosted document processing or signing behavior.
 
 Usage:
 
 ```bash
 ./.venv/bin/python tools/run_contractdesk_web_proof.py
 ./.venv/bin/python tools/run_contractdesk_web_proof.py --port 8871 --keep-running
+/opt/homebrew/opt/python@3.11/bin/python3.11 tools/run_contractdesk_browser_proof.py --base-url http://127.0.0.1:8872
 ./.venv/bin/python tools/package_contractdesk_proof.py
 ./.venv/bin/pytest tests/test_contractdesk_proof_tools.py -q
 ```
@@ -37,6 +42,20 @@ Usage:
 python3 tools/audit_public_surface.py --strict
 python3 tools/audit_public_surface.py --json
 python3 tools/test_deployed_surface.py --base-url https://signkit.work
+```
+
+## Release artifact evidence
+
+- `release_artifact_ledger.py`: the canonical producer and validator for the
+  machine-readable release artifact ledger. It records digests, signing and
+  smoke status, evidence references, and a recoverable prior release. File
+  existence or a successful build does not satisfy the strict ready gate.
+
+Usage:
+
+```bash
+python3 tools/release_artifact_ledger.py --help
+python3 tools/release_artifact_ledger.py --ledger ./artifacts/release_artifact_ledger.json --require-ready
 ```
 
 ## PDF fixtures
@@ -75,6 +94,11 @@ python3 tools/test_deployed_surface.py --base-url https://signkit.work
   collection failures are reported as broken mutants, not false kills.
 - `validate_dataset_registry.py`: validates the machine-readable external
   dataset candidate registry and blocks contradictory download/decision states.
+- `inspect_signverod_corpus.py`: reads SignverOD Parquet schema, row, category,
+  and multi-box counts without copying raw document images into the repository.
+- `evaluate_signverod_corpus.py`: evaluates only signature-class boxes directly
+  from protected Parquet bytes and writes metrics without materializing images
+  into the repository.
 
 Usage:
 

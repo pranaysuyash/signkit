@@ -70,7 +70,7 @@ def test_extractor_returns_explicit_grayscale_fallback_candidate(tmp_path, monke
         lambda _self, _session_id: (10, 20, 80, 60),
     )
 
-    candidates = extractor.auto_detect_signatures(session_id)
+    candidates = extractor.auto_detect_signatures(session_id, min_confidence=0.4)
 
     assert candidates == [
         SignatureCandidate(
@@ -79,3 +79,4 @@ def test_extractor_returns_explicit_grayscale_fallback_candidate(tmp_path, monke
             source="grayscale-fallback",
         )
     ]
+    assert extractor.auto_detect_signatures(session_id, min_confidence=0.75) == []

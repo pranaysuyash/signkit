@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A non-production metadata workbench candidate for SignKit document registration.">
+  <title>SignKit / Activity register candidate</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css"><script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="topbar"><a class="wordmark" href="../index.html">SIGNKIT<span>/</span></a><span class="context-label">DOCUMENT REGISTRATION / CANDIDATE</span><span class="topbar-status">LOCAL REFERENCE</span></header>
+  <main id="main-content" class="shell">
+    <aside class="rail" aria-label="Workspace context"><div><p class="rail-kicker">Activity register</p><h1>Make the state legible.</h1><p class="rail-copy">A metadata-first view for reviewing document work without implying a browser signing session.</p></div><div class="rail-notes"><p><span>Next action</span><strong>Review the selected record</strong></p><p><span>Boundary</span><strong>No backend state changed</strong></p><p><span>Evidence</span><strong>Local preparation only</strong></p></div></aside>
+    <section class="workspace" aria-labelledby="workspace-title">
+      <div class="workspace-heading"><div><p class="eyebrow">Private workspace / illustrative state</p><h2 id="workspace-title">Review before release.</h2></div><button class="icon-button" id="new-record" type="button">+ New record</button></div>
+      <div class="boundary-banner" role="note"><span class="banner-mark">i</span><p><strong>This is a metadata workbench, not a signing session.</strong> No account, PDF, or backend record is changed by this candidate.</p></div>
+      <div class="toolbar"><div class="filter-group" role="group" aria-label="Filter records"><button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">All <span>03</span></button><button class="filter-button" type="button" data-filter="review" aria-pressed="false">Needs review <span>01</span></button></div><span class="toolbar-count" id="toolbar-count">3 records / illustrative</span></div>
+      <div class="workspace-grid"><div class="record-list" aria-label="Activity records"><button class="record is-active" type="button" data-record="acknowledgement" data-status="review" aria-pressed="true"><span class="record-index">01</span><span class="record-main"><strong>Acknowledgement</strong><small>Mark extracted / needs review</small></span><span class="record-state state-review">Review</span></button><button class="record" type="button" data-record="placement" data-status="ready" aria-pressed="false"><span class="record-index">02</span><span class="record-main"><strong>Placement preparation</strong><small>Context aligned / local</small></span><span class="record-state state-ready">Ready</span></button><button class="record" type="button" data-record="receipt" data-status="logged" aria-pressed="false"><span class="record-index">03</span><span class="record-main"><strong>Inspection receipt</strong><small>Source retained / logged</small></span><span class="record-state state-logged">Logged</span></button></div>
+        <article class="passport" aria-live="polite"><div class="passport-head"><span class="eyebrow">Selected passport</span><span id="passport-index">RECORD / 01</span></div><h3 id="passport-title">Acknowledgement</h3><p class="passport-subtitle" id="passport-subtitle">Mark extracted / needs review</p><div class="passport-fields"><p><span>Owner</span><strong>Local operator</strong></p><p><span>Boundary</span><strong>Prepared PDF only</strong></p><p><span>Evidence</span><strong id="passport-evidence">Source and mark retained</strong></p><p><span>Recovery</span><strong id="passport-recovery">Review source before export</strong></p></div><div class="passport-footer"><span id="passport-status">Illustrative record</span><button class="icon-button" id="mark-review" type="button">Mark reviewed</button></div></article>
+      </div>
+      <p class="workspace-feedback" id="workspace-feedback" role="status" aria-live="polite">Selected record: acknowledgement. No backend state changed.</p>
+    </section>
+  </main>
+  <footer class="footer"><span>SignKit / activity register</span><span>Replacement candidate / not a production route</span></footer>
+</body>
+</html>

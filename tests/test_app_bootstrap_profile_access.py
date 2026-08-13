@@ -137,7 +137,13 @@ def test_run_with_profile_routes_profile_defaults_to_main_window_kwargs(monkeypa
         lambda: type(
             "Config",
             (),
-            {"api_base_url": "http://127.0.0.1:8001", "debug": False, "log_level": "INFO", "enable_analytics": False},
+            {
+                "api_base_url": "http://127.0.0.1:8001",
+                "allow_remote_document_upload": False,
+                "debug": False,
+                "log_level": "INFO",
+                "enable_analytics": False,
+            },
         )(),
     )
     monkeypatch.setattr("desktop_app.app_bootstrap.ApiClient", lambda *_, **__: None)

@@ -28,13 +28,13 @@ ContractDesk workspace proof
 
 The ContractDesk workspace browser proof uses the canonical backend proof
 surface and does not use a second static server. Start the backend proof server
-with its keep-running option, then run the focused spec with the installed
-Playwright CLI:
+with its keep-running option, then run the reusable Python browser proof with
+the installed Playwright runtime:
 
 ```bash
 TMPDIR=/var/tmp .venv/bin/python tools/run_contractdesk_web_proof.py --host 127.0.0.1 --port 8872 --keep-running
-# In a second terminal:
-/opt/homebrew/bin/playwright test web/e2e/specs/contractdesk_workspace.spec.js --config=web/e2e/playwright.config.js --reporter=line
+# In a second terminal. The browser dependency is installed outside .venv.
+/opt/homebrew/opt/python@3.11/bin/python3.11 tools/run_contractdesk_browser_proof.py --base-url http://127.0.0.1:8872
 ```
 
 This proves the browser can load the live workspace mount and observe the

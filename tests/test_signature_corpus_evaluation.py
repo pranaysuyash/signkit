@@ -51,7 +51,9 @@ def test_synthetic_corpus_baseline_reports_the_known_single_box_limit():
         ROOT / "desktop_app/tests/fixtures/signature_edge_cases/metadata.json",
         ROOT,
     )
-    report = evaluate_corpus(corpus, ROOT, 0.5)
+    # This regression corpus intentionally exercises the low-confidence
+    # grayscale fallback; production's stricter default is covered separately.
+    report = evaluate_corpus(corpus, ROOT, 0.5, min_confidence=0.4)
     assert report["case_count"] == 6
     assert report["presence"]["recall"] == 1.0
     assert report["instances"]["recall"] == 5 / 6

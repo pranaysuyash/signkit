@@ -10,8 +10,8 @@ test.describe('ContractDesk workspace control plane', () => {
     expect(response.status()).toBe(200);
 
     await expect(page.locator('body')).toContainText('SignKit Workspace');
-    await expect(page.locator('body')).toContainText(/local companion/i);
+    await expect(page.locator('body')).toContainText(/local[- ]companion/i);
     await expect(page.locator('body')).toContainText(/metadata-only/i);
-    await expect(page.locator('body')).toContainText(/source.*delete|delete.*source/i);
+    await expect(page.locator('body')).toContainText(/deletes source bytes|source bytes after/i);
   });
 });

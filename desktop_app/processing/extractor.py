@@ -496,9 +496,16 @@ class SignatureExtractor:
         if candidates:
             return candidates
         fallback = self.auto_detect_signature(session_id)
-        if fallback is None:
+        fallback_confidence = 0.4
+        if fallback is None or fallback_confidence < min_confidence:
             return []
-        return [SignatureCandidate(bbox=fallback, confidence=0.4, source="grayscale-fallback")]
+        return [
+            SignatureCandidate(
+                bbox=fallback,
+                confidence=fallback_confidence,
+                source="grayscale-fallback",
+            )
+        ]
 
     def auto_detect_signature(self, session_id: str) -> Optional[Tuple[int, int, int, int]]:
         """Detect the most likely signature region in the image.

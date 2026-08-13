@@ -349,6 +349,21 @@ function selectedExecution() {
   return state.executions.find((execution) => execution.id === state.selectedId) || null;
 }
 
+function hydrateDocumentInspectionResults(executions) {
+  for (const execution of executions) {
+    const success = (execution.events || []).find(
+      (event) => event.event_type === "document_inspection" && event.result,
+    );
+    if (success?.result) {
+      state.documentInspections[execution.id] = {
+        ...success.result,
+        receipt_id: success.result.receipt_id || success.id,
+        replayed: false,
+      };
+    }
+  }
+}
+
 function renderMetrics() {
   const active = state.executions.filter((execution) => !["completed", "cancelled"].includes(execution.status));
   document.querySelector("#metric-active").textContent = active.length;
@@ -381,13 +396,23 @@ function renderExecutions() {
 function documentInspectionBlock(execution) {
   if (execution.synthetic || execution.topology !== "local") return "";
   const result = state.documentInspections[execution.id];
+  const failure = [...(execution.events || [])]
+    .reverse()
+    .find((event) => event.event_type === "document_inspection_failed" && event.result);
+  const failureMarkup = failure?.result
+    ? `<div class="document-inspection-result document-inspection-failure" role="alert">
+        <strong>Inspection needs attention</strong>
+        <span>${escapeHtml(failure.result.failure_code || "inspection_failed")}</span>
+        <small>${escapeHtml(failure.result.operator_action || "Review the event receipt and retry when safe.")}</small>
+      </div>`
+    : "";
   const resultMarkup = result
     ? `<div class="document-inspection-result" role="status">
         <strong>Inspection receipt recorded</strong>
         <span>${escapeHtml(result.pages_processed)} page processed · ${escapeHtml(result.candidates?.length || 0)} candidate(s)</span>
         <code>${escapeHtml(result.input_sha256)}</code>
         <small>${result.replayed ? "Replayed from the same idempotency key." : "New isolated-worker result."} Source bytes were not retained.</small>
-      </div>`
+    </div>`
     : "";
   return `
     <section class="document-inspection">
@@ -398,6 +423,7 @@ function documentInspectionBlock(execution) {
         <button class="secondary-button" type="submit">Inspect locally <span>→</span></button>
       </form>
       ${resultMarkup}
+      ${failureMarkup}
     </section>
   `;
 }
@@ -504,6 +530,7 @@ async function refreshWorkspace() {
     }
   }
   state.executions = merged;
+  hydrateDocumentInspectionResults(state.executions);
   if (!selectedExecution() && executions.length) state.selectedId = executions[0].id;
   renderMetrics();
   renderExecutions();

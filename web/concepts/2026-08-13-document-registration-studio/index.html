@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A non-production SignKit visual direction candidate for registering a document mark with clear boundaries.">
+  <title>SignKit | Document registration studio candidate</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header frame">
+    <a class="wordmark" href="#main-content" aria-label="SignKit document registration studio candidate">SIGNKIT<span aria-hidden="true">/</span></a>
+    <nav aria-label="Primary navigation">
+      <a href="#case">The case</a>
+      <a href="#boundary">Product boundary</a>
+    </nav>
+    <span class="route-chip">Replacement candidate</span>
+  </header>
+
+  <main id="main-content">
+    <section class="hero frame" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Private document preparation / visual direction 01</p>
+        <h1 id="hero-title">Register the mark.<br><em>Finish the PDF.</em></h1>
+        <p class="lede">A quiet, precise studio for getting a sensitive document from source to ready, with every meaningful state visible.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#case">Inspect the case <span aria-hidden="true">↘</span></a>
+          <a class="text-link" href="#boundary">Read the boundary</a>
+        </div>
+        <p class="truth-note"><strong>Illustrative concept.</strong> The current extraction and PDF placement capability remains desktop-led. This candidate does not imply browser signing or a connected backend.</p>
+      </div>
+      <div class="registration-frame" aria-label="Illustrative registration frame">
+        <span class="corner corner-tl" aria-hidden="true"></span><span class="corner corner-tr" aria-hidden="true"></span><span class="corner corner-bl" aria-hidden="true"></span><span class="corner corner-br" aria-hidden="true"></span>
+        <div class="scan-panel">
+          <span class="scan-label">SOURCE / 01</span>
+          <div class="paper-scan" aria-hidden="true"><span class="scan-line long"></span><span class="scan-line mid"></span><span class="scan-line short"></span><span class="scan-signature"></span></div>
+          <span class="panel-caption">Sensitive document</span>
+        </div>
+        <div class="register-arrow" aria-hidden="true">→</div>
+        <div class="prepared-panel">
+          <span class="scan-label">READY / 05</span>
+          <div class="paper-ready" aria-hidden="true"><span class="ready-line long"></span><span class="ready-line mid"></span><span class="ready-mark">SK</span><span class="ready-box"></span></div>
+          <span class="panel-caption">Mark placed in context</span>
+        </div>
+        <span class="frame-index">REG. / 05</span>
+      </div>
+    </section>
+
+    <section class="case-section frame" id="case" aria-labelledby="case-title">
+      <div class="section-intro"><p class="eyebrow">A document has a state</p><h2 id="case-title">The work is registration, not theatre.</h2><p>Follow the same case through the decisions that make a final PDF trustworthy. Each state is a visual explanation, not a fake processing demo.</p></div>
+      <div class="case-layout">
+        <div class="case-controls" aria-label="Registration states">
+          <p class="control-label">Registration states</p>
+          <div class="state-list" role="tablist" aria-label="Registration states">
+            <button class="state-button is-active" type="button" role="tab" aria-selected="true" aria-controls="case-board" data-stage="source"><span>01</span> Source</button>
+            <button class="state-button" type="button" role="tab" aria-selected="false" aria-controls="case-board" data-stage="mark"><span>02</span> Mark</button>
+            <button class="state-button" type="button" role="tab" aria-selected="false" aria-controls="case-board" data-stage="clean"><span>03</span> Clean</button>
+            <button class="state-button" type="button" role="tab" aria-selected="false" aria-controls="case-board" data-stage="place"><span>04</span> Place</button>
+            <button class="state-button" type="button" role="tab" aria-selected="false" aria-controls="case-board" data-stage="ready"><span>05</span> Ready</button>
+          </div>
+          <p class="keyboard-hint">Use arrow keys to move through the case.</p>
+        </div>
+        <div class="case-board" id="case-board" role="tabpanel" tabindex="0" aria-live="polite">
+          <div class="board-meta"><span id="case-state">SOURCE / INTAKE</span><span>CASE 0144 / PRIVATE</span></div>
+          <div class="document-board">
+            <div class="document-sheet"><span class="sheet-kicker">ACKNOWLEDGEMENT</span><h3>Declaration of receipt</h3><p class="sheet-rule"></p><p class="sheet-copy">This document records the receipt and review of the source material. The mark belongs in context, with its source and placement still visible.</p><p class="sheet-copy short-copy">Prepared for local inspection.</p><span class="sheet-footer">SIGNKIT / DOCUMENT REGISTRATION</span></div>
+            <div class="mark-board"><span class="mark-label">MARK / <span id="mark-status">SOURCE FOUND</span></span><div class="mark-box"><span class="mark-initials">SK</span><span class="mark-line"></span><span class="mark-date">13 AUG 2026</span></div><span class="mark-note" id="mark-note">Source material is present. The next decision is legibility.</span></div>
+          </div>
+          <div class="board-footer"><p id="case-description">Start with the source document and its context before making a mark.</p><button class="button button-small" type="button" id="case-action">Advance state <span aria-hidden="true">→</span></button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapters frame" aria-labelledby="chapters-title"><div class="section-intro"><p class="eyebrow">Three principles</p><h2 id="chapters-title">Make the final artifact easy to trust.</h2></div><div class="chapter-grid"><article><span class="chapter-number">01</span><h3>Close to the source</h3><p>Keep the document, the extracted mark, and the resulting PDF in one understandable chain.</p></article><article><span class="chapter-number">02</span><h3>Legible by default</h3><p>Use visible states and plain language so the operator never has to guess what happened.</p></article><article><span class="chapter-number">03</span><h3>Honest about the edge</h3><p>Separate local preparation from any future connected workflow or legal interpretation.</p></article></div></section>
+
+    <section class="proof-section frame" aria-labelledby="proof-title"><div class="proof-copy"><p class="eyebrow">The proof surface</p><h2 id="proof-title">The interaction explains the product.</h2><p>This direction uses a registration frame as its signature element: a document enters, a mark becomes legible, and placement becomes inspectable. It is tactile without pretending that a simulated click is a completed signing event.</p></div><div class="proof-stamp"><span>PROOF</span><strong>NOT PLAY</strong><small>Visual grammar / 01</small></div></section>
+
+    <section class="boundary-section frame" id="boundary" aria-labelledby="boundary-title"><div><p class="eyebrow">Product boundary / explicit</p><h2 id="boundary-title">A direction is not a promise.</h2></div><div class="boundary-list"><p><strong>Available today</strong><br>Desktop-led local extraction, review, and PDF placement are the capability reference.</p><p><strong>This candidate shows</strong><br>A future information architecture for source, mark, clean, place, and ready states.</p><p><strong>It does not show</strong><br>Browser signing, a live account, a production route, or a legal validity guarantee.</p></div></section>
+  </main>
+  <footer class="site-footer frame"><span>SignKit / document registration studio</span><span>Replacement candidate / not a production route</span></footer>
+</body>
+</html>

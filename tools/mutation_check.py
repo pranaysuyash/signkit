@@ -52,10 +52,10 @@ MUTANTS = (
     Mutant(
         id="extractor-grayscale-fallback",
         file="desktop_app/processing/extractor.py",
-        find='        return [SignatureCandidate(bbox=fallback, confidence=0.4, source="grayscale-fallback")]',
-        replace="        return []",
+        find="        if fallback is None or fallback_confidence < min_confidence:",
+        replace="        if fallback is None:",
         tests=("tests/test_color_signature_candidate.py",),
-        reason="When color detection has no candidates, the bounded API must expose the grayscale fallback.",
+        reason="The grayscale fallback must obey the same min_confidence threshold as color candidates.",
     ),
     Mutant(
         id="workspace-owner-filter",
@@ -78,6 +78,22 @@ MUTANTS = (
         replace="        if False:",
         tests=("tests/test_execution_passport_contract.py",),
         reason="The cross-surface passport must reject any boundary that could carry document bytes.",
+    ),
+    Mutant(
+        id="runtime-hosted-route-exclusion",
+        file="backend/app/main.py",
+        find="if is_local_companion():",
+        replace="if True:",
+        tests=("backend/tests/test_runtime_profile.py",),
+        reason="A hosted runtime must not register the local document-inspection route.",
+    ),
+    Mutant(
+        id="inspection-candidate-confidence-bound",
+        file="backend/app/schemas/workspace.py",
+        find="confidence: float = Field(..., ge=0, le=1)",
+        replace="confidence: float = Field(..., ge=0, le=2)",
+        tests=("backend/tests/test_workspace_router.py",),
+        reason="Worker confidence values outside 0..1 must be rejected at the API boundary.",
     ),
 )
 
