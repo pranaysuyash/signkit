@@ -94,6 +94,7 @@ Legend:
 
 - [ ] Update README with desktop-only instructions and quickstart screenshots
 - [x] Keep optional landing analytics fail-silent when `gtag` is absent while preserving configured event forwarding (`QA-62`); provider activation, consent, hosted parity, and production observability remain separate
+- [x] Add a clean-checkout calibration regression gate for both tracked manifests, real detector adapters, and both calibrators (`L2-16`, `RECON-32`, `QA-66`); synthetic-only, real-data, accuracy-bar, and remote-CI evidence remain separate
 
 ## Local RAG & Summaries (12)
 

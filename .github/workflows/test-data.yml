@@ -61,6 +61,10 @@ jobs:
         run: ./.venv/bin/pytest -q desktop_app/tests/test_extractor.py desktop_app/tests/test_signature_edge_cases.py
       - name: Run labeled-corpus metric checks
         run: ./.venv/bin/pytest -q tests/test_signature_corpus_evaluation.py tests/test_signature_corpus_validation.py
+      - name: Run clean-checkout calibration regression gate
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ./.venv/bin/python tools/run_calibration_regression.py --repo-root .
       - name: Run curated S3 test-sensitivity gate
         run: ./.venv/bin/python tools/mutation_check.py
       - name: Run public-surface contract checks

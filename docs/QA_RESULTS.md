@@ -5,11 +5,11 @@ Checkout: `/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-e
 Runtime: repository `.venv`, Python 3.13
 Scope: local reproducible matrix only unless stated otherwise
 
-Current checkpoint (2026-08-14): the canonical suite passes `535 passed, 4
+Current checkpoint (2026-08-14): the canonical suite passes `543 passed, 4
 skipped`; the complete mutation manifest passes `18/18`; and the strict local
 public-surface audit passes with explicit retained-history warnings. Dated rows
 below preserve their original evidence and counts. The latest additions are
-QA-53, QA-54, QA-55, and the QA matrix contract proof.
+QA-65 current-artifact reproof and QA-66 calibration regression evidence.
 
 ## Executed results
 
@@ -71,6 +71,7 @@ QA-53, QA-54, QA-55, and the QA matrix contract proof.
 | QA-63 | PASS with boundary | Tier 2 local signed-entitlement lifecycle reconciliation, S1 | The focused entitlement suite passed `15` tests, covering signed activation, replay, tamper and identity conflict, signed refund/revocation reconciliation, fail-closed paid-feature access, stale active rollback rejection, and inactive-first-state rejection. The complete canonical suite passed `541 passed, 4 skipped`. This is local cryptographic and persistence evidence only; provider adapter, configured product, refund/webhook delivery, support recovery, account/device policy, hosted activation, and production payment gates remain open. See `docs/review/local_entitlement_lifecycle_reconciliation_proof_2026-08-14.md`. |
 | QA-64 | PASS with boundary | Tier 2 claim-registry provenance repair, S1/S2 | The full-suite red-first run exposed `tests/test_launch_claim_registry.py::test_registry_records_existing_source_commit_for_every_claim` because the registry still named the pre-analytics `index.html` commit. The registry snapshot and rows now point to current commit `0fa3cbf1830a954610164f86c7dc9bf9249c453c`, and the repaired full suite passed `541 passed, 4 skipped`. This restores local source provenance only; hosted parity, deployed redirects, provider activation, legal approval, and production claim review remain open. See `docs/review/claim_registry_provenance_repair_proof_2026-08-14.md`. |
 | QA-65 | PASS with boundary | Tier 4 local macOS arm64 current-`main` artifact and browser reproof, S1 | Source `b2dde9e4919df1679809b6554a5bba0fa8df3ef4` was rebuilt with the canonical standard PyInstaller spec. The current app executable is arm64 with SHA-256 `9efb3711d1af10a47dae2013f9199f8d6a394b9b4c5190fd95d5f9ada8b7d379`; the current DMG is `133831747` bytes with SHA-256 `50ddf14e9b6f82a18f3f9a7ad7979d6f793b55d1a55d2f284aaab7788fddb40b`. Frozen runtime proof passed health `200`, ad hoc codesign verification, bundled workspace presence, isolated state, and clean port-8001 shutdown. Current landing/browser and authenticated bridge proofs passed across desktop, touch, and narrow viewports with zero browser errors. The ledger schema validated, while `--require-ready` correctly failed for signing and rollback gaps. Signing/notarization, recoverable rollback, other platforms, clean-machine installation, hosted, provider, and remote CI evidence remain open. See `docs/review/local_packaged_artifact_proof_2026-08-14.md`. |
+| QA-66 | PASS with boundary | Tier 2 calibration contract plus Tier 3 clean-fixture detector execution, S2/S3 | `./.venv/bin/python tools/run_calibration_regression.py --repo-root .` recreated the ignored PNG/PDF fixtures from tracked manifest metadata, verified both generated manifests against their tracked counterparts, ran the real image and PDF detector adapters with isotonic and Platt calibration, and confirmed all four generated reports exactly match the tracked baselines. The focused contract suite passed `2` checks, the canonical suite passed `543 passed, 4 skipped`, and the deliberate changed-report test rejected drift. This is synthetic-labelled internal regression evidence only; remote CI execution, permissioned real data, privacy governance, human accuracy, product accuracy-bar decisions, and threshold promotion remain open. See `docs/review/calibration_ci_regression_proof_2026-08-14.md`. |
 
 Additional touched-flow checks:
 
@@ -202,3 +203,15 @@ copy that the ranking score is not a probability. It does not establish
 real-GUI interaction, accessibility technology behavior, accuracy, recall, or
 generalization. Those remain gated by a real-GUI check, a permissioned labeled
 corpus, and an evaluation harness.
+
+## Addendum (2026-08-14): clean-checkout calibration regression
+
+QA-66 closes the local implementation portion of `L2-16` and `RECON-32`.
+`tools/run_calibration_regression.py` recreates ignored PNG/PDF fixtures from
+tracked manifest metadata, verifies manifest identity, runs both real detector
+adapters with both calibrators, and rejects any generated report drift against
+the tracked baselines. Local execution passed with four matching reports, and
+the focused contract suite passed `2` checks including a deliberate changed
+report failure. The new `test-data.yml` step is present but has not been
+claimed as a remotely executed workflow receipt. Synthetic-only, permissioned
+real-data, privacy, accuracy-bar, and threshold-promotion gates remain open.

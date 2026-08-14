@@ -64,6 +64,7 @@ Product Owner backlog and QA matrix.
 - [x] Make every canonical-root claim reviewable through a registry source commit and existing-commit test; retain provider, legal, and deployed gates (`QA-57`)
 - [x] Keep strict-audit retained-page and historical-document warnings tied to explicit archive or redirect-only dispositions; retain deployed and legal gates (`QA-58`)
 - [x] Keep optional landing analytics fail-silent when `gtag` is absent while preserving configured event forwarding; retain provider, consent, hosted, and observability gates (`QA-62`)
+- [x] Regenerate ignored calibration fixtures and fail on drift in the four tracked detector reports (`L2-16`, `RECON-32`, `QA-66`); synthetic-only and remote-CI boundaries remain open
 
 ## Packaging and distribution
 
@@ -149,7 +150,7 @@ rollback, hosted deployment, and provider activation remain open.
 
 `docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md` is the canonical task
 authority. This condensed TODO now reflects local closures proved by QA-23,
-QA-53, and QA-55 while retaining unresolved hosted, provider, signing,
+QA-53, QA-55, QA-65, and QA-66 while retaining unresolved hosted, provider, signing,
 notarization, cross-platform, and rollback work as in-progress or pending.
 
 The untracked root `TODO.md` is preserved separately as a parallel calibration

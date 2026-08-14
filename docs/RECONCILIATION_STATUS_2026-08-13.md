@@ -80,6 +80,19 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-30 | done-local | calibration artifact preservation and release reproducibility | `.gitignore` now exposes the two manifests, four calibration reports, and two provenance notes while keeping generated PNG/PDF assets ignored. Manifest metadata records generator, version, seed, sample count, ground-truth boundary, and artifact policy. The builder is deterministic across independent eight-sample outputs; the artifact-policy plus calibration focused suite passes `10` checks; all four 120-sample reports rerun successfully. Evidence: `docs/review/calibration_artifact_policy_proof_2026-08-14.md`. | Keep generated assets reproducible from the tracked builder and manifest metadata. Reopen for a clean-checkout CI job, permissioned real corpus, privacy governance, product accuracy bar, or threshold promotion. |
 | RECON-31 | done-local | shared commit-gate authority | A concurrent dirty hook variant changed `.githooks/pre-commit`, `.githooks/commit-msg`, and `.githooks/prepare-commit-msg` from project-local `motto_v5.md` to workspace `OPERATING_DOCTRINE.md`. The exact variant is preserved under `docs/archive/parallel/agent-hook-operating-doctrine-2026-08-14/`; active hooks were reconciled to the project contract and all three pass `bash -n`. | Keep the workspace doctrine as the broader instruction layer and the selected project motto as the SignKit attestation source. Reopen only if the project source rule changes through a documented decision with updated tests and hook evidence. |
 
+## Addendum (2026-08-14): clean-checkout calibration regression
+
+`RECON-32`, tracked in the Product Owner backlog as `L2-16`, closes the local
+clean-checkout implementation gap previously listed under `RECON-30`.
+`tools/run_calibration_regression.py` recreates the ignored PNG/PDF fixtures
+from tracked manifest metadata, verifies generated manifest identity, runs the
+real image and PDF detector adapters with isotonic and Platt calibration, and
+rejects any drift in the four tracked reports. Local execution and the focused
+contract checks passed. The new `test-data.yml` step is present, but remote CI
+execution remains a separate delivery gate. Permissioned real data, privacy
+governance, the product accuracy bar, and threshold promotion remain under
+`RECON-24` and `RECON-28`.
+
 ## Explicit non-claims
 
 - Local deployment smoke is not hosted deployment proof.

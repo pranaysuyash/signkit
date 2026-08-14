@@ -227,8 +227,13 @@ confidence logic changes.
       reports, and `notes.md` while keeping generated assets git-ignored.
 - [ ] Run §9 step 2–3; record thresholds; wire them into the detector's
       auto-placement gating (replacing the current hard-coded 0.9).
-- [ ] Add a CI job that runs the harness on the (committed) manifests so future
-      detector changes can't silently regress calibration.
+- [x] Add a CI regression gate that recreates the ignored assets and runs the
+      real detector adapters against both tracked manifests with both
+      calibrators; generated reports must match the tracked baselines exactly.
+      The reusable command is
+      `./.venv/bin/python tools/run_calibration_regression.py --repo-root .`.
+      This is synthetic-fixture regression evidence only; it does not promote a
+      threshold or close the permissioned-real-data and product-accuracy gates.
 
 ---
 
