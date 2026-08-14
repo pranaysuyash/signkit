@@ -34,7 +34,7 @@ def _as_bbox(value: Any, ctx: str) -> tuple[float, float, float, float]:
         raise DatasetSpecError(f"{ctx}: bbox contains non-numeric values: {exc}")
 
 
-def sample_from_dict(d: dict) -> Sample:
+def sample_from_dict(d: dict, base_dir: Path) -> Sample:
     ctx = f"sample '{d.get('sample_id', '?')}'"
     sid = _require(d, "sample_id", ctx)
     if not isinstance(sid, str):
@@ -50,9 +50,13 @@ def sample_from_dict(d: dict) -> Sample:
                 label=g.get("label", "signature"),
             )
         )
+    asset = d.get("asset_path")
+    if asset and not Path(asset).is_absolute():
+        # Resolve relative to the manifest file so manifests stay portable.
+        asset = str((base_dir / asset).resolve())
     return Sample(
         sample_id=sid,
-        asset_path=d.get("asset_path"),
+        asset_path=asset,
         ground_truth=gts,
         split=d.get("split", "all"),
     )
@@ -80,7 +84,7 @@ def load_manifest(path: str | Path) -> DatasetSpec:
     if not isinstance(data.get("samples", []), list):
         raise DatasetSpecError(f"{path}: 'samples' must be a list")
 
-    samples = [sample_from_dict(s) for s in data["samples"]]
+    samples = [sample_from_dict(s, path.resolve().parent) for s in data["samples"]]
     if not samples:
         raise DatasetSpecError(f"{path}: manifest has no samples")
 
@@ -101,12 +105,49 @@ def load_manifest(path: str | Path) -> DatasetSpec:
     if not 0.0 < iou_match_threshold <= 1.0:
         raise DatasetSpecError("iou_match_threshold must be greater than 0 and at most 1")
 
+    _validate_generation_metadata(data, detector, len(samples), path)
+
     return DatasetSpec(
         name=name,
         detector=detector,
         samples=samples,
         iou_match_threshold=iou_match_threshold,
     )
+
+
+def _validate_generation_metadata(
+    data: dict, detector: str, sample_count: int, path: Path
+) -> None:
+    """Validate optional builder metadata without constraining hand-authored manifests."""
+    generation = data.get("generation")
+    if generation is None:
+        return
+    if not isinstance(generation, dict):
+        raise DatasetSpecError(f"{path}: 'generation' must be an object")
+    if generation.get("generator") != "scripts/build_calibration_dataset.py":
+        raise DatasetSpecError(
+            f"{path}: generation.generator must identify scripts/build_calibration_dataset.py"
+        )
+    if generation.get("generator_version") != "1":
+        raise DatasetSpecError(f"{path}: unsupported generation.generator_version")
+    if generation.get("detector") != detector:
+        raise DatasetSpecError(
+            f"{path}: generation.detector must match manifest detector {detector!r}"
+        )
+    if generation.get("sample_count") != sample_count:
+        raise DatasetSpecError(
+            f"{path}: generation.sample_count must match the manifest sample count"
+        )
+    if not isinstance(generation.get("seed"), int):
+        raise DatasetSpecError(f"{path}: generation.seed must be an integer")
+    if generation.get("asset_policy") != (
+        "generated-assets-ignored-manifest-report-notes-tracked"
+    ):
+        raise DatasetSpecError(f"{path}: unsupported generation.asset_policy")
+    if generation.get("ground_truth") != (
+        "programmatic synthetic labels; internal-use only"
+    ):
+        raise DatasetSpecError(f"{path}: unsupported generation.ground_truth")
 
 
 def validate_assets_exist(spec: DatasetSpec) -> list[str]:

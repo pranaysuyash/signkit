@@ -193,3 +193,18 @@ tools/upload_to_cloudflare.py
 /web/e2e/playwright-report/
 /web/e2e/**/specs/*-snapshots/
 /web/e2e/.wrangler/
+
+# Calibration datasets (generated, internal-use only). Commit the small
+# manifests, reports, and provenance notes. Regenerate the PNG/PDF assets from
+# the recorded manifest metadata; never commit those generated binaries.
+/datasets/*
+!/datasets/image_signatures/
+!/datasets/pdf_fields/
+!/datasets/image_signatures/manifest.json
+!/datasets/image_signatures/calibration_report_*.json
+!/datasets/image_signatures/notes.md
+!/datasets/pdf_fields/manifest.json
+!/datasets/pdf_fields/calibration_report_*.json
+!/datasets/pdf_fields/notes.md
+/datasets/image_signatures/images/
+/datasets/pdf_fields/pdfs/

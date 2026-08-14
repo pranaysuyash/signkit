@@ -1,10 +1,21 @@
 # Calibration Dataset — Collection & Schema Spec
 
-**Status (2026-08-14):** No labeled dataset exists yet. The calibration harness
-(`calibration/`) is **already runnable** with zero data via
-`python -m calibration.run --self-test`, which exercises the full pipeline on a
-deterministic synthetic set. This document specifies the *real* dataset needed to
-produce genuine calibration for the two shipped detectors.
+**Status (2026-08-14, updated):** A synthetic-labelled fixture dataset now exists
+and the harness has been run end-to-end on detector outputs from its generated
+PNG/PDF assets (see §11 for the results). Generated assets live under
+`datasets/` and remain git-ignored, internal-use-only build outputs. The small
+manifests, reports, and provenance notes are tracked. Each manifest records the
+generator, version, seed, sample count, and artifact policy, so a clean checkout
+can regenerate the assets with `scripts/build_calibration_dataset.py` before a
+full harness run. The harness still runs with zero data via
+`python -m calibration.run --self-test` for CI.
+
+> The generated data is **synthetic-labelled** (real files produced by the
+> detectors, but with programmatic ground truth). It is a working substrate for the
+> calibration pipeline and a realistic stress test of detector confidence quality —
+> it is **not** a substitute for labeled real-world documents (see §9 and the spec
+> body for that requirement). Datasets are internal-use only, acquired without
+> external licensing constraints per the standing directive.
 
 ---
 
@@ -54,9 +65,10 @@ datasets/
     notes.md
 ```
 
-Assets (PDFs/images) are typically large and possibly privacy-sensitive, so keep
-them **out of git** (add to `.gitignore`); commit only the manifests + `notes.md`
-so the calibration run is reproducible from the manifest alone.
+Assets (PDFs/images) are generated binaries and stay **out of git**. Commit the
+manifest, calibration reports, and `notes.md`. The builder metadata and fixed
+seed make the asset build reproducible; the manifest alone is not a substitute
+for running the builder when the ignored assets are absent.
 
 ---
 
@@ -200,8 +212,9 @@ python -m calibration.run --dataset datasets/pdf_fields/manifest.json --detector
 
 The JSON report contains `uncalibrated` vs `calibrated` ECE, ROC/PR AUC,
 `recall_at_1`/`recall_at_3`, the recommended `thresholds`, and an
-`ece_improvement` delta. Commit the report (not the assets) as regression
-evidence, and re-run it whenever the detector's confidence logic changes.
+`ece_improvement` delta. Commit the report and its provenance note as regression
+evidence, not the generated assets, and re-run it whenever the detector's
+confidence logic changes.
 
 ---
 
@@ -210,8 +223,51 @@ evidence, and re-run it whenever the detector's confidence logic changes.
 - [ ] Decide the §8 accuracy bar (product/PM).
 - [ ] Stand up consent + anonymization + kill-switch (privacy).
 - [ ] Collect ≥200 PDFs and ≥200 images with the §5 guidelines; export GT.
-- [ ] Write `datasets/*/manifest.json`; commit manifests + `notes.md` (assets git-ignored).
+- [x] Generate the synthetic fixture manifests and reports; commit manifests,
+      reports, and `notes.md` while keeping generated assets git-ignored.
 - [ ] Run §9 step 2–3; record thresholds; wire them into the detector's
       auto-placement gating (replacing the current hard-coded 0.9).
 - [ ] Add a CI job that runs the harness on the (committed) manifests so future
       detector changes can't silently regress calibration.
+
+---
+
+## 11. Synthetic-fixture detector-output results (2026-08-14)
+
+The harness was run end-to-end on detector outputs over generated synthetic
+fixtures described by the tracked `datasets/` manifests (120 samples each,
+70/15/15 split, IoU match 0.5). Reports:
+`datasets/image_signatures/calibration_report_{platt,isotonic}.json`,
+`datasets/pdf_fields/calibration_report_{platt,isotonic}.json`.
+
+| Detector | Calibrator | ECE (uncal.) → (cal.) | ROC-AUC | PR-AUC | Note |
+|---|---|---|---|---|---|
+| image | platt | 0.300 → 0.061 | 0.833 | 0.800 | AUC preserved |
+| image | isotonic | 0.300 → 0.028 | 0.833 | 0.800 | AUC preserved |
+| pdf | platt | 0.829 → 0.747 | 0.603 | 0.277 | fit inverted → flagged |
+| pdf | isotonic | 0.829 → 0.007 | 0.603 | 0.277 | AUC preserved |
+
+**Read-outs (evidence, not opinion):**
+
+- **Calibration improves fixture probability fit.** Both detectors start badly
+  uncalibrated (ECE 0.30–0.83); isotonic drives ECE to ~0.0–0.03. The pipeline
+  works.
+- **The image detector's confidence ranked this fixture set** (AUC 0.83).
+  This does not make calibration safe to deploy without permissioned held-out
+  data and a product accuracy bar.
+- **The PDF detector's confidence is a weak ranking signal** (AUC ~0.60, barely
+  above chance). On this split the Platt fit came out *decreasing* (raw confidence
+  anti-correlated with truth) and had to be flipped + flagged. That is a genuine
+  signal that `field_detection.py`'s hand-ranked confidence needs rework before it
+  drives auto-placement — calibration can make its probabilities honest, but it
+  cannot manufacture discrimination the detector doesn't have.
+- **Caveat:** this data is synthetic-labelled (generated files, programmatic GT). It
+  stress-tests the pipeline and exposes detector-confidence quality, but it is **not**
+  a substitute for labeled real-world documents (Phase-2 collection) before any
+  production promotion. The accuracy-bar decision (§8) is still open.
+
+**Implementation notes:** the calibrators are pure-numpy (no sklearn/scipy, which
+are unavailable in `.venv`). Two bugs were found and fixed during this run — a
+Platt fit that could invert ranking (now flipped + flagged) and an isotonic PAVA
+that compared `mean/count` instead of `mean` (broke monotonicity on unequal
+counts). Both are covered by `tests/test_calibration_harness.py`.

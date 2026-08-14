@@ -51,3 +51,11 @@ evaluation, record failure classes and confidence calibration, and retain a
 rollback path to the current explicit-confirmation behavior. The schema and
 collection gates are specified in
 `docs/calibration_dataset_spec.md`; the broader task remains `RECON-28`.
+
+The generated binary artifact boundary and reproducibility evidence are
+recorded separately in
+`docs/review/calibration_artifact_policy_proof_2026-08-14.md`.
+
+The later artifact-policy regression expanded the focused calibration contract
+to `10` checks; the original `7 passed` result above remains a historical
+checkpoint for the preserved harness slice.

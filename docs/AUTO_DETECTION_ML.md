@@ -580,20 +580,30 @@ tensorboard - monitoring
    probabilities) that drive auto-placement thresholds. The image-path eval gap is
    noted in (1); for the PDF path,
    `test_pdf_field_detection.py::test_detect_known_signature_field_accuracy` now
-   asserts a labeled-field IoU, but the *confidence calibration* itself is still
-   unvalidated. Promote either detector to a default only after a recall@k / IoU
-   eval on a labeled set.
+   asserts a labeled-field IoU. Confidence calibration is now validated on the
+   synthetic-labelled fixture only, not on permissioned held-out real documents.
+   Promote either detector to a default only after a recall@k / IoU eval on a
+   labeled set.
 
-   **Calibration harness now exists** (`calibration/`, runnable today via
-   `python -m calibration.run --self-test`). It measures ECE / reliability /
-   ROC-PR AUC / recall@k on a labeled set and fits a pure-numpy Platt or isotonic
-   calibrator, then derives recommended auto-placement thresholds from a product
-   accuracy bar. It is **not yet fed real data** — the collection schema,
-   annotation rules, privacy/consent gate, and the accuracy-bar decision are in
-   `docs/calibration_dataset_spec.md`. Blocked on: (a) a labeled dataset per
-   detector, (b) the §8 accuracy-bar decision, (c) the Phase-2 privacy review
-   (consent + anonymization + kill-switch). Calibrated thresholds should replace
-   the current hard-coded 0.9 once the bar is met.
+   **Calibration harness now exists and is fed generated detector outputs** (`calibration/`,
+   `python -m calibration.run --self-test` for the no-data smoke test; full runs on
+   the generated `datasets/` manifests after the builder recreates ignored assets).
+   It measures ECE / reliability / ROC-PR AUC / recall@k and fits a pure-numpy Platt
+   or isotonic calibrator, then derives recommended auto-placement thresholds from
+   a product accuracy bar. Synthetic-fixture results (2026-08-14) are in
+   `docs/calibration_dataset_spec.md` §11: the **image**
+   detector calibrates cleanly (ECE 0.30→0.03, AUC 0.83) while the **PDF** detector's
+   confidence is a weak ranking signal (AUC ~0.60; the Platt fit even inverted and
+   was flagged) — i.e. calibration can fix its probabilities but not its discrimination.
+
+   The collection schema, artifact policy, annotation rules, and accuracy-bar decision
+   live in `docs/calibration_dataset_spec.md`. The current fixture is synthetic-labelled
+   and internal-use only. Its generated assets do not establish licensing, consent,
+   privacy, human-accuracy, or production evidence. Remaining before any production
+   promotion: (a) the §8 accuracy-bar decision, (b) permissioned held-out real-world
+   labeled documents, and (c) the privacy, consent, anonymization, and retention gate
+   for any external or customer data. Calibrated thresholds should replace the current
+   hard-coded 0.9 only after those gates are met.
 4. **Test discovery (ISSUE-007) — resolved:** `pytest.ini` already collects
    `tests`, `backend/tests`, and `desktop_app/tests`, so the field-detection and
    backend suites are no longer invisible to the default run. The dated QA
@@ -606,5 +616,6 @@ observation `QA-26` in the canonical PO backlog and QA matrix. `RECON-23` is
 closed for this local macOS dialog observation, with broader desktop,
 assistive-technology, packaged, and hosted gates still separate. `RECON-24`
 tracks the remaining permissioned held-out evaluation decision. A synthetic
-baseline now exists, but the remaining evaluation and ML work must not start
-until its dataset, accuracy bar, and privacy prerequisites are accepted.
+baseline now exists on generated detector outputs; the remaining evaluation and
+ML work must not start until its artifact, real-data, accuracy-bar, and privacy
+prerequisites are accepted.

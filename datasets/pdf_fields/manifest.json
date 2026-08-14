@@ -1,0 +1,1397 @@
+{
+  "name": "pdf-fields-generated-v1",
+  "detector": "pdf",
+  "iou_match_threshold": 0.5,
+  "schema_version": 1,
+  "generation": {
+    "generator": "scripts/build_calibration_dataset.py",
+    "generator_version": "1",
+    "detector": "pdf",
+    "sample_count": 120,
+    "seed": 20260814,
+    "asset_policy": "generated-assets-ignored-manifest-report-notes-tracked",
+    "ground_truth": "programmatic synthetic labels; internal-use only"
+  },
+  "samples": [
+    {
+      "sample_id": "doc-0000",
+      "asset_path": "pdfs/doc-0000.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            142.11085594203607,
+            168.187709586408,
+            222.8264027190929,
+            45.08587664191414
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0001",
+      "asset_path": "pdfs/doc-0001.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0002",
+      "asset_path": "pdfs/doc-0002.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            62.7967183863894,
+            165.5538526699646,
+            224.58514552950913,
+            51.63920887181002
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0003",
+      "asset_path": "pdfs/doc-0003.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0004",
+      "asset_path": "pdfs/doc-0004.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            64.95978746108302,
+            155.13379679689768,
+            226.62940625598375,
+            46.27450191205303
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0005",
+      "asset_path": "pdfs/doc-0005.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0006",
+      "asset_path": "pdfs/doc-0006.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            157.617152461572,
+            171.51301255773174,
+            253.43099779591455,
+            57.65052757042996
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0007",
+      "asset_path": "pdfs/doc-0007.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0008",
+      "asset_path": "pdfs/doc-0008.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            69.00079957178905,
+            131.65127111478046,
+            246.19311405915323,
+            44.53517980662845
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0009",
+      "asset_path": "pdfs/doc-0009.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0010",
+      "asset_path": "pdfs/doc-0010.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            73.76107983961043,
+            120.03151708623237,
+            253.5682604814594,
+            55.48176471083213
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0011",
+      "asset_path": "pdfs/doc-0011.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0012",
+      "asset_path": "pdfs/doc-0012.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            87.2692608091543,
+            153.2490040043399,
+            243.78958072544523,
+            50.65925744692851
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0013",
+      "asset_path": "pdfs/doc-0013.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0014",
+      "asset_path": "pdfs/doc-0014.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            151.82590615670435,
+            136.18498935426157,
+            222.67436244752827,
+            45.05444084045521
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0015",
+      "asset_path": "pdfs/doc-0015.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0016",
+      "asset_path": "pdfs/doc-0016.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            167.6702715294599,
+            160.47302249310067,
+            269.29712629129847,
+            45.73504239847365
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0017",
+      "asset_path": "pdfs/doc-0017.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0018",
+      "asset_path": "pdfs/doc-0018.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            122.26279387787595,
+            166.73566872470005,
+            265.14929077656905,
+            44.60037388044692
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0019",
+      "asset_path": "pdfs/doc-0019.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0020",
+      "asset_path": "pdfs/doc-0020.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            94.9163190345287,
+            155.82967045236444,
+            248.30292286762318,
+            54.36624410491696
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0021",
+      "asset_path": "pdfs/doc-0021.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0022",
+      "asset_path": "pdfs/doc-0022.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            63.15272583651309,
+            171.20803096306577,
+            212.97832370149064,
+            56.04353905547421
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0023",
+      "asset_path": "pdfs/doc-0023.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0024",
+      "asset_path": "pdfs/doc-0024.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            92.26298901471114,
+            175.6242325417242,
+            215.1822544172235,
+            51.098530635256004
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0025",
+      "asset_path": "pdfs/doc-0025.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0026",
+      "asset_path": "pdfs/doc-0026.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            112.58656463783053,
+            134.07974993933036,
+            220.349912211377,
+            44.029134432063614
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0027",
+      "asset_path": "pdfs/doc-0027.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0028",
+      "asset_path": "pdfs/doc-0028.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            172.39003847640805,
+            145.29220306442184,
+            214.4192375813153,
+            52.11225367530686
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0029",
+      "asset_path": "pdfs/doc-0029.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0030",
+      "asset_path": "pdfs/doc-0030.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            113.50068294843615,
+            149.29847379844156,
+            234.3834812284885,
+            56.819750022906184
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0031",
+      "asset_path": "pdfs/doc-0031.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0032",
+      "asset_path": "pdfs/doc-0032.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            100.87456477446729,
+            144.00011387173208,
+            234.56172699028144,
+            56.94557478471622
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0033",
+      "asset_path": "pdfs/doc-0033.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0034",
+      "asset_path": "pdfs/doc-0034.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            146.10457961512026,
+            125.44683499305545,
+            220.68516929498702,
+            59.59220623978787
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0035",
+      "asset_path": "pdfs/doc-0035.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0036",
+      "asset_path": "pdfs/doc-0036.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            116.98640530462409,
+            158.2159271264191,
+            205.5047954950767,
+            50.07036757339433
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0037",
+      "asset_path": "pdfs/doc-0037.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0038",
+      "asset_path": "pdfs/doc-0038.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            148.65232753900597,
+            139.934046751367,
+            202.13949994120247,
+            56.92498298726379
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0039",
+      "asset_path": "pdfs/doc-0039.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0040",
+      "asset_path": "pdfs/doc-0040.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            70.88435882544738,
+            127.43998122688227,
+            247.46666135727045,
+            49.36027267862974
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0041",
+      "asset_path": "pdfs/doc-0041.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0042",
+      "asset_path": "pdfs/doc-0042.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            100.38857604805274,
+            164.4718892800513,
+            270.4691641928134,
+            54.19705001150005
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0043",
+      "asset_path": "pdfs/doc-0043.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0044",
+      "asset_path": "pdfs/doc-0044.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            136.65984815225335,
+            140.48028837001831,
+            259.8264394264198,
+            47.26078783684225
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0045",
+      "asset_path": "pdfs/doc-0045.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0046",
+      "asset_path": "pdfs/doc-0046.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            126.28050222581945,
+            162.85804631085378,
+            269.19171158362025,
+            45.92388693785949
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0047",
+      "asset_path": "pdfs/doc-0047.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0048",
+      "asset_path": "pdfs/doc-0048.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            125.72229880915926,
+            133.24808239517841,
+            263.42880541417605,
+            57.42595256770874
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0049",
+      "asset_path": "pdfs/doc-0049.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0050",
+      "asset_path": "pdfs/doc-0050.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            157.40818844338196,
+            126.63973246109504,
+            259.6136152828978,
+            52.79539889719319
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0051",
+      "asset_path": "pdfs/doc-0051.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0052",
+      "asset_path": "pdfs/doc-0052.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            100.4553756749107,
+            135.48671198403764,
+            220.3119485507338,
+            54.35456041856463
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0053",
+      "asset_path": "pdfs/doc-0053.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0054",
+      "asset_path": "pdfs/doc-0054.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            96.71124846899934,
+            160.87156546179423,
+            261.06486035655035,
+            59.879534536031
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0055",
+      "asset_path": "pdfs/doc-0055.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0056",
+      "asset_path": "pdfs/doc-0056.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            91.29824073899562,
+            175.23777373085093,
+            203.33054776943845,
+            49.219677476983236
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0057",
+      "asset_path": "pdfs/doc-0057.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0058",
+      "asset_path": "pdfs/doc-0058.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            104.53966625332694,
+            126.73898311301582,
+            276.6201570135248,
+            49.44479424218636
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0059",
+      "asset_path": "pdfs/doc-0059.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0060",
+      "asset_path": "pdfs/doc-0060.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            144.86337448140972,
+            128.6542444223224,
+            255.28642082172217,
+            47.40690082469581
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0061",
+      "asset_path": "pdfs/doc-0061.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0062",
+      "asset_path": "pdfs/doc-0062.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            98.98072513894195,
+            130.34196425976268,
+            246.4645544634211,
+            48.89834647118689
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0063",
+      "asset_path": "pdfs/doc-0063.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0064",
+      "asset_path": "pdfs/doc-0064.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            141.79953519863014,
+            172.0544262239768,
+            264.9718539595169,
+            44.87499935710977
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0065",
+      "asset_path": "pdfs/doc-0065.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0066",
+      "asset_path": "pdfs/doc-0066.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            170.00943078807728,
+            162.66597653708214,
+            230.12661066768214,
+            53.35357030839831
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0067",
+      "asset_path": "pdfs/doc-0067.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0068",
+      "asset_path": "pdfs/doc-0068.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            67.89497742406677,
+            172.82109434173185,
+            209.68680739231763,
+            54.96715670428716
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0069",
+      "asset_path": "pdfs/doc-0069.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0070",
+      "asset_path": "pdfs/doc-0070.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            112.80764610820556,
+            126.32573616369964,
+            227.70420189621888,
+            55.40660085594722
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0071",
+      "asset_path": "pdfs/doc-0071.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0072",
+      "asset_path": "pdfs/doc-0072.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            159.78716413552138,
+            120.28952537858432,
+            251.47585276043992,
+            54.77188529548509
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0073",
+      "asset_path": "pdfs/doc-0073.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0074",
+      "asset_path": "pdfs/doc-0074.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            167.27546860152168,
+            144.64728568796633,
+            258.89406624608387,
+            59.51422412421144
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0075",
+      "asset_path": "pdfs/doc-0075.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0076",
+      "asset_path": "pdfs/doc-0076.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            87.03741004877449,
+            171.54407588698214,
+            264.1832117744286,
+            44.369550462893514
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0077",
+      "asset_path": "pdfs/doc-0077.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0078",
+      "asset_path": "pdfs/doc-0078.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            82.88137568757779,
+            129.60126038932665,
+            223.00566953908628,
+            57.92224981861601
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0079",
+      "asset_path": "pdfs/doc-0079.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0080",
+      "asset_path": "pdfs/doc-0080.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            114.71141330799189,
+            123.45604208890141,
+            251.742776705116,
+            55.294272710315774
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0081",
+      "asset_path": "pdfs/doc-0081.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0082",
+      "asset_path": "pdfs/doc-0082.pdf",
+      "split": "train",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            89.34985857430208,
+            160.0120390128261,
+            278.8719288714189,
+            45.798559472876434
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0083",
+      "asset_path": "pdfs/doc-0083.pdf",
+      "split": "train",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0084",
+      "asset_path": "pdfs/doc-0084.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            163.97924472758007,
+            170.1654916637841,
+            203.73623317551477,
+            44.03483283764159
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0085",
+      "asset_path": "pdfs/doc-0085.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0086",
+      "asset_path": "pdfs/doc-0086.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            163.3039643407574,
+            130.00670866822801,
+            263.668307082637,
+            58.10172504742177
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0087",
+      "asset_path": "pdfs/doc-0087.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0088",
+      "asset_path": "pdfs/doc-0088.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            113.02581153241638,
+            176.26364089860903,
+            277.7734138041252,
+            59.0374234330844
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0089",
+      "asset_path": "pdfs/doc-0089.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0090",
+      "asset_path": "pdfs/doc-0090.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            153.16897623090688,
+            158.45019186639618,
+            227.97502661787658,
+            57.10095238849005
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0091",
+      "asset_path": "pdfs/doc-0091.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0092",
+      "asset_path": "pdfs/doc-0092.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            65.8787469577702,
+            137.3420536555357,
+            224.33234497973257,
+            57.220914622337375
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0093",
+      "asset_path": "pdfs/doc-0093.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0094",
+      "asset_path": "pdfs/doc-0094.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            116.51171868917294,
+            161.3990892440698,
+            226.20337155330014,
+            58.85842466091355
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0095",
+      "asset_path": "pdfs/doc-0095.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0096",
+      "asset_path": "pdfs/doc-0096.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            141.43831860167876,
+            136.30634320817026,
+            231.62584719424885,
+            52.55456286549325
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0097",
+      "asset_path": "pdfs/doc-0097.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0098",
+      "asset_path": "pdfs/doc-0098.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            112.1990406898294,
+            157.1241571690153,
+            236.1185194149941,
+            58.59422156165543
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0099",
+      "asset_path": "pdfs/doc-0099.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0100",
+      "asset_path": "pdfs/doc-0100.pdf",
+      "split": "val",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            117.86677672447667,
+            131.31391078599543,
+            229.91080323536403,
+            56.64835078711021
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0101",
+      "asset_path": "pdfs/doc-0101.pdf",
+      "split": "val",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0102",
+      "asset_path": "pdfs/doc-0102.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            129.30789966146733,
+            179.03268258580886,
+            238.31324859859086,
+            55.98856774657206
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0103",
+      "asset_path": "pdfs/doc-0103.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0104",
+      "asset_path": "pdfs/doc-0104.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            97.09842139799856,
+            153.21392692965273,
+            266.9478328143688,
+            49.28435061586238
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0105",
+      "asset_path": "pdfs/doc-0105.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0106",
+      "asset_path": "pdfs/doc-0106.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            71.36086966725928,
+            166.01489465688132,
+            211.17118093985042,
+            49.52336946989414
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0107",
+      "asset_path": "pdfs/doc-0107.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0108",
+      "asset_path": "pdfs/doc-0108.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            99.32134219841325,
+            120.20563814909887,
+            200.88068985027937,
+            45.998286274192715
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0109",
+      "asset_path": "pdfs/doc-0109.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0110",
+      "asset_path": "pdfs/doc-0110.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            125.80889935974406,
+            149.86953340867885,
+            256.6928397485176,
+            49.150691790351004
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0111",
+      "asset_path": "pdfs/doc-0111.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0112",
+      "asset_path": "pdfs/doc-0112.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            71.1148692132017,
+            148.3916475803547,
+            245.6097496731722,
+            54.85480823504483
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0113",
+      "asset_path": "pdfs/doc-0113.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0114",
+      "asset_path": "pdfs/doc-0114.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            120.38789839622248,
+            160.33727110579906,
+            202.25918367376005,
+            57.614801347009916
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0115",
+      "asset_path": "pdfs/doc-0115.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0116",
+      "asset_path": "pdfs/doc-0116.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            98.9657084128422,
+            123.15239001297286,
+            265.15582094863436,
+            48.27052301728239
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0117",
+      "asset_path": "pdfs/doc-0117.pdf",
+      "split": "test",
+      "ground_truth": []
+    },
+    {
+      "sample_id": "doc-0118",
+      "asset_path": "pdfs/doc-0118.pdf",
+      "split": "test",
+      "ground_truth": [
+        {
+          "label": "signature",
+          "page_index": 0,
+          "bbox": [
+            96.43828331719361,
+            160.914995153202,
+            200.15230106956403,
+            46.84356857186926
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "doc-0119",
+      "asset_path": "pdfs/doc-0119.pdf",
+      "split": "test",
+      "ground_truth": []
+    }
+  ]
+}

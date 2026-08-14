@@ -20,6 +20,7 @@ import numpy as np  # noqa: E402
 
 from calibration import metrics  # noqa: E402
 from calibration.adapters import SyntheticAdapter  # noqa: E402
+from calibration.calibrators import apply_calibrator, fit_calibrator  # noqa: E402
 from calibration.dataset import DatasetSpecError, load_manifest  # noqa: E402
 from calibration.harness import CalibrationOptions, run_calibration  # noqa: E402
 from calibration.self_test_data import build_self_test_dataset  # noqa: E402
@@ -100,6 +101,34 @@ def test_candidate_labels_are_one_to_one_and_page_aware():
         candidate_page_indexes=[1, 0],
         gt_page_indexes=[0],
     ) == [0, 1]
+
+
+def test_calibrator_preserves_ranking():
+    """Regression: a calibrator must be non-decreasing and preserve ROC-AUC.
+
+    The real PDF run exposed a bug where Platt fit a negative slope (inverting
+    the ranking) and isotonic's lookup mis-mapped scores (collapsing AUC). Both
+    calibrators must keep the raw-score ordering and leave AUC unchanged.
+    """
+    rng = np.random.default_rng(0)
+    # Heavy overlap + imbalance, like the generated PDF detector output.
+    neg = rng.normal(0.85, 0.08, 300)
+    pos = rng.normal(0.92, 0.06, 45)
+    conf = np.concatenate([neg, pos])
+    lab = np.concatenate([np.zeros(300), np.ones(45)])
+    base_auc = metrics.roc_auc(conf, lab)
+
+    for method in ("platt", "isotonic"):
+        cal = fit_calibrator(conf, lab, method)
+        out = apply_calibrator(cal, conf)
+        order = np.argsort(conf)
+        assert np.all(np.diff(out[order]) >= -1e-9), (method, out[order][:10])
+        cal_auc = metrics.roc_auc(out, lab)
+        # A non-decreasing map cannot invert the ranking: the calibrated AUC
+        # must stay within a small tolerance of the raw AUC (isotonic introduces
+        # ties within a step, which shifts the tie-averaged AUC by a bounded,
+        # tiny amount -- not an inversion).
+        assert abs(cal_auc - base_auc) < 0.02, (method, base_auc, cal_auc)
 
 
 def test_schema_validation():

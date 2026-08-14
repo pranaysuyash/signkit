@@ -156,6 +156,14 @@ def run_calibration(
         try:
             calibrator = calibrators.fit_calibrator(train_conf, train_lab, opts.calibrator)
             cal_conf = calibrators.apply_calibrator(calibrator, test_conf)
+            inverted = bool(calibrator[1].get("inverted", False))
+            if inverted:
+                notes.append(
+                    "calibrator fit was decreasing (raw confidence anti-correlated "
+                    "with truth on the train split); flipped to non-decreasing. "
+                    "This indicates the detector's confidence is a weak/backwards "
+                    "ranking signal and should be investigated before auto-placement."
+                )
         except Exception as exc:  # pragma: no cover - defensive
             notes.append(f"calibrator fit failed ({exc}); reporting raw metrics only")
             cal_conf = test_conf
@@ -175,6 +183,9 @@ def run_calibration(
         "n_samples": len(spec.samples),
         "iou_match_threshold": opts.iou_match_threshold,
         "calibrator": opts.calibrator if calibrator is not None else None,
+        "calibrator_inverted": (
+            bool(calibrator[1].get("inverted", False)) if calibrator is not None else None
+        ),
         "uncalibrated": uncalibrated,
         "calibrated": calibrated,
         "thresholds": thresholds,
