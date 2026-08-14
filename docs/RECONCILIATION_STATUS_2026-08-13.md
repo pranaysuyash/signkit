@@ -345,3 +345,11 @@ and DMG checksum. The local ledger records signing and smoke as not verified or
 not run and has no rollback artifact, so `L0-05`, `L0-14`, and `RECON-09`
 remain open for release-owner evidence, other platforms, notarization,
 rollback, hosted deployment, provider activation, and remote CI.
+
+## Addendum (2026-08-14): QA matrix contract
+
+QA-56 closes the local documentation portion of `L2-05`. The executable matrix
+contract preserves reproducible result rows, negative-path evidence, explicit
+failed and open external gates, known capability limits, retained historical
+warnings, and the local-versus-hosted boundary. The matrix does not close the
+underlying external gates.
