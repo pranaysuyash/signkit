@@ -389,3 +389,13 @@ explicitly governed by the Product Owner backlog and QA matrix. Its locally
 closed smoke, package, entitlement, landing, checkout, and legal-footer rows
 carry evidence references, while external and genuinely pending product work
 remains open.
+
+## Addendum (2026-08-14): fresh local operator browser observation
+
+QA-61 records a fresh isolated-stack Tier 4 observation using the persistent
+Browser Daemon and the reusable local browser proof. The canonical landing and
+workspace passed the current title, state rail, handoff, landmarks,
+reduced-motion, responsive no-overflow, explicit local metadata-only boundary,
+and zero browser errors. Both local listeners closed after shutdown. This
+advances `L1-08` locally but does not close packaged/cross-platform stale-state,
+assistive-technology, hosted, or real-user evidence.

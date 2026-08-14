@@ -154,6 +154,11 @@ it is not silently merged into this launch TODO or treated as a competing
 current status authority. Its items remain represented in the Product Owner
 backlog as `RECON-24` and `RECON-28` where applicable.
 
+Fresh local operator browser observation is recorded as `QA-61` in
+`docs/review/local_operator_browser_observation_2026-08-14.md`. It advances
+`L1-08` locally while packaged/cross-platform stale-state,
+assistive-technology, hosted, and real-user gates remain open.
+
 ---
 
 Notes

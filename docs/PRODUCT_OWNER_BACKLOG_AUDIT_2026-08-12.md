@@ -443,6 +443,14 @@ evidenced smoke, package, entitlement, landing, checkout, and legal-footer
 closures, and leaves the external release and research gates open. The same
 documentation contract checks both TODO surfaces.
 
+QA-61 adds a fresh Tier 4 local Browser Daemon observation to `L1-08`. The
+canonical landing and workspace passed the current state rail, handoff,
+landmarks, reduced-motion, responsive no-overflow, explicit metadata-only
+boundary, and zero-browser-error checks, with both local listeners closed after
+shutdown. Packaged/cross-platform stale-state, assistive-technology, hosted,
+and real-user evidence remain open. See
+`docs/review/local_operator_browser_observation_2026-08-14.md`.
+
 ## Addendum (2026-08-14): release ledger identity hardening
 
 The local release ledger gate now rejects malformed source identifiers and
