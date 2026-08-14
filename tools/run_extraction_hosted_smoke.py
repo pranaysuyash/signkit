@@ -79,6 +79,9 @@ def run_smoke() -> dict[str, object]:
         extraction_router.os_uploads_dir = private_root
 
         with TestClient(app) as client:
+            health = client.get("/health")
+            _assert_status(health, 200, "health")
+
             owner_token = _register_and_login(client, "smoke-owner@example.com", "owner-password-123")
             other_token = _register_and_login(client, "smoke-other@example.com", "other-password-123")
             owner_headers = {"Authorization": f"Bearer {owner_token}"}
@@ -174,6 +177,7 @@ def run_smoke() -> dict[str, object]:
             "status": "passed",
             "database": "temporary SQLite with Alembic head applied",
             "checks": [
+                "health",
                 "register/login",
                 "authenticated upload",
                 "durable upload replay",

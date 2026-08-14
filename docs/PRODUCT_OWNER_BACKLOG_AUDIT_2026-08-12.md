@@ -91,9 +91,9 @@ Baseline evidence checked this pass:
 4. [done] Bound local extraction upload reads, atomically write private artifacts, and add retention cleanup with focused regression coverage.
 5. [done] Close authenticated owner/workspace scope, hosted export/deletion/audit receipts, durable idempotency, and Tier 3 recovery coverage.
 3. [done] Add a task status legend to `.env` docs and `.env.example` to remove historical drift.
-4. [in progress] Run a focused extraction-route safety smoke locally once `.venv` tooling is available (`uvicorn`, `pytest` profile in backend tests).
+4. [done-local] Run and sensitivity-test the canonical authenticated extraction ownership smoke against a disposable database and current Alembic head; retain the evidence while keeping target migration, hosted rollout, rollback, and operator recovery open (`QA-53`).
 5. [pending] Close wayfinder blockers with explicit dependency conditions before commercial web expansion decisions.
-6. [pending] Draft release artifact ledger template and assign one owner.
+6. [done-local] Draft and enforce the release artifact ledger template with source identity, checksum, signing, smoke, rollback, and artifact-identity gates; real release evidence remains under `L0-05` and `L0-14`.
 7. [done] Added Help/About legal and refund visibility (menu, about text, status bar CTA) and docs alignment for keyboard shortcuts.
 8. [done] Added issue reporting action and diagnostics snapshot generation in Help menu; updated `Docs/APP_OPEN_ITEMS.md` + `docs/HELP.md` status surfaces.
 
@@ -378,6 +378,17 @@ localization gate. NIST Special Database 2 is computer-synthesized form data,
 not real handwritten-signature ground truth. RECON-24 remains in progress.
 See `docs/research/auto_detection_dataset_research_2026-08-14.md` and the
 registry at `docs/test_data_dataset_registry_2026-08-13.json`.
+
+## Addendum (2026-08-14): fresh extraction ownership smoke
+
+QA-53 reran the canonical `tools/run_extraction_hosted_smoke.py` from the
+current `main` checkout. A temporary SQLite database reached Alembic head
+`9c4b7e2d1a6f`, the health route returned `200`, and the authenticated owner,
+replay, cross-owner, selection, processing, export, deletion, and audit flow
+passed. This advances the local portion of `L0-03` and `L0-09`; the target
+database, hosted deployment,
+production configuration, rollback, and live operator receipt gates remain
+open. See `docs/review/local_extraction_ownership_smoke_proof_2026-08-14.md`.
 
 ## Addendum (2026-08-14): release ledger identity hardening
 

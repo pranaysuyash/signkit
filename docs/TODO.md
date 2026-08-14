@@ -56,6 +56,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] Smoke tests: /health, upload, process round-trip
 - [x] Canonical root test collection covers `tests/`, `backend/tests/`, and `desktop_app/tests`; optional PDF and Qt event-loop skips remain explicit
 - [x] Remove hardcoded backend database credential defaults, fail closed for incomplete production configuration, and protect local PII paths with owner-only permissions
+- [x] Run authenticated extraction ownership smoke against disposable SQLite and the current Alembic head; retain target migration and hosted recovery as separate gates (`QA-53`)
 
 ## Packaging and distribution
 

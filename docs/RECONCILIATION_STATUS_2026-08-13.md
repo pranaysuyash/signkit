@@ -313,3 +313,16 @@ signature biometric dataset with age and sex metadata rather than a document
 localization corpus. NIST Special Database 2 is computer-synthesized form
 context. RECON-24 remains in progress. Full findings are in
 `docs/research/auto_detection_dataset_research_2026-08-14.md`.
+
+## Addendum (2026-08-14): fresh extraction ownership smoke
+
+QA-53 reran the canonical local extraction smoke against a disposable SQLite
+database and applied the complete Alembic head `9c4b7e2d1a6f`. The health route
+returned `200`; registration, authenticated upload, durable replay,
+cross-owner denial, selection, processing, export manifest, deletion cleanup,
+post-delete audit, and
+cross-owner deletion denial all passed. The reusable smoke test passed and its
+health mutation was killed. This advances only the local evidence
+for `L0-03` and `L0-09`; target migration, hosted rollout, production
+configuration, rollback, and live operator recovery remain open. Full evidence
+is in `docs/review/local_extraction_ownership_smoke_proof_2026-08-14.md`.

@@ -104,6 +104,14 @@ MUTANTS = (
         reason="The local source-to-ready proof must exercise and prove the canonical retry recovery path.",
     ),
     Mutant(
+        id="extraction-smoke-health-gate",
+        file="tools/run_extraction_hosted_smoke.py",
+        find='            _assert_status(health, 200, "health")\n',
+        replace='            _assert_status(health, 500, "health")\n',
+        tests=("tests/test_extraction_hosted_smoke_tool.py",),
+        reason="The local extraction smoke must fail when the health endpoint is not healthy.",
+    ),
+    Mutant(
         id="local-retry-attempt-accounting",
         file="desktop_app/workflows/engine.py",
         find=(
