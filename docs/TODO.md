@@ -53,7 +53,7 @@ Full backlog (34 items): see TODO_FULL.md
 
 - [ ] Clean up commented/duplicate code
 - [x] Confirm port 8001 across docs, tests, and desktop client
-- [ ] Smoke tests: /health, upload, process round-trip
+- [x] Local smoke tests: /health, authenticated upload, process/export/deletion round-trip (`QA-53`); hosted smoke remains a separate gate
 - [x] Canonical root test collection covers `tests/`, `backend/tests/`, and `desktop_app/tests`; optional PDF and Qt event-loop skips remain explicit
 - [x] Remove hardcoded backend database credential defaults, fail closed for incomplete production configuration, and protect local PII paths with owner-only permissions
 - [x] Run authenticated extraction ownership smoke against disposable SQLite and the current Alembic head; retain target migration and hosted recovery as separate gates (`QA-53`)
@@ -65,8 +65,8 @@ Full backlog (34 items): see TODO_FULL.md
 
 ## Packaging and distribution
 
-- [ ] PyInstaller spec for macOS bundle
-- [ ] Unsigned DMG for early adopters; add Gatekeeper bypass notes
+- [x] PyInstaller spec for the current macOS arm64 bundle (`QA-55`)
+- [~] Local macOS arm64 DMG proof exists (`QA-55`); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
 - [ ] Code signing + notarization (post-early access)
 - [x] Manual update check in-app (“Check for Updates…”) using static updates.json
 
@@ -75,7 +75,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] Create Gumroad account + product (Standard license)
 - [ ] Set GUMROAD_PRODUCT_URL in .env and wire Buy action (Buy menu opens env URL; fallback present)
 - [ ] Product page copy (benefits, usage GIF, FAQ)
-- [ ] Deliverable bundles: macOS app (unsigned initially)
+- [~] Deliverable bundle: current macOS arm64 app and DMG are locally proven; signed, notarized, cross-platform, and rollback-ready bundles remain open (`L0-05`, `L0-14`, `QA-55`)
 - [ ] Plan later migration path (DoDoPayments)
 
 ## Docs and comms
@@ -92,8 +92,8 @@ Full backlog (34 items): see TODO_FULL.md
 - [ ] Provider adapter and controlled activation: configure product ID, verify receipt delivery, and exercise replay, timeout, refund, dispute, chargeback, offline grace, and support recovery (`L0-02`, `QA-15`)
 - [x] Native-GUI proof archived for cancel/confirm, keyboard focus, preview rendering, and failure messaging; rerun after candidate-dialog or desktop-runtime changes (`RECON-23`)
 - [~] Synthetic auto-detection baseline recorded; dataset research was refreshed without downloading new files; permissioned held-out evaluation, provenance, recall@k/IoU, failure classes, and an accuracy-bar decision remain open (`RECON-24`). See `docs/research/auto_detection_dataset_research_2026-08-14.md`.
-- [ ] Export gating: show Upgrade dialog if unlicensed (soft gate first)
-- [ ] Status bar note when unlicensed: “Evaluation mode — Export locked”
+- [x] Export gating uses the signed local entitlement boundary and Upgrade path (`L1-01`, `QA-23`)
+- [x] Status bar note when unlicensed is bound to the evaluation-mode export lock (`L1-01`, `QA-23`)
 - [ ] Optional watermark overlay in evaluation mode (off by default)
 
 ## Local product reconciliation addendum (2026-08-13)
@@ -139,6 +139,19 @@ backlog gates.
 The local packaged-runtime claim is also deliberately narrow: QA-20 is closed
 for macOS ARM64 only. Intel, Windows, Linux, notarization, clean installation,
 rollback, hosted deployment, and provider activation remain open.
+
+## Status synchronization addendum (2026-08-14)
+
+`docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md` is the canonical task
+authority. This condensed TODO now reflects local closures proved by QA-23,
+QA-53, and QA-55 while retaining unresolved hosted, provider, signing,
+notarization, cross-platform, and rollback work as in-progress or pending.
+
+The untracked root `TODO.md` is preserved separately as a parallel calibration
+work record. It contains real-corpus, product-accuracy, and environment notes;
+it is not silently merged into this launch TODO or treated as a competing
+current status authority. Its items remain represented in the Product Owner
+backlog as `RECON-24` and `RECON-28` where applicable.
 
 ---
 

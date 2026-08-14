@@ -371,3 +371,12 @@ listed in `docs/launch_claims/retained_surface_dispositions.md`. A contract
 test keeps that register synchronized with the current auditor output. This
 does not prove deployed redirects, release artifact exclusion, legal review,
 or hosted parity.
+
+## Addendum (2026-08-14): condensed TODO synchronization
+
+QA-59 closes the local status-synchronization portion of `L2-12`. The tracked
+`docs/TODO.md` now reflects QA-proven local closures for extraction smoke,
+macOS arm64 packaging, entitlement export gating, and evaluation-mode status
+copy. The separate untracked root `TODO.md` remains preserved as parallel
+calibration work and is not treated as current launch status. External release,
+provider, legal, rollback, and real-corpus gates remain open.

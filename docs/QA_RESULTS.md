@@ -5,7 +5,7 @@ Checkout: `/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-e
 Runtime: repository `.venv`, Python 3.13
 Scope: local reproducible matrix only unless stated otherwise
 
-Current checkpoint (2026-08-14): the canonical suite passes `534 passed, 4
+Current checkpoint (2026-08-14): the canonical suite passes `535 passed, 4
 skipped`; the complete mutation manifest passes `18/18`; and the strict local
 public-surface audit passes with explicit retained-history warnings. Dated rows
 below preserve their original evidence and counts. The latest additions are
@@ -64,6 +64,7 @@ QA-53, QA-54, QA-55, and the QA matrix contract proof.
 | QA-56 | PASS with boundary | Tier 2 documentation contract, S1 | `tests/test_qa_matrix_contract.py` verifies the stable result table, negative-path coverage, explicit failed/open external gates, current `QA-55` evidence, optional PyMuPDF boundary, historical-claim warnings, and the local-versus-hosted evidence boundary. See `docs/review/qa_matrix_contract_proof_2026-08-14.md`. |
 | QA-57 | PASS with boundary | Tier 2 claim-registry provenance contract, S1 | `tests/test_launch_claim_registry.py` passed `17` checks. The registry records a full source commit for every canonical-root claim, the wording snapshot matches the latest `index.html` commit, and every row commit exists in Git. This closes local provenance only; provider activation, legal approval, deployed parity, and hosted proof remain open. See `docs/review/claim_registry_provenance_proof_2026-08-14.md`. |
 | QA-58 | PASS with boundary | Tier 2 strict-audit disposition contract, S1 | `tests/test_claim_surface_dispositions.py` verifies that every strict-audit retained page and historical-document warning has an explicit archive or redirect-only disposition. This closes local warning inventory only; deployed redirects, release artifact exclusion, legal review, and hosted parity remain open. See `docs/launch_claims/retained_surface_dispositions.md`. |
+| QA-59 | PASS with boundary | Tier 2 documentation truth contract, S1 | `tests/test_todo_truth_contract.py` verifies that the condensed TODO points to the canonical Product Owner backlog, reflects QA-proven local closures, preserves unresolved external gates, and keeps the separate root calibration TODO outside current launch status. See `docs/review/todo_truth_contract_proof_2026-08-14.md`. |
 
 Additional touched-flow checks:
 
