@@ -378,3 +378,15 @@ localization gate. NIST Special Database 2 is computer-synthesized form data,
 not real handwritten-signature ground truth. RECON-24 remains in progress.
 See `docs/research/auto_detection_dataset_research_2026-08-14.md` and the
 registry at `docs/test_data_dataset_registry_2026-08-13.json`.
+
+## Addendum (2026-08-14): release ledger identity hardening
+
+The local release ledger gate now rejects malformed source identifiers and
+duplicate artifact names or paths. The red-first focused run recorded the
+expected `3 passed, 2 failed` starting point, the final ledger suite passed
+`6`, and the complete mutation manifest killed `16/16`, including `3/3` new
+ledger probes. This advances the invariant portion of `L0-05` and `L0-14`, but
+does not close either P0 item. Real
+platform artifacts, signing or notarization, launch smoke, rollback, remote CI,
+hosted deployment, and provider evidence remain required. See
+`docs/review/release_artifact_ledger_proof_2026-08-14.md`.

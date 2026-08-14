@@ -119,6 +119,19 @@ they do not prove a code defect in the unreleased local checkout. RECON-08
 remains open until the reconciled public surface is deployed and the same
 probes pass.
 
+## Addendum (2026-08-14): release ledger identity hardening
+
+The local release artifact ledger now validates 40- or 64-character lowercase
+hexadecimal source identities and rejects duplicate artifact names or paths.
+Red-first evidence recorded the expected `3 passed, 2 failed` starting point;
+the final focused ledger suite passed `6`, and the complete mutation manifest
+killed `16/16`, including the three new ledger probes. This advances the local
+invariant portion of `L0-05` and
+`L0-14`. The P0 release items remain open for real platform artifacts,
+signing or notarization, launch smoke, rollback, remote CI, hosted deployment,
+and provider evidence. See
+`docs/review/release_artifact_ledger_proof_2026-08-14.md`.
+
 ## Addendum (2026-08-13): agent-start false-success guard
 
 The shared `/Users/pranay/Projects/agent-start` entry point was hardened after

@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from tools.release_artifact_ledger import build_ledger, validate_ledger
 
 
@@ -76,3 +78,62 @@ def test_ledger_rejects_tampered_digest() -> None:
     }
 
     assert any("sha256" in error for error in validate_ledger(ledger, require_ready=True))
+
+
+def test_build_ledger_rejects_non_git_source_identifier(tmp_path: Path) -> None:
+    artifact = tmp_path / "SignKit_invalid_source.zip"
+    artifact.write_bytes(b"artifact")
+
+    with pytest.raises(ValueError, match="source_sha"):
+        build_ledger(
+            release_tag="v1.2.3",
+            source_sha="not-a-commit",
+            release_url="https://example.test/releases/v1.2.3",
+            rollback_artifact="v1.2.2-artifacts",
+            generated_at="2026-08-14T00:00:00Z",
+            artifact_specs=[
+                f"SignKit invalid|Test|x86_64|{artifact}|signed|passed|attestation://signkit|smoke://signkit",
+            ],
+        )
+
+
+def test_ready_ledger_rejects_duplicate_artifact_identity(tmp_path: Path) -> None:
+    first = tmp_path / "SignKit_first.zip"
+    second = tmp_path / "SignKit_second.zip"
+    first.write_bytes(b"first")
+    second.write_bytes(b"second")
+
+    ledger = build_ledger(
+        release_tag="v1.2.3",
+        source_sha="d" * 40,
+        release_url="https://example.test/releases/v1.2.3",
+        rollback_artifact="v1.2.2-artifacts",
+        generated_at="2026-08-14T00:00:00Z",
+        artifact_specs=[
+            f"SignKit duplicate|Test|x86_64|{first}|signed|passed|attestation://one|smoke://one",
+            f"SignKit duplicate|Test|x86_64|{second}|signed|passed|attestation://two|smoke://two",
+        ],
+    )
+
+    errors = validate_ledger(ledger, require_ready=True)
+    assert any("duplicate artifact name" in error for error in errors)
+
+
+def test_ready_ledger_rejects_duplicate_artifact_path(tmp_path: Path) -> None:
+    artifact = tmp_path / "SignKit_shared.zip"
+    artifact.write_bytes(b"artifact")
+
+    ledger = build_ledger(
+        release_tag="v1.2.3",
+        source_sha="e" * 40,
+        release_url="https://example.test/releases/v1.2.3",
+        rollback_artifact="v1.2.2-artifacts",
+        generated_at="2026-08-14T00:00:00Z",
+        artifact_specs=[
+            f"SignKit first|Test|x86_64|{artifact}|signed|passed|attestation://one|smoke://one",
+            f"SignKit second|Test|x86_64|{artifact}|signed|passed|attestation://two|smoke://two",
+        ],
+    )
+
+    errors = validate_ledger(ledger, require_ready=True)
+    assert any("duplicates another artifact path" in error for error in errors)

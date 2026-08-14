@@ -23,6 +23,7 @@ ALLOWED_SMOKE_STATUSES = {"passed", "not_applicable", "not_run", "failed"}
 READY_SIGNING_STATUSES = {"signed", "not_applicable"}
 READY_SMOKE_STATUSES = {"passed", "not_applicable"}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+SOURCE_SHA_PATTERN = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 
 
 def _sha256_and_size(path: Path) -> tuple[str, int]:
@@ -77,6 +78,8 @@ def build_ledger(
         raise ValueError("release_tag is required")
     if not source_sha.strip():
         raise ValueError("source_sha is required")
+    if not SOURCE_SHA_PATTERN.fullmatch(source_sha.strip()):
+        raise ValueError("source_sha must be a 40- or 64-character lowercase hexadecimal commit identifier")
     if not generated_at.strip():
         raise ValueError("generated_at is required")
 
@@ -135,12 +138,17 @@ def validate_ledger(ledger: Any, *, require_ready: bool = False) -> list[str]:
     for field in ("generated_at", "release_tag", "source_sha", "release_url", "rollback_artifact"):
         if not isinstance(ledger.get(field), str) or not ledger[field].strip():
             errors.append(f"{field} is required")
+    source_sha = ledger.get("source_sha")
+    if isinstance(source_sha, str) and source_sha.strip() and not SOURCE_SHA_PATTERN.fullmatch(source_sha.strip()):
+        errors.append("source_sha must be a 40- or 64-character lowercase hexadecimal commit identifier")
 
     artifacts = ledger.get("artifacts")
     if not isinstance(artifacts, list) or not artifacts:
         errors.append("artifacts must contain at least one item")
         return errors
 
+    seen_names: set[str] = set()
+    seen_paths: set[str] = set()
     for index, artifact in enumerate(artifacts):
         label = f"artifacts[{index}]"
         if not isinstance(artifact, dict):
@@ -158,6 +166,16 @@ def validate_ledger(ledger: Any, *, require_ready: bool = False) -> list[str]:
         ):
             if not isinstance(artifact.get(field), str) or not artifact[field].strip():
                 errors.append(f"{label}.{field} is required")
+        name = artifact.get("name")
+        if isinstance(name, str) and name.strip():
+            if name in seen_names:
+                errors.append(f"{label} has duplicate artifact name: {name}")
+            seen_names.add(name)
+        path = artifact.get("path")
+        if isinstance(path, str) and path.strip():
+            if path in seen_paths:
+                errors.append(f"{label}.path duplicates another artifact path")
+            seen_paths.add(path)
         size = artifact.get("bytes")
         if not isinstance(size, int) or isinstance(size, bool) or size < 0:
             errors.append(f"{label}.bytes must be a non-negative integer")

@@ -28,6 +28,12 @@ The JSON document uses schema version `signkit.release-ledger.v1` and contains:
   SHA-256 digest, signing status, smoke status, and references to the signing
   and smoke evidence.
 
+The validator also requires the source SHA to be a 40- or 64-character
+lowercase hexadecimal commit identifier. Artifact names and paths must be
+unique within one ledger. This prevents a ready release from carrying an
+ambiguous source identity or silently replacing one platform record with a
+duplicate artifact record.
+
 ## Status contract
 
 Signing status is one of `signed`, `not_applicable`, `not_verified`,

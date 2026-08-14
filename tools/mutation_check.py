@@ -146,6 +146,30 @@ MUTANTS = (
         tests=("desktop_app/tests/test_backend_manager.py",),
         reason="Frozen local startup must apply the generated database and JWT settings before backend import.",
     ),
+    Mutant(
+        id="release-ledger-source-identity",
+        file="tools/release_artifact_ledger.py",
+        find="    if not SOURCE_SHA_PATTERN.fullmatch(source_sha.strip()):\n",
+        replace="    if False:  # mutation accepts an invalid source identifier\n",
+        tests=("tests/test_release_artifact_ledger.py",),
+        reason="A release ledger must reject a source value that is not a Git commit identifier.",
+    ),
+    Mutant(
+        id="release-ledger-duplicate-name-identity",
+        file="tools/release_artifact_ledger.py",
+        find="            if name in seen_names:\n",
+        replace="            if False:  # mutation permits duplicate artifact names\n",
+        tests=("tests/test_release_artifact_ledger.py",),
+        reason="A ready release ledger must not contain two artifact records with the same name.",
+    ),
+    Mutant(
+        id="release-ledger-duplicate-path-identity",
+        file="tools/release_artifact_ledger.py",
+        find="            if path in seen_paths:\n",
+        replace="            if False:  # mutation permits duplicate artifact paths\n",
+        tests=("tests/test_release_artifact_ledger.py",),
+        reason="A ready release ledger must not contain two artifact records with the same path.",
+    ),
 )
 
 
