@@ -6,7 +6,8 @@
  * - CTA click tracking and UTM appending
  * - Session quality scoring
  *
- * Note: This file assumes gtag() is defined on the page. If not, calls fall back to console logs.
+ * Note: Analytics is optional. If gtag() is not configured, tracking calls are
+ * intentionally silent and must not look like outbound telemetry.
  */
 
 (function () {
@@ -14,8 +15,6 @@
   function safeGtag() {
     if (typeof gtag === 'function') {
       gtag.apply(null, arguments);
-    } else {
-      console.debug('gtag missing, REMOTE_EVENT:', arguments);
     }
   }
 

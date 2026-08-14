@@ -6,7 +6,7 @@ grouped by area and uses statuses: [x] locally evidenced, [~] in progress,
 release status are canonical in
 `docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md` and `docs/QA_RESULTS.md`.
 
-**Progress: 18 done / 7 in-progress / 12 pending / 3 skip-for-now**
+**Progress: 19 done / 7 in-progress / 12 pending / 3 skip-for-now**
 
 Legend:
 
@@ -88,9 +88,10 @@ Legend:
 - [ ] License verification stub: optional online check if `LICENSE_VERIFY_URL` set; cache `last_validation_at`
 - [ ] Add About/License dialog with refund link and key management
 
-## Docs and comms (1)
+## Docs and comms (2)
 
 - [ ] Update README with desktop-only instructions and quickstart screenshots
+- [x] Keep optional landing analytics fail-silent when `gtag` is absent while preserving configured event forwarding (`QA-62`); provider activation, consent, hosted parity, and production observability remain separate
 
 ## Local RAG & Summaries (12)
 
@@ -133,6 +134,12 @@ authority. The Product Owner backlog owns current status. Local closures in
 this file are linked to QA evidence, while hosted deployment, provider
 activation, signing, notarization, cross-platform packaging, rollback,
 permissioned real-corpus evaluation, and user research remain open.
+
+The optional landing-analytics boundary is locally closed by QA-62: missing
+`gtag` is silent, the canonical asset is explicitly versioned for cache
+invalidation, and configured forwarding remains tested. This does not claim
+provider activation, consent compliance, hosted parity, event delivery, or
+production observability.
 
 Notes
 

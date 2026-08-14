@@ -399,3 +399,13 @@ reduced-motion, responsive no-overflow, explicit local metadata-only boundary,
 and zero browser errors. Both local listeners closed after shutdown. This
 advances `L1-08` locally but does not close packaged/cross-platform stale-state,
 assistive-technology, hosted, or real-user evidence.
+
+## Addendum (2026-08-14): optional analytics boundary
+
+QA-62 closes the local portion of `L2-14`. Reinspection found that the
+unconfigured analytics path logged synthetic `REMOTE_EVENT` messages from the
+canonical source. `web/live/js/analytics.js` now treats absent `gtag` as a
+silent no-op, the canonical root uses an explicit cache-versioned asset
+reference, and the focused harness confirms configured forwarding still
+delivers the existing user event. Provider activation, consent, hosted parity,
+event delivery, and production observability remain open.

@@ -63,6 +63,7 @@ Product Owner backlog and QA matrix.
 - [x] Keep the QA matrix executable and boundary-aware for negative paths, known limits, and hosted/provider non-claims (`QA-56`)
 - [x] Make every canonical-root claim reviewable through a registry source commit and existing-commit test; retain provider, legal, and deployed gates (`QA-57`)
 - [x] Keep strict-audit retained-page and historical-document warnings tied to explicit archive or redirect-only dispositions; retain deployed and legal gates (`QA-58`)
+- [x] Keep optional landing analytics fail-silent when `gtag` is absent while preserving configured event forwarding; retain provider, consent, hosted, and observability gates (`QA-62`)
 
 ## Packaging and distribution
 
@@ -158,6 +159,12 @@ Fresh local operator browser observation is recorded as `QA-61` in
 `docs/review/local_operator_browser_observation_2026-08-14.md`. It advances
 `L1-08` locally while packaged/cross-platform stale-state,
 assistive-technology, hosted, and real-user gates remain open.
+
+The local optional-analytics boundary is recorded as `QA-62` in
+`docs/review/local_analytics_boundary_proof_2026-08-14.md`. Missing `gtag` is
+silent, the canonical asset is explicitly versioned for cache invalidation,
+configured event forwarding remains covered, and provider activation, consent,
+hosted parity, and production observability remain separate gates.
 
 ---
 
