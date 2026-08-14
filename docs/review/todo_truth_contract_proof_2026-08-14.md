@@ -7,8 +7,8 @@ Evidence scope: current task-status synchronization and parallel-work preservati
 
 ## Result
 
-`docs/TODO.md` now agrees with the canonical Product Owner backlog for the
-local closures that have durable QA evidence:
+`docs/TODO.md` and `docs/TODO_FULL.md` now agree with the canonical Product
+Owner backlog for the local closures that have durable QA evidence:
 
 - authenticated local extraction smoke is recorded as `QA-53`;
 - the current macOS arm64 PyInstaller spec and local artifact proof are recorded
@@ -19,7 +19,7 @@ local closures that have durable QA evidence:
   and real-corpus work remains open.
 
 `tests/test_todo_truth_contract.py` prevents the old pending rows from being
-reintroduced without an intentional update to the contract.
+reintroduced in either roadmap without an intentional update to the contract.
 
 ## Preservation boundary
 
@@ -31,6 +31,7 @@ staged, edited, deleted, or folded into the current launch status.
 ## Source paths
 
 - `docs/TODO.md`
+- `docs/TODO_FULL.md`
 - `docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md`
 - `tests/test_todo_truth_contract.py`
 - `docs/RECONCILIATION_STATUS_2026-08-13.md`

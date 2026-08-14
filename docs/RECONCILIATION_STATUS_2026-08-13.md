@@ -380,3 +380,12 @@ macOS arm64 packaging, entitlement export gating, and evaluation-mode status
 copy. The separate untracked root `TODO.md` remains preserved as parallel
 calibration work and is not treated as current launch status. External release,
 provider, legal, rollback, and real-corpus gates remain open.
+
+## Addendum (2026-08-14): full roadmap authority
+
+QA-60 extends the task-status reconciliation to `docs/TODO_FULL.md`. The full
+roadmap remains preserved and useful for planning, but current status is now
+explicitly governed by the Product Owner backlog and QA matrix. Its locally
+closed smoke, package, entitlement, landing, checkout, and legal-footer rows
+carry evidence references, while external and genuinely pending product work
+remains open.

@@ -66,6 +66,7 @@ Baseline evidence checked this pass:
 | L2-10 | implicit | security/config | Remove hardcoded database credentials, fail closed for incomplete production database configuration, and add a narrow settings reload seam | done-local | P1 | No real-looking credential defaults remain; explicit production configuration fails closed without a complete URL or credentials; isolated local SQLite remains supported; targeted tests pass | `backend/app/config.py`, `backend/tests/test_config_and_path_security.py`, `docs/decisions/ADR-0150-config-and-local-pii-boundary.md` | eng + security |
 | L2-11 | implicit | security/privacy | Enforce owner-only POSIX permissions on local user-data, upload, and selection-sidecar paths | done-local | User-data/upload/sidecar directories are `0700` and selection metadata files are `0600` on POSIX; non-POSIX behavior is explicitly bounded | `backend/app/paths.py`, `backend/app/routers/extraction.py`, `backend/app/services/extraction.py`, `backend/tests/test_config_and_path_security.py`, `docs/decisions/ADR-0150-config-and-local-pii-boundary.md` | eng + security |
 | L2-12 | implicit | docs/status | Reconcile condensed `docs/TODO.md` with the canonical Product Owner backlog while preserving parallel calibration TODO material | done-local | Condensed TODO reflects current local QA closures and retains unresolved external gates; untracked root `TODO.md` remains preserved and is not treated as a competing status authority | `docs/TODO.md`, `tests/test_todo_truth_contract.py`, `docs/review/todo_truth_contract_proof_2026-08-14.md`, `QA-59` | PO |
+| L2-13 | implicit | docs/status | Reconcile `docs/TODO_FULL.md` with the canonical Product Owner backlog and preserve its genuinely pending roadmap items | done-local | Full roadmap no longer claims authoritative status, locally evidenced closures link to QA/backlog evidence, and hosted/provider/research gates remain explicit | `docs/TODO_FULL.md`, `docs/TODO.md`, `tests/test_todo_truth_contract.py`, `docs/review/todo_truth_contract_proof_2026-08-14.md`, `QA-60` | PO |
 | L2-05 | implicit | QA | Create QA matrix with reproducible commands/results and attach to runbook | done-local | P1 | Matrix includes negative-path cases and known-limit table, with an executable documentation contract and explicit external boundaries | `docs/QA_RESULTS.md`, `tests/test_qa_matrix_contract.py`, `docs/review/qa_matrix_contract_proof_2026-08-14.md`, `QA-56` | PO + QA |
 | L2-06 | explicit | web claims | Add `docs/launch_claims/registry.md` and claim smoke check for every public copy statement that implies hosted/cloud behavior | done-local | P2 | Every canonical-root claim has a registry row, marker, enforcing test, and existing source commit hash; provider, legal, and deployed evidence remain separate | `docs/launch_claims/registry.md`, `tests/test_launch_claim_registry.py`, `docs/review/claim_registry_provenance_proof_2026-08-14.md`, `QA-57` | PO |
 | L2-07 | explicit | UX | Add explicit delete/escape/shortcut discoverability and close alignment with docs | done | P1 | `Docs/SHORTCUTS.md` and actual bindings match | `desktop_app/views/main_window_parts/extraction.py` | eng |
@@ -435,6 +436,12 @@ without merging its decision and data blockers into launch status. Hosted,
 provider, signing, notarization, cross-platform, rollback, and real-corpus
 gates remain explicitly open. See
 `docs/review/todo_truth_contract_proof_2026-08-14.md`.
+
+QA-60 extends that synchronization to `docs/TODO_FULL.md`. The full roadmap
+now identifies itself as a preserved planning inventory, records the locally
+evidenced smoke, package, entitlement, landing, checkout, and legal-footer
+closures, and leaves the external release and research gates open. The same
+documentation contract checks both TODO surfaces.
 
 ## Addendum (2026-08-14): release ledger identity hardening
 

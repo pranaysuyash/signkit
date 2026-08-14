@@ -10,7 +10,8 @@ Update rule: any item with explicit acceptance or an unresolved risk stays expli
 
 Legend: [x] done • [~] in progress • [ ] pending
 
-Full backlog (34 items): see TODO_FULL.md
+Full roadmap inventory: see `TODO_FULL.md`; current status is governed by the
+Product Owner backlog and QA matrix.
 
 ## Top 10 launch gate
 

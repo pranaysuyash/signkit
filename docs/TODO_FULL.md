@@ -1,6 +1,10 @@
 # Full Launch Roadmap
 
-This document mirrors the full backlog we've been tracking. It's grouped by area and uses statuses: [x] done • [~] in progress • [ ] pending • [s] skip/later.
+This document preserves the comprehensive roadmap we've been tracking. It is
+grouped by area and uses statuses: [x] locally evidenced, [~] in progress,
+[ ] pending, and [s] skip/later. Current priority, ownership, evidence, and
+release status are canonical in
+`docs/PRODUCT_OWNER_BACKLOG_AUDIT_2026-08-12.md` and `docs/QA_RESULTS.md`.
 
 **Progress: 18 done / 7 in-progress / 12 pending / 3 skip-for-now**
 
@@ -58,12 +62,12 @@ Legend:
 
 - [ ] Clean up commented/duplicate code
 - [x] Confirm port 8001 across docs, tests, and desktop client
-- [ ] Smoke tests: /health, upload, process round-trip
+- [x] Local smoke tests: /health, authenticated upload, process/export/deletion round-trip (`QA-53`); hosted smoke remains a separate gate
 
 ## Packaging and distribution (3)
 
-- [ ] PyInstaller spec for macOS bundle
-- [ ] Unsigned DMG for early adopters; add Gatekeeper bypass notes
+- [x] PyInstaller spec for the current macOS arm64 bundle (`QA-55`)
+- [~] Local macOS arm64 DMG proof exists (`QA-55`); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
 - [ ] Code signing + notarization (post-early access)
 
 ## Commerce (2)
@@ -73,11 +77,11 @@ Legend:
 
 ## Licensing, updates, and evaluation (10)
 
-- [~] HIGH: Evaluation Mode Gate (Soft) — non-blocking banner + periodic reminder; no feature gating
+- [x] Local evaluation and entitlement boundary uses signed receipts and an Upgrade path; the older soft-only framing is superseded (`L1-01`, `QA-23`)
 - [ ] Optional watermark toggle for evaluation exports (off by default)
 - [ ] Local license storage UX polish (Enter/Change license; no hard gate)
-- [ ] Export gating: Block Export/Save when unlicensed; show friendly Upgrade dialog with CTA
-- [ ] Add status bar message when unlicensed: “Evaluation mode — Export locked”
+- [x] Export gating blocks paid actions when unlicensed and exposes the Upgrade path (`L1-01`, `QA-23`)
+- [x] Status bar message when unlicensed explains the evaluation-mode export lock (`L1-01`, `QA-23`)
 - [x] Add “Check for Updates…” in Help; fetch `UPDATES_URL` JSON and compare version
 - [ ] Background weekly update check; store cache in `~/.signature_extractor/update_cache.json`
 - [ ] Align provider selection (Gumroad vs Paddle/Lemon) across docs and code
@@ -111,17 +115,27 @@ Legend:
 
 ## Landing page (8)
 
-- [ ] Implement landing sections per `docs/LANDING_PAGE_PLAN.md`
+- [x] Implement the local canonical landing sections per the document-registration-studio direction (`QA-51`, `QA-58`); hosted publication remains separate
 - [ ] Add comparison table from `docs/PRICING.md`
-- [ ] Wire primary CTA to checkout with UTM params
+- [x] Wire the local canonical CTA to state-aware checkout with bounded UTM params (`QA-27`, `QA-51`); provider activation and hosted parity remain separate
 - [ ] Publish `updates.json` at stable URL and link on page footer
-- [ ] Add legal footer links (Privacy, Terms/EULA, Refunds, Notices)
+- [x] Add local legal footer links for Privacy, Terms, EULA, and support; legal approval and hosted serving remain separate (`L1-02`, `QA-27`)
 - [ ] Produce 45s hero demo and 15s PDF placement GIF
 - [ ] Press kit: icon, logo, 3–5 screenshots with captions
 - [ ] A/B test CTA copy and pricing badge (optional)
 
 ---
 
+## Status synchronization addendum (2026-08-14)
+
+This full roadmap is a preserved planning inventory, not a second task
+authority. The Product Owner backlog owns current status. Local closures in
+this file are linked to QA evidence, while hosted deployment, provider
+activation, signing, notarization, cross-platform packaging, rollback,
+permissioned real-corpus evaluation, and user research remain open.
+
 Notes
 
-- This file is the authoritative full list. For a condensed “Top 10” tracker, see docs/TODO.md.
+- This file is a preserved full roadmap inventory. For the condensed tracker,
+  see `docs/TODO.md`; for current status, use the Product Owner backlog and QA
+  matrix.
