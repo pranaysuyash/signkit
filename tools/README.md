@@ -171,6 +171,10 @@ python3 tools/release_artifact_ledger.py --ledger ./artifacts/release_artifact_l
 - `run_extraction_hosted_smoke.py`: applies the Alembic head to a temporary
   SQLite database and exercises the real authenticated extraction flow through
   upload, replay, ownership denial, processing, export, delete, and audit.
+- `run_local_migration_recovery_proof.py`: applies the current Alembic head to
+  temporary SQLite state, downgrades the latest receipt-field migration to its
+  preceding revision, and re-upgrades it. This is local migration recovery
+  evidence, not target-database rollback proof.
 - `evaluate_signature_corpus.py`: evaluates labeled signature boxes with
   presence, instance, localization, and count metrics.
 - `validate_signature_corpus.py`: checks annotation geometry, image dimensions,

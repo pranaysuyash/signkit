@@ -112,6 +112,14 @@ MUTANTS = (
         reason="The local extraction smoke must fail when the health endpoint is not healthy.",
     ),
     Mutant(
+        id="migration-recovery-rollback-target",
+        file="tools/run_local_migration_recovery_proof.py",
+        find='        command.downgrade(alembic_config, ROLLBACK_TARGET)\n',
+        replace='        command.downgrade(alembic_config, "head")\n',
+        tests=("tests/test_local_migration_recovery_proof_tool.py",),
+        reason="The local migration proof must actually exercise the intended rollback revision.",
+    ),
+    Mutant(
         id="local-retry-attempt-accounting",
         file="desktop_app/workflows/engine.py",
         find=(

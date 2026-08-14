@@ -326,3 +326,13 @@ health mutation was killed. This advances only the local evidence
 for `L0-03` and `L0-09`; target migration, hosted rollout, production
 configuration, rollback, and live operator recovery remain open. Full evidence
 is in `docs/review/local_extraction_ownership_smoke_proof_2026-08-14.md`.
+
+## Addendum (2026-08-14): local migration recovery proof
+
+QA-54 passed the disposable migration cycle: head `9c4b7e2d1a6f` created the
+document-inspection receipt fields and index, downgrade to `e42b7f8c91aa`
+removed them, and re-upgrade restored them. The rollback-target mutation was
+killed and the complete mutation manifest remained `17/17`. This advances only
+the local migration subgate. Target backup restoration, hosted rollback,
+multi-worker migration behavior, and live operator recovery remain open under
+`RECON-07`.

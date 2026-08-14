@@ -390,6 +390,13 @@ database, hosted deployment,
 production configuration, rollback, and live operator receipt gates remain
 open. See `docs/review/local_extraction_ownership_smoke_proof_2026-08-14.md`.
 
+QA-54 adds a disposable migration-recovery proof for the same local release
+boundary. The current Alembic head was downgraded to `e42b7f8c91aa` and
+re-upgraded to `9c4b7e2d1a6f`, with receipt fields and the request-hash index
+removed and restored. This advances the local rollback subgate for `L0-09`,
+but target backup restoration, hosted rollback, and live operator recovery
+remain open. See `docs/review/local_migration_recovery_proof_2026-08-14.md`.
+
 ## Addendum (2026-08-14): release ledger identity hardening
 
 The local release ledger gate now rejects malformed source identifiers and
