@@ -6,8 +6,9 @@ from dataclasses import replace
 
 import pytest
 
-from desktop_app.license.activation import ActivationError, activate_receipt
-from desktop_app.license.storage import load_license
+from desktop_app.license.activation import ActivationError, activate_receipt, reconcile_receipt
+from desktop_app.license.storage import LicenseValidator, load_license, OperationType
+from desktop_app.license.entitlements import EntitlementState
 
 
 def _configure_key(monkeypatch, public_key: bytes) -> None:
@@ -54,3 +55,69 @@ def test_activation_rejects_a_different_second_entitlement(
 
     with pytest.raises(ActivationError, match="different entitlement"):
         activate_receipt(second)
+
+
+def test_reconcile_receipt_applies_signed_revocation_and_fails_closed(
+    monkeypatch, tmp_path, signed_receipt
+) -> None:
+    monkeypatch.setattr("desktop_app.license.storage._config_dir", lambda: str(tmp_path))
+    first, public_key = signed_receipt(
+        plan_id="starter",
+        activation_id="activation-revocation-001",
+    )
+    revoked, _ = signed_receipt(
+        plan_id="starter",
+        activation_id="activation-revocation-001",
+        state=EntitlementState.REFUNDED,
+        issued_at=first.issued_at.replace(day=14),
+        verified_at=first.verified_at.replace(day=14),
+    )
+    _configure_key(monkeypatch, public_key)
+
+    activate_receipt(first)
+    result = reconcile_receipt(revoked)
+
+    assert result.replayed is False
+    assert result.license_info.entitlement == revoked
+    assert load_license().is_valid() is False
+    assert LicenseValidator.is_operation_allowed(OperationType.EXPORT)[0] is False
+
+
+def test_reconcile_receipt_rejects_older_active_state_after_revocation(
+    monkeypatch, tmp_path, signed_receipt
+) -> None:
+    monkeypatch.setattr("desktop_app.license.storage._config_dir", lambda: str(tmp_path))
+    first, public_key = signed_receipt(
+        plan_id="starter",
+        activation_id="activation-revocation-002",
+    )
+    revoked, _ = signed_receipt(
+        plan_id="starter",
+        activation_id="activation-revocation-002",
+        state=EntitlementState.REVOKED,
+        issued_at=first.issued_at.replace(day=14),
+        verified_at=first.verified_at.replace(day=14),
+    )
+    _configure_key(monkeypatch, public_key)
+
+    activate_receipt(first)
+    reconcile_receipt(revoked)
+
+    with pytest.raises(ActivationError, match="older"):
+        reconcile_receipt(first)
+    assert load_license().entitlement == revoked
+
+
+def test_reconcile_receipt_cannot_install_an_inactive_first_state(
+    monkeypatch, tmp_path, signed_receipt
+) -> None:
+    monkeypatch.setattr("desktop_app.license.storage._config_dir", lambda: str(tmp_path))
+    revoked, public_key = signed_receipt(
+        state=EntitlementState.REVOKED,
+        activation_id="activation-revocation-003",
+    )
+    _configure_key(monkeypatch, public_key)
+
+    with pytest.raises(ActivationError, match="inactive receipt"):
+        reconcile_receipt(revoked)
+    assert load_license() is None

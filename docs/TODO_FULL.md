@@ -78,6 +78,7 @@ Legend:
 ## Licensing, updates, and evaluation (10)
 
 - [x] Local evaluation and entitlement boundary uses signed receipts and an Upgrade path; the older soft-only framing is superseded (`L1-01`, `QA-23`)
+- [x] Reconcile newer signed entitlement lifecycle states monotonically and fail closed after local revocation/refund evidence (`QA-63`); provider delivery, support recovery, and commercial/device policy remain open
 - [ ] Optional watermark toggle for evaluation exports (off by default)
 - [ ] Local license storage UX polish (Enter/Change license; no hard gate)
 - [x] Export gating blocks paid actions when unlicensed and exposes the Upgrade path (`L1-01`, `QA-23`)

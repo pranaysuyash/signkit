@@ -22,6 +22,11 @@ SignKit uses a local-first, fail-closed entitlement boundary:
   sale fallback for receipts that do not provide one. Replaying the same
   activation returns the existing local record. A different second entitlement
   is rejected until an explicit account/device policy exists.
+- Later signed lifecycle states use `reconcile_receipt`. The update must keep
+  the activation identity and be newer than the stored signed state, so a
+  refund, revocation, dispute, chargeback, expiry, or restoration cannot be
+  spoofed or rolled back by replaying an older active receipt. An inactive
+  receipt cannot be installed as the first entitlement.
 - The local license file is a cache of normalized evidence, not the source of
   truth. A key-only record may remain for migration and support visibility but
   cannot unlock a paid feature.
@@ -60,7 +65,8 @@ artifact signing, packaging, and distribution controls remain separate gates.
 The local slice is covered by receipt canonicalization and Ed25519 verification,
 unknown/malformed/unsigned/revoked/expired fail-closed, receipt-owned plan and
 add-on, same-activation replay, different-entitlement conflict, legacy-key,
-and development-test-mode regression tests. The evidence is Tier 2 local
+signed lifecycle reconciliation, stale rollback rejection, and
+development-test-mode regression tests. The evidence is Tier 2 local
 code/test evidence, not provider-flow, hosted, real-purchase, refund, or
 production-release evidence.
 
@@ -77,3 +83,6 @@ receipt-owned grants, and explicit offline/revocation policy.
 - 2026-08-13: promoted the local-first signed-receipt contract from the
   provider-neutral scaffold into the enforced local activation boundary. No
   provider or deployment claim was added.
+- 2026-08-14: added monotonic local signed lifecycle reconciliation for
+  revocation, refund, dispute, chargeback, expiry, and restoration states. No
+  provider delivery or hosted activation claim was added.

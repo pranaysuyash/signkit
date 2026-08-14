@@ -91,6 +91,7 @@ Product Owner backlog and QA matrix.
 ## Licensing & Evaluation
 
 - [x] Local paid-feature gating uses one signed receipt boundary; legacy keys fail closed and the historical test key is explicit test mode. See `docs/decisions/ADR-0151-signed-local-entitlement-activation.md`.
+- [x] Apply newer signed entitlement lifecycle states monotonically so local refund/revocation evidence fails closed and older active receipts cannot roll it back (`QA-63`); provider delivery and commercial policy remain open.
 - [ ] Provider adapter and controlled activation: configure product ID, verify receipt delivery, and exercise replay, timeout, refund, dispute, chargeback, offline grace, and support recovery (`L0-02`, `QA-15`)
 - [x] Native-GUI proof archived for cancel/confirm, keyboard focus, preview rendering, and failure messaging; rerun after candidate-dialog or desktop-runtime changes (`RECON-23`)
 - [~] Synthetic auto-detection baseline recorded; dataset research was refreshed without downloading new files; permissioned held-out evaluation, provenance, recall@k/IoU, failure classes, and an accuracy-bar decision remain open (`RECON-24`). See `docs/research/auto_detection_dataset_research_2026-08-14.md`.
