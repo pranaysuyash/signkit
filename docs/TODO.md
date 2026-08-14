@@ -68,7 +68,8 @@ Product Owner backlog and QA matrix.
 ## Packaging and distribution
 
 - [x] PyInstaller spec for the current macOS arm64 bundle (`QA-55`)
-- [~] Local macOS arm64 DMG proof exists (`QA-55`); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
+- [x] Rebuild and reprove the current `main` macOS arm64 app, DMG identity, frozen runtime, local browser handoff, and bridge recovery (`QA-65`)
+- [~] Local macOS arm64 DMG proof exists (`QA-65`, historical `QA-55` retained); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
 - [ ] Code signing + notarization (post-early access)
 - [x] Manual update check in-app (“Check for Updates…”) using static updates.json
 
@@ -78,7 +79,7 @@ Product Owner backlog and QA matrix.
 - [ ] Create Gumroad account + product (Standard license)
 - [ ] Set GUMROAD_PRODUCT_URL in .env and wire Buy action (Buy menu opens env URL; fallback present)
 - [ ] Product page copy (benefits, usage GIF, FAQ)
-- [~] Deliverable bundle: current macOS arm64 app and DMG are locally proven; signed, notarized, cross-platform, and rollback-ready bundles remain open (`L0-05`, `L0-14`, `QA-55`)
+- [~] Deliverable bundle: current macOS arm64 app and DMG are locally proven; signed, notarized, cross-platform, and rollback-ready bundles remain open (`L0-05`, `L0-14`, `QA-65`)
 - [ ] Plan later migration path (DoDoPayments)
 
 ## Docs and comms

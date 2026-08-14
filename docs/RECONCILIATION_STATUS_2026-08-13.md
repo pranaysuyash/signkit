@@ -437,3 +437,27 @@ from SignKit configuration and makes the remaining selection, activation,
 offline, refund, support, and device-policy decisions explicit. `L0-02`,
 `L2-03`, and `RECON-09` remain open until product-owner authority and
 secret-safe controlled provider evidence exist.
+
+## Addendum (2026-08-14): current `main` macOS arm64 artifact reproof
+
+QA-65 supersedes the earlier QA-55 package checkpoint for current `main` while
+preserving QA-55 as historical evidence. Source
+`b2dde9e4919df1679809b6554a5bba0fa8df3ef4` was rebuilt with the canonical
+standard PyInstaller spec. The arm64 executable SHA-256 is
+`9efb3711d1af10a47dae2013f9199f8d6a394b9b4c5190fd95d5f9ada8b7d379`; the
+133,831,747-byte DMG SHA-256 is
+`50ddf14e9b6f82a18f3f9a7ad7979d6f793b55d1a55d2f284aaab7788fddb40b`.
+
+Frozen runtime proof passed health `200`, ad hoc codesign verification,
+bundled workspace presence, isolated data creation, and clean port-8001
+shutdown. The current local browser proof passed the desktop, touch, and
+narrow landing views plus workspace handoff; the authenticated bridge proof
+passed owner-bound recovery and document-byte exclusion. The schema-valid
+ledger is generated under `.codex-test-tmp/current-arm64-release-ledger.json`;
+its strict readiness gate intentionally fails because signing is
+`not_verified` and rollback is `not-recorded`.
+
+This advances only the local current-artifact identity and operator-observation
+portion of `L0-05`, `L0-14`, and `RECON-10`. Signing or notarization,
+recoverable rollback, Intel/Windows/Linux artifacts, clean-machine installation,
+hosted deployment, provider activation, and remote CI remain open.

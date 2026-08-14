@@ -67,7 +67,8 @@ Legend:
 ## Packaging and distribution (3)
 
 - [x] PyInstaller spec for the current macOS arm64 bundle (`QA-55`)
-- [~] Local macOS arm64 DMG proof exists (`QA-55`); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
+- [x] Rebuild and reprove the current `main` macOS arm64 app, DMG identity, frozen runtime, local browser handoff, and bridge recovery (`QA-65`)
+- [~] Local macOS arm64 DMG proof exists (`QA-65`, historical `QA-55` retained); Gatekeeper guidance, signing, notarization, and other-platform bundles remain open
 - [ ] Code signing + notarization (post-early access)
 
 ## Commerce (2)
