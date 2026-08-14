@@ -428,3 +428,12 @@ retaining the pre-analytics `index.html` source commit. The snapshot and rows
 were synchronized to the current `main` source commit, after which the full
 suite passed `541 passed, 4 skipped`. The repair restores local provenance and
 does not change hosted, provider, legal, or deployed-claim status.
+
+## Addendum (2026-08-14): provider decision research refresh
+
+`L2-15` records a primary-source refresh of the Gumroad and Dodo Payments
+license and entitlement models. The memo distinguishes provider capabilities
+from SignKit configuration and makes the remaining selection, activation,
+offline, refund, support, and device-policy decisions explicit. `L0-02`,
+`L2-03`, and `RECON-09` remain open until product-owner authority and
+secret-safe controlled provider evidence exist.

@@ -142,6 +142,11 @@ invalidation, and configured forwarding remains tested. This does not claim
 provider activation, consent compliance, hosted parity, event delivery, or
 production observability.
 
+The provider decision remains blocked pending product-owner authority. The
+2026-08-14 primary-source comparison records the current Gumroad and Dodo
+license, lifecycle, secret, and activation differences without treating either
+provider as configured.
+
 Notes
 
 - This file is a preserved full roadmap inventory. For the condensed tracker,

@@ -74,6 +74,7 @@ Product Owner backlog and QA matrix.
 
 ## Commerce (Gumroad first)
 
+- [~] Provider selection and commercial activation model require product-owner authority; current primary-source comparison is preserved in `docs/research/entitlement_provider_decision_refresh_2026-08-14.md` and does not claim a configured provider (`L2-15`, `L2-03`)
 - [ ] Create Gumroad account + product (Standard license)
 - [ ] Set GUMROAD_PRODUCT_URL in .env and wire Buy action (Buy menu opens env URL; fallback present)
 - [ ] Product page copy (benefits, usage GIF, FAQ)
