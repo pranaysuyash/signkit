@@ -9,6 +9,7 @@ runtime provider verification.
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 
@@ -80,6 +81,38 @@ def _registry_rows() -> dict[str, str]:
         if match:
             rows[match.group(1)] = line
     return rows
+
+
+def _git_latest_commit(relative_path: str) -> str:
+    completed = subprocess.run(
+        ["git", "log", "-1", "--format=%H", "--", relative_path],
+        cwd=PROJECT_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.strip()
+
+
+def test_registry_records_existing_source_commit_for_every_claim() -> None:
+    """Claim provenance must be reviewable and must point at real commits."""
+
+    registry = REGISTRY_PATH.read_text(encoding="utf-8")
+    snapshot = re.search(r"Claim wording source snapshot: `([0-9a-f]{40})`", registry)
+    assert snapshot, "the registry must record the canonical wording snapshot"
+    assert snapshot.group(1) == _git_latest_commit("index.html")
+
+    rows = _registry_rows()
+    assert set(rows) == CLAIM_IDS
+    for claim_id, row in rows.items():
+        commits = re.findall(r"`([0-9a-f]{40})`", row)
+        assert len(commits) == 1, claim_id
+        assert subprocess.run(
+            ["git", "cat-file", "-e", f"{commits[0]}^{{commit}}"],
+            cwd=PROJECT_ROOT,
+            check=False,
+            capture_output=True,
+        ).returncode == 0, claim_id
 
 
 def test_registry_bindings_are_complete() -> None:

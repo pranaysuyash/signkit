@@ -5,7 +5,7 @@ Checkout: `/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-e
 Runtime: repository `.venv`, Python 3.13
 Scope: local reproducible matrix only unless stated otherwise
 
-Current checkpoint (2026-08-14): the canonical suite passes `532 passed, 4
+Current checkpoint (2026-08-14): the canonical suite passes `533 passed, 4
 skipped`; the complete mutation manifest passes `18/18`; and the strict local
 public-surface audit passes with explicit retained-history warnings. Dated rows
 below preserve their original evidence and counts. The latest additions are
@@ -62,6 +62,7 @@ QA-53, QA-54, QA-55, and the QA matrix contract proof.
 | QA-54 | PASS with boundary | Tier 2 disposable Alembic upgrade, downgrade, and re-upgrade, S2/S3 | `./.venv/bin/python tools/run_local_migration_recovery_proof.py` passed with initial and final head `9c4b7e2d1a6f` and rollback target `e42b7f8c91aa`; receipt fields and the request-hash index were removed and restored as expected. The subprocess test passed, the rollback-target mutation was killed, and the complete mutation manifest passed `18/18`. This is local SQLite migration evidence, not target-database backup restoration, hosted rollback, or live operator recovery. See `docs/review/local_migration_recovery_proof_2026-08-14.md`. |
 | QA-55 | PASS with boundary | Tier 4 local macOS arm64 packaged runtime and browser observation, S1 | The current standard PyInstaller build completed after installing the declared build requirements. `tools/run_local_packaged_runtime_proof.py` passed with frozen health `200`, ad hoc codesign verification, no bundled `.env`, workspace asset presence, isolated SQLite/JWT/log state, and clean port-8001 shutdown. The fresh DMG SHA-256 is `00d21e954ffcf61eb77cae905389cb4123944b1a4212ccc39c899b451a649818`; the packaged landing/workspace and authenticated bridge browser proofs also passed with zero browser errors. The local ledger remains deliberately non-ready because signing, rollback, other platforms, hosted, provider, and remote CI evidence are open. See `docs/review/local_packaged_artifact_proof_2026-08-14.md`. |
 | QA-56 | PASS with boundary | Tier 2 documentation contract, S1 | `tests/test_qa_matrix_contract.py` verifies the stable result table, negative-path coverage, explicit failed/open external gates, current `QA-55` evidence, optional PyMuPDF boundary, historical-claim warnings, and the local-versus-hosted evidence boundary. See `docs/review/qa_matrix_contract_proof_2026-08-14.md`. |
+| QA-57 | PASS with boundary | Tier 2 claim-registry provenance contract, S1 | `tests/test_launch_claim_registry.py` passed `17` checks. The registry records a full source commit for every canonical-root claim, the wording snapshot matches the latest `index.html` commit, and every row commit exists in Git. This closes local provenance only; provider activation, legal approval, deployed parity, and hosted proof remain open. See `docs/review/claim_registry_provenance_proof_2026-08-14.md`. |
 
 Additional touched-flow checks:
 

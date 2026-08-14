@@ -353,3 +353,12 @@ contract preserves reproducible result rows, negative-path evidence, explicit
 failed and open external gates, known capability limits, retained historical
 warnings, and the local-versus-hosted boundary. The matrix does not close the
 underlying external gates.
+
+## Addendum (2026-08-14): claim registry provenance
+
+QA-57 closes the local provenance portion of `L2-06`. The canonical-root claim
+registry now records a full source commit for each claim row. Its test checks
+that the registry snapshot matches the latest `index.html` commit and that
+each row points to an existing Git commit. This is source-control evidence
+only. Provider activation, legal approval, deployed claim parity, and hosted
+proof remain open under `RECON-08`, `L0-13`, `L1-07`, and `RECON-09`.
