@@ -120,5 +120,8 @@ comparison with `docs/context/agent-start/AGENT_KICKOFF_PROMPT.txt`,
 `docs/review/agent_start_doctrine_contract_proof_2026-08-14.md`. The broader
 workspace Doctrine remains an instruction layer, but it does not replace the
 more-specific project motto for SignKit commit attestation. `bash -n` passes
-for all three active hooks. This is a local source and syntax proof; the full
-commit and push gate remains to be rerun after this reconciliation.
+for all three active hooks. The configured prepare-commit, pre-commit, and
+commit-message gates then passed for commit `c06aefc`; `git push origin main`
+completed successfully and remote parity was verified at
+`c06aefce35d9bbebc9c8b24253dcde3c5abe2533`. This remains local Git delivery
+evidence, not hosted deployment or remote-CI proof.

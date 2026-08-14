@@ -11,6 +11,19 @@ local `main`. It complements the immutable preservation index and the Product
 Owner backlog. It does not treat an archive document or a passing static test
 as production proof.
 
+## 2026-08-14 retrieval and gate checkpoint
+
+Commit `c06aefc` records the local workspace-memory retrieval proof, the
+preserved alternate hook variant, RECON-30, RECON-31, QA-45 through QA-47, and
+the derived `.agent` compatibility mirror. The configured local commit gates
+passed, `git push origin main` succeeded, and local and remote `main` were
+verified equal at
+`c06aefce35d9bbebc9c8b24253dcde3c5abe2533`. The concurrent calibration
+implementation, lower-case generated context, `.gitignore`, builder script,
+generated datasets, and root `TODO.md` remain preserved outside this commit.
+QA-48 records the delivery evidence. This is not hosted deployment, remote CI,
+provider, packaging, device, or external-corpus proof.
+
 ## Completed promotion groups
 
 | Group | Commit | Scope | Evidence | Remaining boundary |
