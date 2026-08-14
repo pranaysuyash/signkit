@@ -1,6 +1,6 @@
 # Source this file in your shell for this project session.
-export MEMSEARCH_PROVIDER="ollama"
-export MEMSEARCH_MODEL="nomic-embed-text"
+export MEMSEARCH_PROVIDER="local"
+export MEMSEARCH_MODEL="BAAI/bge-m3"
 export PM="/Users/pranay/Projects/projects-memory"
 export PROJECT_REL="Data_Science/computer_vision/proj6/signature-extractor-app"
 export AGENT_DOCTRINE_SOURCE="/Users/pranay/Projects/Data_Science/computer_vision/proj6/signature-extractor-app/motto_v5.md"
