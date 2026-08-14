@@ -58,6 +58,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [x] Remove hardcoded backend database credential defaults, fail closed for incomplete production configuration, and protect local PII paths with owner-only permissions
 - [x] Run authenticated extraction ownership smoke against disposable SQLite and the current Alembic head; retain target migration and hosted recovery as separate gates (`QA-53`)
 - [x] Exercise local Alembic head downgrade and re-upgrade for the receipt-field migration; retain target backup restoration and hosted rollback as separate gates (`QA-54`)
+- [x] Build and exercise the current macOS arm64 local package with isolated runtime and browser proof; retain signing, rollback, other-platform, hosted, provider, and remote CI gates (`QA-55`)
 
 ## Packaging and distribution
 

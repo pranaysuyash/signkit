@@ -332,7 +332,16 @@ is in `docs/review/local_extraction_ownership_smoke_proof_2026-08-14.md`.
 QA-54 passed the disposable migration cycle: head `9c4b7e2d1a6f` created the
 document-inspection receipt fields and index, downgrade to `e42b7f8c91aa`
 removed them, and re-upgrade restored them. The rollback-target mutation was
-killed and the complete mutation manifest remained `17/17`. This advances only
+killed and the complete mutation manifest remained `18/18`. This advances only
 the local migration subgate. Target backup restoration, hosted rollback,
 multi-worker migration behavior, and live operator recovery remain open under
 `RECON-07`.
+
+## Addendum (2026-08-14): fresh macOS arm64 packaged artifact
+
+QA-55 records a current PyInstaller standard build, frozen runtime proof,
+canonical landing and workspace browser proof, authenticated bridge recovery,
+and DMG checksum. The local ledger records signing and smoke as not verified or
+not run and has no rollback artifact, so `L0-05`, `L0-14`, and `RECON-09`
+remain open for release-owner evidence, other platforms, notarization,
+rollback, hosted deployment, provider activation, and remote CI.

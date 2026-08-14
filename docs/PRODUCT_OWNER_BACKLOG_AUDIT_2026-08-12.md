@@ -397,6 +397,14 @@ removed and restored. This advances the local rollback subgate for `L0-09`,
 but target backup restoration, hosted rollback, and live operator recovery
 remain open. See `docs/review/local_migration_recovery_proof_2026-08-14.md`.
 
+QA-55 records a fresh macOS arm64 standard artifact from the current checkout,
+including frozen health, isolated local state, ad hoc verification, browser
+workspace and bridge observation, and the DMG checksum. This advances the
+local artifact portion of `L0-05`, `L0-12`, and `L0-14`; the ledger remains
+non-ready until signing, rollback, other platform, hosted, provider, and
+remote CI evidence exists. See
+`docs/review/local_packaged_artifact_proof_2026-08-14.md`.
+
 ## Addendum (2026-08-14): release ledger identity hardening
 
 The local release ledger gate now rejects malformed source identifiers and

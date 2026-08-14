@@ -175,6 +175,10 @@ python3 tools/release_artifact_ledger.py --ledger ./artifacts/release_artifact_l
   temporary SQLite state, downgrades the latest receipt-field migration to its
   preceding revision, and re-upgrades it. This is local migration recovery
   evidence, not target-database rollback proof.
+- `run_local_packaged_runtime_proof.py`: verifies the current macOS package,
+  ad hoc signature, credential exclusion, bundled workspace asset, frozen
+  health readiness, isolated data root, and clean port-8001 shutdown. Browser
+  interaction remains a separate Playwright proof.
 - `evaluate_signature_corpus.py`: evaluates labeled signature boxes with
   presence, instance, localization, and count metrics.
 - `validate_signature_corpus.py`: checks annotation geometry, image dimensions,
