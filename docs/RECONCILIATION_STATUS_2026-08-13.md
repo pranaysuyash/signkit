@@ -77,7 +77,7 @@ provider, signing, rollback, browser-device, remote CI, or agent-start gates.
 | RECON-27 | done-local | local operator recovery | The workflow engine and console now recover old transient jobs explicitly into `NEEDS_REVIEW` with a durable interruption event, no automatic retry, bounded copy, and invalid-timestamp fail-safe. Focused engine, operator-content, and Qt smoke tests pass `36` checks. | Keep the explicit recovery action and age threshold. Reopen for packaged/cross-platform interruption, filesystem recovery, assistive-technology, hosted, or provider evidence. |
 | RECON-28 | open | auto-detection confidence governance | The preserved calibration slice is integrated locally with detector adapters, manifest/PDF page validation, one-to-one matching, pure-numpy metrics/calibrators, split-boundary warnings, a CLI, dataset-schema and artifact-policy documentation, and `10` focused checks plus a synthetic self-test. | Prove held-out permissioned evaluation, document calibration and threshold falsifiers, complete privacy/consent governance, decide the product accuracy bar, and decide whether to promote any calibrated threshold into the detector contract. Do not claim production or real-data calibration from the synthetic self-test. |
 | RECON-29 | done-local | local operator deletion recovery | Library deletion now records the sidecar basename in a metadata-only receipt and exposes an explicit `Repair Cleanup` action for incomplete receipts. Recovery is bounded to regular files inside the library, updates receipts atomically, preserves unresolved directories and unsafe/malformed targets, and reports remaining work. QA-44 passed `37` focused checks with `3` pre-existing event-loop skips. | Keep explicit operator invocation and the local path boundary. Reopen for real permission/device behavior, restart recovery, packaged/cross-platform, assistive-technology, hosted, or provider evidence. |
-| RECON-30 | done-local | calibration artifact preservation and release reproducibility | `.gitignore` now exposes the two manifests, four calibration reports, and two provenance notes while keeping generated PNG/PDF assets ignored. Manifest metadata records generator, version, seed, sample count, ground-truth boundary, and artifact policy. The builder is deterministic across independent eight-sample outputs; the artifact-policy plus calibration focused suite passes `9` checks; all four 120-sample reports rerun successfully. Evidence: `docs/review/calibration_artifact_policy_proof_2026-08-14.md`. | Keep generated assets reproducible from the tracked builder and manifest metadata. Reopen for a clean-checkout CI job, permissioned real corpus, privacy governance, product accuracy bar, or threshold promotion. |
+| RECON-30 | done-local | calibration artifact preservation and release reproducibility | `.gitignore` now exposes the two manifests, four calibration reports, and two provenance notes while keeping generated PNG/PDF assets ignored. Manifest metadata records generator, version, seed, sample count, ground-truth boundary, and artifact policy. The builder is deterministic across independent eight-sample outputs; the artifact-policy plus calibration focused suite passes `10` checks; all four 120-sample reports rerun successfully. Evidence: `docs/review/calibration_artifact_policy_proof_2026-08-14.md`. | Keep generated assets reproducible from the tracked builder and manifest metadata. Reopen for a clean-checkout CI job, permissioned real corpus, privacy governance, product accuracy bar, or threshold promotion. |
 | RECON-31 | done-local | shared commit-gate authority | A concurrent dirty hook variant changed `.githooks/pre-commit`, `.githooks/commit-msg`, and `.githooks/prepare-commit-msg` from project-local `motto_v5.md` to workspace `OPERATING_DOCTRINE.md`. The exact variant is preserved under `docs/archive/parallel/agent-hook-operating-doctrine-2026-08-14/`; active hooks were reconciled to the project contract and all three pass `bash -n`. | Keep the workspace doctrine as the broader instruction layer and the selected project motto as the SignKit attestation source. Reopen only if the project source rule changes through a documented decision with updated tests and hook evidence. |
 
 ## Explicit non-claims
@@ -273,3 +273,30 @@ validation expanded the current evidence to `10` checks. The artifact proof at
 for the final count and scope. Clean-checkout CI, permissioned real data,
 privacy governance, the product accuracy bar, and threshold promotion remain
 open under RECON-28.
+
+## Addendum (2026-08-14): fresh local operator proof
+
+QA-51 records a fresh Tier 4 local observation of the canonical
+document-registration-studio landing, metadata-first workspace, disposable
+source-to-ready workflow, and authenticated passport bridge. The local stack
+used isolated SQLite and filesystem data, passed the three required browser
+viewports with no browser errors, recovered a forced signing failure through
+the canonical retry path, and kept private paths and document bytes out of the
+browser workspace. This advances the local evidence for `L1-08`, `RECON-17`,
+and `RECON-18`; it does not close hosted, provider, packaged/cross-platform,
+assistive-technology, legal-signature, or real-user gates. Full evidence is in
+`docs/review/local_product_operator_proof_2026-08-14.md`.
+
+## Addendum (2026-08-14): RECON-24 dataset research refresh
+
+The public candidate records were rechecked without downloading new files.
+SignverOD remains relevant for document localization but its card names
+multiple upstream sources, so its hosted Apache label is not treated as proof
+of upstream permission. The tech4humans corpus is gated and requires contact
+sharing. SigDetectVerifyFlow combines detection and verification and remains
+subject to source-chain and privacy review. OHSDA's primary record confirms
+written consent, ethics approval, and CC BY 4.0, but it is an isolated
+signature biometric dataset with age and sex metadata rather than a document
+localization corpus. NIST Special Database 2 is computer-synthesized form
+context. RECON-24 remains in progress. Full findings are in
+`docs/research/auto_detection_dataset_research_2026-08-14.md`.

@@ -298,7 +298,7 @@ adds and tracks the local promotion separately from deployment gates:
 | RECON-25 | implicit | local product / PDF field detection | done-local | P1 | The existing PDF field detector now shares one image-to-PDF coordinate transform and one overlap-dedupe helper across candidate paths; the generated labeled AcroForm regression requires confidence `>=0.90` and IoU `>=0.85`; the documentation contract names both image and PDF detection modules. QA-37 passed `15` focused checks. | Preserve operator confirmation and bounded candidate counts. Reopen if the detector changes coordinate space, candidate representation, or placement ownership. General human/production PDF accuracy and confidence calibration remain governed by RECON-24 and must not be inferred from this local contract. |
 | RECON-28 | implicit | research / auto-detection confidence governance | open | P1 | The preserved calibration harness is integrated locally with detector adapters, manifest/PDF page validation, one-to-one matching, pure-numpy metrics/calibrators, split-boundary warnings, a CLI, dataset-schema and artifact-policy documentation, and `10` focused checks plus a synthetic self-test. | Prove held-out permissioned evaluation, document calibration and threshold falsifiers, complete privacy/consent governance, decide the product accuracy bar, and decide whether to promote any calibrated threshold into the detector contract. Do not claim production or real-data calibration from the synthetic self-test. |
 | RECON-29 | implicit | local product / deletion recovery | done-local | P1 | Incomplete library deletion receipts now expose an explicit `Repair Cleanup` action. The local repair path accepts only basename receipt fields, stays inside the library boundary, removes only regular sidecar files after operator invocation, atomically records recovery, and leaves ambiguous, unsafe, directory, permission, and receipt-write failures unresolved. QA-44 passed `37` focused checks with `3` pre-existing event-loop skips. | Preserve explicit operator invocation and metadata-only receipts. Reopen for real permission/device behavior, restart recovery, packaged/cross-platform, assistive-technology, hosted, or provider evidence. |
-| RECON-30 | implicit | calibration artifact preservation and release reproducibility | done-local | P1 | `.gitignore` now exposes the two manifests, four reports, and two provenance notes while ignoring generated PNG/PDF assets. Each manifest records generator, version, seed, sample count, ground-truth boundary, and artifact policy. Independent builder outputs match byte-for-byte; the artifact-policy plus calibration focused suite passes `9` checks; and all four 120-sample reports rerun successfully. See `docs/review/calibration_artifact_policy_proof_2026-08-14.md`. | Preserve the builder, manifest/report/note boundary, and regeneration command. Reopen for clean-checkout CI, permissioned real data, privacy governance, the product accuracy bar, or threshold promotion. |
+| RECON-30 | implicit | calibration artifact preservation and release reproducibility | done-local | P1 | `.gitignore` now exposes the two manifests, four reports, and two provenance notes while ignoring generated PNG/PDF assets. Each manifest records generator, version, seed, sample count, ground-truth boundary, and artifact policy. Independent builder outputs match byte-for-byte; the artifact-policy plus calibration focused suite passes `10` checks; and all four 120-sample reports reran successfully. See `docs/review/calibration_artifact_policy_proof_2026-08-14.md`. | Preserve the builder, manifest/report/note boundary, and regeneration command. Reopen for clean-checkout CI, permissioned real data, privacy governance, the product accuracy bar, or threshold promotion. |
 | RECON-31 | implicit | shared commit-gate authority | done-local | P1 | A concurrent dirty hook variant changed all three `.githooks` scripts from project-local `motto_v5.md` to workspace `OPERATING_DOCTRINE.md`. The exact scripts are preserved under `docs/archive/parallel/agent-hook-operating-doctrine-2026-08-14/`; active hooks are reconciled to the SignKit project contract and pass `bash -n`. | Preserve the alternate variant as historical evidence. Keep workspace Doctrine as the broader instruction layer and project-local `motto_v5.md` as the SignKit attestation source unless a documented source-of-truth decision changes both hooks and tests. |
 
 ## Addendum (2026-08-13): synthetic auto-detection baseline
@@ -351,3 +351,30 @@ RECON-30 evidence correction: the first artifact-policy checkpoint recorded
 `9` focused checks. QA-49 and
 `docs/review/calibration_artifact_policy_proof_2026-08-14.md` supersede that
 checkpoint with `10` checks after generation-metadata validation was added.
+
+## Addendum (2026-08-14): fresh local operator evidence
+
+QA-51 adds a fresh Tier 4 local observation for the highest-value local
+operator path. The canonical landing, workspace boundary, source-to-ready
+execution, forced-failure retry, metadata-only passport projection, and
+owner-bound browser bridge all passed against isolated local state. The proof
+does not claim hosted deployment, provider activation, packaged or
+cross-platform recovery, assistive-technology certification, legal-signature
+validity, or real-user comprehension. `L1-08` remains in progress because
+those separate gates are still open. See
+`docs/review/local_product_operator_proof_2026-08-14.md`.
+
+## Addendum (2026-08-14): RECON-24 dataset research refresh
+
+The current source records were rechecked without downloading any candidate
+files. SignverOD remains the strongest document-localization candidate but has
+multiple upstream sources whose terms and provenance require review. The
+tech4humans corpus is gated and requires contact-information sharing.
+SigDetectVerifyFlow combines detection and verification and remains too broad
+for promotion without a privacy and source-chain decision. OHSDA's primary
+record confirms written consent, ethics approval, and CC BY 4.0, but its
+isolated signatures and age/sex metadata make it a poor fit for the current
+localization gate. NIST Special Database 2 is computer-synthesized form data,
+not real handwritten-signature ground truth. RECON-24 remains in progress.
+See `docs/research/auto_detection_dataset_research_2026-08-14.md` and the
+registry at `docs/test_data_dataset_registry_2026-08-13.json`.
