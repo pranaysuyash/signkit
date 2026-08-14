@@ -362,3 +362,12 @@ that the registry snapshot matches the latest `index.html` commit and that
 each row points to an existing Git commit. This is source-control evidence
 only. Provider activation, legal approval, deployed claim parity, and hosted
 proof remain open under `RECON-08`, `L0-13`, `L1-07`, and `RECON-09`.
+
+## Addendum (2026-08-14): retained-surface warning dispositions
+
+QA-58 closes the local warning-inventory portion of `L1-07`. The strict audit's
+six retained HTML warning surfaces and 30 historical-document paths are now
+listed in `docs/launch_claims/retained_surface_dispositions.md`. A contract
+test keeps that register synchronized with the current auditor output. This
+does not prove deployed redirects, release artifact exclusion, legal review,
+or hosted parity.

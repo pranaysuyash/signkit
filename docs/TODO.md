@@ -61,6 +61,7 @@ Full backlog (34 items): see TODO_FULL.md
 - [x] Build and exercise the current macOS arm64 local package with isolated runtime and browser proof; retain signing, rollback, other-platform, hosted, provider, and remote CI gates (`QA-55`)
 - [x] Keep the QA matrix executable and boundary-aware for negative paths, known limits, and hosted/provider non-claims (`QA-56`)
 - [x] Make every canonical-root claim reviewable through a registry source commit and existing-commit test; retain provider, legal, and deployed gates (`QA-57`)
+- [x] Keep strict-audit retained-page and historical-document warnings tied to explicit archive or redirect-only dispositions; retain deployed and legal gates (`QA-58`)
 
 ## Packaging and distribution
 
